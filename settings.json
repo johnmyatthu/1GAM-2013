@@ -1,0 +1,5 @@
+{
+	"map" : "isometric.tmx",
+	"move_speed" : 250,
+	"spawn" : [-925, -460]
+}
