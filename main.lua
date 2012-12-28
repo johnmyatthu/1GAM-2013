@@ -1,114 +1,67 @@
 require "json4lua.trunk.json.json"
 loader = require "AdvTiledLoader.Loader"
-require "gamerules"
-
-local fonts = setmetatable( {}, {__index = function(t,k)
-	local f = love.graphics.newFont( k )
-	rawset( t, k, f )
-	return f
-end })
+require "core"
 
 local CONFIGURATION_FILE = "settings.json"
 
+
 global = {}
-global.tx = 0
-global.ty = 0
 global.map = nil
 global.conf = {}
 
-
+local gameLogic = nil
 local gameRules = nil
+
+-- temporary support middle-click drag
 local map_drag = {isDragging = false, startX = 0, startY = 0, deltaX = 0, deltaY = 0}
 local highlight = nil
 
-function load_config()
-	if love.filesystem.exists( CONFIGURATION_FILE ) then
-		global.conf = json.decode( love.filesystem.read( CONFIGURATION_FILE ) )
-
-		-- initialize GameRules
-		gameRules = gamerules.GameRules:new()
-
-		gameRules:warpCameraTo( global.conf.spawn[1], global.conf.spawn[2] )
-	end
-end
-
-local util = {}
-
-function util.IsoTileToScreen( map, offset_x, offset_y, tile_x, tile_y )
-	-- this accepts the camera offset x and y and factors that into the coordinates
-
-	-- we need to further offset the returned value by half the entire map's width to get the correct value
-	local render_offset_x = ((map.width * map.tileWidth) / 2)
-
-	local tx, ty = tile_x, tile_y-1
-
-	local drawX = offset_x + render_offset_x + math.floor(map.tileWidth/2 * (tx - ty-2))
-	local drawY = offset_y + math.floor(map.tileHeight/2 * (tx + ty+2))
-	drawY = drawY - (map.tileHeight/2)
-	return drawX, drawY
-end
-
-
 local tileLayer = nil
-
-function query_joysticks()
-	local numJoysticks = love.joystick.getNumJoysticks()
-	
-	if numJoysticks > 0 then
-		print( "numJoysticks: " .. numJoysticks )
-
-		for j = 1, numJoysticks do
-			local joystickName = love.joystick.getName( 1 )
-			print( "joystickName: " .. joystickName )
-
-			local numAxes = love.joystick.getNumAxes( 1 )
-			print( "numAxes: " .. numAxes )
-
-			for i = 1, numAxes do
-				local direction = love.joystick.getAxis( 1, i )
-				print( "axis: " .. i .. ", direction: " .. tostring(direction) )
-				print( direction )
-			end
-
-			local numBalls = love.joystick.getNumBalls( 1 )
-			print( "numBalls: " .. numBalls )
-		end
-	end
-end
-
-
-function love.load()
-	load_config()
-
-	-- gamepad/wiimote testing
-	--query_joysticks()
-
-	-- set maps path
-	loader.path = "maps/"
-	global.map = loader.load( global.conf.map )
-	global.map.drawObjects = false
-
-	-- this crashes on a retina mbp if true; perhaps something to do with the GPUs switching?
-	global.map.useSpriteBatch = false
-
-	tileLayer = global.map.layers["Ground"]
-
-	love.graphics.setFont( fonts[12] )
-
-	print( "Tile Width: " .. global.map.tileWidth )
-	print( "Tile Height: " .. global.map.tileHeight )
-end
-
-
-
 local menu_open = {
 	main = false,
 	right = false,
 	foo = false,
 	demo = false
 }
-
 local input_data = { text = "" }
+
+function load_config()
+	if love.filesystem.exists( CONFIGURATION_FILE ) then
+		global.conf = json.decode( love.filesystem.read( CONFIGURATION_FILE ) )
+
+		-- initialize GameRules
+		gameRules = core.gamerules.GameRules:new()
+
+		gameRules:warpCameraTo( global.conf.spawn[1], global.conf.spawn[2] )
+	end
+end
+
+function love.load()
+	load_config()
+
+	gameLogic = require ( global.conf.game )
+	
+	-- gamepad/wiimote testing
+	core.util.queryJoysticks()
+
+	-- set maps path
+	loader.path = "maps/" .. global.conf.game .. "/"
+	global.map = loader.load( global.conf.map )
+	global.map.drawObjects = false
+
+	-- this crashes on a retina mbp if true; perhaps something to do with the GPUs switching?
+	global.map.useSpriteBatch = false
+
+	tileLayer = global.map.layers[0]
+
+	--print( "Tile Width: " .. global.map.tileWidth )
+	--print( "Tile Height: " .. global.map.tileHeight )
+
+	print( core.util )
+	--core.util.callLogic( gameLogic, "onLoad", {} )
+end
+
+
 
 function love.draw()
 	love.graphics.push()
@@ -187,16 +140,16 @@ function love.update(dt)
 		local tile = tileLayer( tx, ty )
 		highlight = nil
 		if tile then
-			local drawX, drawY = util.IsoTileToScreen( global.map, cx, cy, tx, ty )
+			local drawX, drawY = core.util.IsoTileToScreen( global.map, cx, cy, tx, ty )
 			highlight = { x=drawX, y=drawY, w=global.map.tileHeight, h=global.map.tileHeight }
 		end
 	end
 
+	core.util.callLogic( gameLogic, "onUpdate", {dt=dt} )
 end
 
-
-
 function love.keypressed( key, unicode )
+	core.util.callLogic( gameLogic, "onKeyPressed", {key=key, unicode=unicode} )
 end
 
 function love.keyreleased(key )
@@ -206,6 +159,8 @@ function love.keyreleased(key )
 		print( "refresh" )
 		load_config()
 	end
+
+	core.util.callLogic( gameLogic, "onKeyReleased", {key=key} )
 end
 
 function love.mousepressed( x, y, button )
@@ -215,15 +170,25 @@ function love.mousepressed( x, y, button )
 		map_drag.startY = y
 		map_drag.isDragging = true
 	end
+
+	core.util.callLogic( gameLogic, "onMousePressed", {x=x, y=y, button=button} )
 end
 
 function love.mousereleased( x, y, button )
 	if button == "m" then
 		map_drag.isDragging = false
 	end
+
+	core.util.callLogic( gameLogic, "onMouseReleased", {x=x, y=y, button=button} )
 end
 
 
 function love.joystickpressed( joystick, button )
 	print( "joystick: " .. joystick .. ", button: " .. button )
+	core.util.callLogic( gameLogic, "onJoystickPressed", {joystick=joystick, button=button} )
+end
+
+function love.joystickreleased( joystick, button )
+	print( "joystick: " .. joystick .. ", button: " .. button )	
+	core.util.callLogic( gameLogic, "onJoystickReleased", {joystick=joystick, button=button} )
 end

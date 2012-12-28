@@ -1,5 +1,6 @@
 {
-	"map" : "isometric.tmx",
+	"map" : "generic.tmx",
 	"move_speed" : 250,
-	"spawn" : [-925, -460]
+	"spawn" : [-325, -115],
+	"game" : "jan"
 }
