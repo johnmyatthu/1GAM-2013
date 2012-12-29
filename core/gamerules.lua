@@ -42,7 +42,12 @@ function GameRules:handleTileProperty( layer, tile_x, tile_y, property_key, prop
 	end
 end
 
+function GameRules:snapCameraToPlayer( player )
+	local window_width, window_height = love.graphics.getWidth(), love.graphics.getHeight()
+	self:warpCameraTo( -(player.world_x-(window_width/2)), -(player.world_y-(window_height/2)) )
+end
 
+-- coordinate system functions
 function GameRules:worldCoordinatesFromTile( tile_x, tile_y )
 	-- this accepts the camera offset x and y and factors that into the coordinates
 
@@ -68,8 +73,7 @@ function GameRules:tileCoordinatesFromWorld( world_x, world_y )
 end
 
 function GameRules:tileCoordinatesFromMouse( mouse_x, mouse_y )
-	local ix, iy = self.map:toIso( mouse_x-self.camera_x, mouse_y-self.camera_y )
-	return math.floor(ix/self.map.tileHeight), math.floor(iy/self.map.tileHeight)
+	return self:tileCoordinatesFromWorld( mouse_x-self.camera_x, mouse_y-self.camera_y )
 end
 
 

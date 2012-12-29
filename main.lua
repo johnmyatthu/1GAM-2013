@@ -107,9 +107,8 @@ function love.load()
 	player_tile.x, player_tile.y = spawn.x, spawn.y
 	player.world_x, player.world_y = gameRules:worldCoordinatesFromTile( spawn.x, spawn.y )
 
-	local window_width, window_height = love.graphics.getWidth(), love.graphics.getHeight()
-	gameRules:warpCameraTo( -(player.world_x-(window_width/2)), -(player.world_y-(window_height/2)) )
-
+	gameRules:snapCameraToPlayer( player )
+	
 	logging.verbose( "initialization complete." )
 end
 
@@ -200,6 +199,9 @@ function love.update(dt)
 	if love.keyboard.isDown("down") then player.world_y = player.world_y + global.conf.move_speed*dt end
 	if love.keyboard.isDown("left") then player.world_x = player.world_x - global.conf.move_speed*dt end
 	if love.keyboard.isDown("right") then player.world_x = player.world_x + global.conf.move_speed*dt end
+
+	gameRules:snapCameraToPlayer( player )
+
 
 	if tileLayer ~= nil then
 		local cx, cy = gameRules:getCameraPosition()
