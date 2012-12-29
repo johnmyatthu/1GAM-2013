@@ -194,14 +194,14 @@ function love.update(dt)
 		gameRules:warpCameraTo( cx, cy )
 	end
 
-	--[[
+	
 	cam_x, cam_y = gameRules:getCameraPosition()
-	if love.keyboard.isDown("up") then cam_y = cam_y + global.conf.move_speed*dt end
-	if love.keyboard.isDown("down") then cam_y = cam_y - global.conf.move_speed*dt end
-	if love.keyboard.isDown("left") then cam_x = cam_x + global.conf.move_speed*dt end
-	if love.keyboard.isDown("right") then cam_x = cam_x - global.conf.move_speed*dt end
+	if love.keyboard.isDown("w") then cam_y = cam_y + global.conf.move_speed*dt end
+	if love.keyboard.isDown("s") then cam_y = cam_y - global.conf.move_speed*dt end
+	if love.keyboard.isDown("a") then cam_x = cam_x + global.conf.move_speed*dt end
+	if love.keyboard.isDown("d") then cam_x = cam_x - global.conf.move_speed*dt end
 	gameRules:setCameraPosition( cam_x, cam_y )
-	--]]
+	
 
 	if love.keyboard.isDown("up") then player.world_y = player.world_y - global.conf.move_speed*dt end
 	if love.keyboard.isDown("down") then player.world_y = player.world_y + global.conf.move_speed*dt end
@@ -239,6 +239,8 @@ function love.update(dt)
 		end
 
 		player_tile.x, player_tile.y = gameRules:tileCoordinatesFromWorld( player.world_x, player.world_y )
+		player_tile.x = player_tile.x+1
+		player_tile.y = player_tile.y+1
 	end
 
 
