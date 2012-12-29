@@ -1,16 +1,28 @@
 require "json4lua.trunk.json.json"
 loader = require "AdvTiledLoader.Loader"
 require "core"
+local logging = core.logging
+
 
 local CONFIGURATION_FILE = "settings.json"
-
 
 global = {}
 global.map = nil
 global.conf = {}
 
+
+
+local player = core.entity.WorldEntity:new()
+
+local em = core.gamerules.EntityManager:new()
+
+em:addEntity( player )
+
 local gameLogic = nil
 local gameRules = nil
+
+local mouse_tile = {x = 0, y = 0}
+local player_tile = {x = 0, y = 0}
 
 -- temporary support middle-click drag
 local map_drag = {isDragging = false, startX = 0, startY = 0, deltaX = 0, deltaY = 0}
@@ -37,31 +49,76 @@ function load_config()
 end
 
 function love.load()
+	logging.verbose( "loading configuration: " .. CONFIGURATION_FILE .. "..." )
 	load_config()
 
+	logging.verbose( "initializing game: " .. global.conf.game )
 	gameLogic = require ( global.conf.game )
 	
 	-- gamepad/wiimote testing
-	core.util.queryJoysticks()
+	-- core.util.queryJoysticks()
 
 	-- set maps path
 	loader.path = "maps/" .. global.conf.game .. "/"
 	global.map = loader.load( global.conf.map )
+	gameRules.map = global.map
+
+	--logging.verbose( "map width: " .. global.map.width .. " -> " .. (global.map.width * 64) )
+	--logging.verbose( "map height: " .. global.map.height .. " -> " .. (global.map.height * 32) )	
+
 	global.map.drawObjects = false
 
 	-- this crashes on a retina mbp if true; perhaps something to do with the GPUs switching?
 	global.map.useSpriteBatch = false
 
-	tileLayer = global.map.layers[0]
+	-- scan through map properties
+	prop_name_map = {}
+	class_tiles = {}
+	for id, tile in pairs(global.map.tiles) do
+		for key, value in pairs(tile.properties) do
+			logging.verbose( key .. " -> " .. value .. "; tile: " .. tile.id )
+			class_tiles[ tile.id ] = value
+			prop_name_map[ tile.id ] = key
+		end
+	end
+
+	-- grab the collision layer
+	--logging.verbose( global.map.layers )
+	--[[for a,b in pairs(global.map.layers) do
+		logging.verbose( a )
+		--logging.verbose( b )
+	end
+	--]]
+
+	-- iterate through all layers
+	for name, layer in pairs(global.map.layers) do
+		logging.verbose( "Searching in layer: " .. name )
+		for x, y, tile in layer:iterate() do
+			if tile then
+				--logging.verbose( x )
+				if class_tiles[ tile.id ] then
+					logging.verbose( "handle '" .. class_tiles[ tile.id ] .. "' at " .. x .. ", " .. y )
+					gameRules:handleTileProperty( layer, x, y, prop_name_map[ tile.id ], class_tiles[ tile.id ] )
+				end
+			end
+		end
+	end
+
+	tileLayer = global.map.layers["Ground"]
 
 	--print( "Tile Width: " .. global.map.tileWidth )
 	--print( "Tile Height: " .. global.map.tileHeight )
+	core.util.callLogic( gameLogic, "onLoad", {} )
 
-	print( core.util )
-	--core.util.callLogic( gameLogic, "onLoad", {} )
+	local spawn = gameRules.spawn
+	logging.verbose( spawn.x .. ", " .. spawn.y )
+	player_tile.x, player_tile.y = spawn.x, spawn.y
+	player.world_x, player.world_y = gameRules:worldCoordinatesFromTile( spawn.x, spawn.y )
+
+	gameRules:warpCameraTo( -player.world_x, player.world_y )
+
+	logging.verbose( "initialization complete." )
 end
-
-
 
 function love.draw()
 	love.graphics.push()
@@ -71,8 +128,7 @@ function love.draw()
 	love.graphics.translate(ftx, fty)
 	
 	global.map:autoDrawRange( ftx, fty, 1, 50 )
-	--global.map.offsetX = ftx
-	--global.map.offsetY = fty
+
 	global.map:draw()
 	love.graphics.rectangle("line", global.map:getDrawRange())
 	love.graphics.pop()
@@ -91,10 +147,28 @@ function love.draw()
 			)
 	end
 
+
+	-- draw entities here
+	local cx, cy = gameRules:getCameraPosition()
+
+	love.graphics.push()
+	love.graphics.setColor( 255, 255, 255, 255 )
+	em:eventForEachEntity( "onDraw", {screen_x=cx, screen_y=cy} )
+	love.graphics.pop()
+
 	love.graphics.setColor( 255, 255, 255, 255 )
 	love.graphics.print( "map_translate: ", 10, 50 )
 	love.graphics.print( "x: " .. cx, 20, 70 )
 	love.graphics.print( "y: " .. cy, 20, 90 )
+	love.graphics.print( "tx: " .. mouse_tile.x, 20, 110 )
+	love.graphics.print( "ty: " .. mouse_tile.y, 20, 130 )
+
+
+	love.graphics.print( "player: ", 10, 150 )
+	love.graphics.print( "x: " .. player.world_x, 20, 170 )
+	love.graphics.print( "y: " .. player.world_y, 20, 190 )
+	love.graphics.print( "tx: " .. player_tile.x, 20, 210 )
+	love.graphics.print( "ty: " .. player_tile.y, 20, 230 )	
 end
 
 --function love.run()
@@ -104,6 +178,10 @@ function love.quit()
 end
 
 function love.update(dt)
+
+	em:eventForEachEntity( "onUpdate", {dt=dt} )
+
+
 	if map_drag.isDragging then
 		local mx, my = love.mouse.getPosition()
 		local cx, cy = gameRules:getCameraPosition()
@@ -116,14 +194,19 @@ function love.update(dt)
 		gameRules:warpCameraTo( cx, cy )
 	end
 
+	--[[
 	cam_x, cam_y = gameRules:getCameraPosition()
-
 	if love.keyboard.isDown("up") then cam_y = cam_y + global.conf.move_speed*dt end
 	if love.keyboard.isDown("down") then cam_y = cam_y - global.conf.move_speed*dt end
 	if love.keyboard.isDown("left") then cam_x = cam_x + global.conf.move_speed*dt end
 	if love.keyboard.isDown("right") then cam_x = cam_x - global.conf.move_speed*dt end
-
 	gameRules:setCameraPosition( cam_x, cam_y )
+	--]]
+
+	if love.keyboard.isDown("up") then player.world_y = player.world_y - global.conf.move_speed*dt end
+	if love.keyboard.isDown("down") then player.world_y = player.world_y + global.conf.move_speed*dt end
+	if love.keyboard.isDown("left") then player.world_x = player.world_x - global.conf.move_speed*dt end
+	if love.keyboard.isDown("right") then player.world_x = player.world_x + global.conf.move_speed*dt end
 
 	if tileLayer ~= nil then
 		local cx, cy = gameRules:getCameraPosition()
@@ -131,19 +214,34 @@ function love.update(dt)
 		local mx, my = love.mouse.getPosition()
 		--print( "mouseX: " .. mx .. ", mouseY: " .. my )
 
-		local ix, iy = global.map:toIso( mx-cx, my-cy )
+		--local ix, iy = global.map:toIso( mx-cx, my-cy )
+		local tx, ty = gameRules:tileCoordinatesFromMouse( mx, my )
 		--print( "IsoX: " .. ix .. ", IsoY: " .. iy )
 
-		local tx, ty = math.floor(ix/32), math.floor(iy/32)
+		-- for debug purposes, place the player at the analog position of the highlighted tile
+		--player.world_x, player.world_y = gameRules:worldCoordinatesFromTileCenter( tx, ty )
+		--player.world_x, player.world_y = gameRules:worldCoordinatesFromTile( tx, ty )
+
+		--local tx, ty = math.floor(ix/global.map.tileHeight), math.floor(iy/global.map.tileHeight)
 		--print( "tileX: " .. tx .. ", tileY: " .. ty )
+
+
 
 		local tile = tileLayer( tx, ty )
 		highlight = nil
 		if tile then
+			mouse_tile.x = tx+1
+			mouse_tile.y = ty+1
 			local drawX, drawY = core.util.IsoTileToScreen( global.map, cx, cy, tx, ty )
 			highlight = { x=drawX, y=drawY, w=global.map.tileHeight, h=global.map.tileHeight }
+		else
+			mouse_tile = {x = 'nil', y = 'nil'}
 		end
+
+		player_tile.x, player_tile.y = gameRules:tileCoordinatesFromWorld( player.world_x, player.world_y )
 	end
+
+
 
 	core.util.callLogic( gameLogic, "onUpdate", {dt=dt} )
 end
