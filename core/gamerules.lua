@@ -76,6 +76,14 @@ function GameRules:tileCoordinatesFromMouse( mouse_x, mouse_y )
 	return self:tileCoordinatesFromWorld( mouse_x-self.camera_x, mouse_y-self.camera_y )
 end
 
+function GameRules:handleMovePlayerCommand( command, player )
+	if command.up then player.world_y = player.world_y - command.move_speed * command.dt end
+	if command.down then player.world_y = player.world_y + command.move_speed * command.dt end
+	if command.left then player.world_x = player.world_x - command.move_speed * command.dt end
+	if command.right then player.world_x = player.world_x + command.move_speed * command.dt end
+
+	player.tile_x, player.tile_y = self:tileCoordinatesFromWorld( player.world_x, player.world_y )	
+end
 
 -- EntityManager
 -- Encapsulate common functions with entities; manage a list of them, call events, etc.

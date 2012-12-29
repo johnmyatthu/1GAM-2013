@@ -102,13 +102,14 @@ function love.load()
 
 	core.util.callLogic( gameLogic, "onLoad", {} )
 
+	-- assuming this map has a spawn point; we'll set the player spawn
+	-- and then center the camera on the player
 	local spawn = gameRules.spawn
-	logging.verbose( spawn.x .. ", " .. spawn.y )
 	player_tile.x, player_tile.y = spawn.x, spawn.y
 	player.world_x, player.world_y = gameRules:worldCoordinatesFromTile( spawn.x, spawn.y )
 
 	gameRules:snapCameraToPlayer( player )
-	
+
 	logging.verbose( "initialization complete." )
 end
 
@@ -195,10 +196,9 @@ function love.update(dt)
 	gameRules:setCameraPosition( cam_x, cam_y )
 	
 
-	if love.keyboard.isDown("up") then player.world_y = player.world_y - global.conf.move_speed*dt end
-	if love.keyboard.isDown("down") then player.world_y = player.world_y + global.conf.move_speed*dt end
-	if love.keyboard.isDown("left") then player.world_x = player.world_x - global.conf.move_speed*dt end
-	if love.keyboard.isDown("right") then player.world_x = player.world_x + global.conf.move_speed*dt end
+	command = { up=love.keyboard.isDown("up"), down=love.keyboard.isDown("down"), left=love.keyboard.isDown("left"), right=love.keyboard.isDown("right"), move_speed=global.conf.move_speed, dt=dt }
+
+	gameRules:handleMovePlayerCommand( command, player )
 
 	gameRules:snapCameraToPlayer( player )
 
