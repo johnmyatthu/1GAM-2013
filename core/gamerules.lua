@@ -4,7 +4,6 @@ require( "middleclass.middleclass" )
 GameRules = class( "GameRules" )
 
 function GameRules:initialize()
-	self.value = 10
 	self.camera_x = 0
 	self.camera_y = 0
 	self.map = nil

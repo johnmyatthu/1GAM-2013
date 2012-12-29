@@ -62,6 +62,7 @@ function love.load()
 	loader.path = "maps/" .. global.conf.game .. "/"
 	global.map = loader.load( global.conf.map )
 	gameRules.map = global.map
+	gameRules.loadMap( global.conf.map )
 
 	--logging.verbose( "map width: " .. global.map.width .. " -> " .. (global.map.width * 64) )
 	--logging.verbose( "map height: " .. global.map.height .. " -> " .. (global.map.height * 32) )	
@@ -82,14 +83,6 @@ function love.load()
 		end
 	end
 
-	-- grab the collision layer
-	--logging.verbose( global.map.layers )
-	--[[for a,b in pairs(global.map.layers) do
-		logging.verbose( a )
-		--logging.verbose( b )
-	end
-	--]]
-
 	-- iterate through all layers
 	for name, layer in pairs(global.map.layers) do
 		logging.verbose( "Searching in layer: " .. name )
@@ -106,8 +99,7 @@ function love.load()
 
 	tileLayer = global.map.layers["Ground"]
 
-	--print( "Tile Width: " .. global.map.tileWidth )
-	--print( "Tile Height: " .. global.map.tileHeight )
+
 	core.util.callLogic( gameLogic, "onLoad", {} )
 
 	local spawn = gameRules.spawn
