@@ -115,7 +115,8 @@ function love.load()
 	player_tile.x, player_tile.y = spawn.x, spawn.y
 	player.world_x, player.world_y = gameRules:worldCoordinatesFromTile( spawn.x, spawn.y )
 
-	gameRules:warpCameraTo( -player.world_x, player.world_y )
+	local window_width, window_height = love.graphics.getWidth(), love.graphics.getHeight()
+	gameRules:warpCameraTo( -(player.world_x-(window_width/2)), -(player.world_y-(window_height/2)) )
 
 	logging.verbose( "initialization complete." )
 end
