@@ -6,6 +6,13 @@ local logging = core.logging
 Entity = class( "Entity" )
 
 function Entity:initialize()
+	-- current position in the world
+	self.world_x = 0
+	self.world_y = 0
+
+	-- current tile
+	self.tile_x = -1
+	self.tile_y = -1	
 end
 
 function Entity:onSpawn( params )
@@ -20,14 +27,6 @@ end
 -- a base "world" entity that exists in the game world
 WorldEntity = class( "WorldEntity", Entity )
 function WorldEntity:initialize()
-	-- current position in the world
-	self.world_x = 100
-	self.world_y = 100
-
-	-- current tile
-	self.tile_x = -1
-	self.tile_y = -1
-
 	self.current_frame = "down"
 	
 	self.frame_width = 32
@@ -64,9 +63,11 @@ end
 
 EntitySpawner = class( "EntitySpawner", Entity )
 function EntitySpawner:initialize()
+	Entity.initialize( self )
 	self.spawn_time = 1
 	self.time_left = self.spawn_time
 	self.spawn_class = nil
+	self.onSpawn = nil
 end
 
 
@@ -76,7 +77,10 @@ function EntitySpawner:onUpdate( params )
 
 	if self.time_left <= 0 then
 		self.time_left = self.spawn_time
-		logging.verbose( "spawn class: " .. tostring(self.spawn_class) )
+		local instance = self.spawn_class:new()
+		if self.onSpawn then
+			self.onSpawn( {entity=instance} )
+		end
 	end
 end
 

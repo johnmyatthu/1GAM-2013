@@ -1,6 +1,6 @@
 module( ..., package.seeall )
-require( "middleclass.middleclass" )
-
+require "middleclass.middleclass"
+require "core"
 GameRules = class( "GameRules" )
 
 function GameRules:initialize()
@@ -8,6 +8,10 @@ function GameRules:initialize()
 	self.camera_y = 0
 	self.map = nil
 	self.spawn = {x=0, y=0}
+	self.entity_factory = EntityFactory:new()
+
+	-- need to register all entity classes somewhere; this is not the best spot :/
+	self.entity_factory:registerClass( "WorldEntity", core.entity.WorldEntity )
 end
 
 function GameRules:loadMap( mapname )
@@ -47,6 +51,7 @@ function GameRules:snapCameraToPlayer( player )
 	self:warpCameraTo( -(player.world_x-(window_width/2)), -(player.world_y-(window_height/2)) )
 end
 
+-- -------------------------------------------------------------
 -- there are three coordinate systems:
 -- tile coordinates: A 1-based coordinate pair referring to a tile in the map: (1, 3)
 -- world coordinates: The actual pixels converted tile coordinates. This need not align anywhere to a tile for smooth world movements.
@@ -92,16 +97,17 @@ function GameRules:handleMovePlayerCommand( command, player )
 	player.tile_x, player.tile_y = self:tileCoordinatesFromWorld( player.world_x, player.world_y )	
 end
 
+-- -------------------------------------------------------------
 -- EntityManager
 -- Encapsulate common functions with entities; manage a list of them, call events, etc.
 EntityManager = class( "EntityManager" )
 
 function EntityManager:initialize()
-	self.entList = {}
+	self.entity_list = {}
 end
 
 function EntityManager:addEntity( e )
-	table.insert( self.entList, e )
+	table.insert( self.entity_list, e )
 end
 
 function sortDescendingDepth(a,b)
@@ -110,12 +116,12 @@ end
 
 -- sort the entities in descending depth order such that lower objects in the screen are drawn in front
 function EntityManager:sortForDrawing()
-	table.sort( self.entList, sortDescendingDepth )
+	table.sort( self.entity_list, sortDescendingDepth )
 end
 
 function EntityManager:eventForEachEntity( event_name, params )
 	--logging.verbose( "iterating through for event: " .. event_name )
-	for index, entity in pairs(self.entList) do
+	for index, entity in pairs(self.entity_list) do
 		local fn = entity[ event_name ]
 		if fn ~= nil then
 			-- call this with the instance, then parameters table
@@ -123,3 +129,35 @@ function EntityManager:eventForEachEntity( event_name, params )
 		end
 	end
 end
+
+-- -------------------------------------------------------------
+-- EntityFactory
+-- Factory pattern for registering and creating game entities
+EntityFactory = class( "EntityFactory" )
+function EntityFactory:initialize()
+	self.class_by_name = {}
+end
+
+function EntityFactory:registerClass( class_name, creator )
+	self.class_by_name[ class_name ] = creator
+end
+
+function EntityFactory:findClass( class_name )
+	if self.class_by_name[ class_name ] then 
+		return self.class_by_name[ class_name ]
+	end
+	return nil
+end
+
+function EntityFactory:createClass( class_name )
+	local instance = nil
+
+	if self.class_by_name[ class_name ] then
+		local create_class = self.class_by_name[ class_name ]
+		instance = create_class:new()
+	end
+
+	return instance
+end
+
+

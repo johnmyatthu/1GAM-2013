@@ -102,24 +102,32 @@ function love.load()
 
 	core.util.callLogic( gameLogic, "onLoad", {} )
 
+
+	blah = gameRules.entity_factory:createClass( "WorldEntity" )
+
 	-- assuming this map has a spawn point; we'll set the player spawn
 	-- and then center the camera on the player
 	local spawn = gameRules.spawn
 	player_tile.x, player_tile.y = spawn.x, spawn.y
-	player.world_x, player.world_y = gameRules:worldCoordinatesFromTileCenter( 2, 1 )
+	player.world_x, player.world_y = gameRules:worldCoordinatesFromTileCenter( spawn.x, spawn.y )
 	player.current_frame = "downleft"
 	--gameRules:snapCameraToPlayer( player )
 
 	logging.verbose( "initialization complete." )
---[[
+
 	local spawnerABC = core.entity.EntitySpawner:new()
-	spawnerABC.spawn_class = "WorldEntity"
+	spawnerABC.spawn_class = gameRules.entity_factory:findClass( "WorldEntity" )
 	em:addEntity( spawnerABC )
---]]
-	blah = core.entity.WorldEntity:new()
-	blah.current_frame = "left"
-	em:addEntity( blah )
-	blah.world_x, blah.world_y = gameRules:worldCoordinatesFromTileCenter( 3, 1 )
+	spawnerABC.onSpawn = function ( params )
+		em:addEntity( params.entity )
+		params.entity.world_x, params.entity.world_y = gameRules:worldCoordinatesFromTileCenter( math.random( 1, 20 ), math.random( 1, 20 ))		
+	end
+
+	if blah then
+		blah.current_frame = "left"
+		em:addEntity( blah )
+		blah.world_x, blah.world_y = gameRules:worldCoordinatesFromTileCenter( spawn.x+1, spawn.y-1 )
+	end
 end
 
 function love.draw()
