@@ -47,24 +47,31 @@ function GameRules:snapCameraToPlayer( player )
 	self:warpCameraTo( -(player.world_x-(window_width/2)), -(player.world_y-(window_height/2)) )
 end
 
+-- there are three coordinate systems:
+-- tile coordinates: A 1-based coordinate pair referring to a tile in the map: (1, 3)
+-- world coordinates: The actual pixels converted tile coordinates. This need not align anywhere to a tile for smooth world movements.
+-- screen coordinates: The actual pixels mapped to the window. These values should be floored for best drawing quality
+
 -- coordinate system functions
-function GameRules:worldCoordinatesFromTile( tile_x, tile_y )
-	-- this accepts the camera offset x and y and factors that into the coordinates
+function GameRules:worldCoordinatesFromTileCenter( tile_x, tile_y )
+	-- input tile coordinates are 1-based, so decrement these
+	local tx, ty = tile_x-1, tile_y-2
 
 	-- we need to further offset the returned value by half the entire map's width to get the correct value
-	local render_offset_x = ((self.map.width * self.map.tileWidth) / 2)
-
-	local tx, ty = tile_x, tile_y-1
-
-	local drawX = self.camera_x + render_offset_x + math.floor(self.map.tileWidth/2 * (tx - ty-2))
-	local drawY = self.camera_y + math.floor(self.map.tileHeight/2 * (tx + ty+2))
+	local drawX = ((self.map.width * self.map.tileWidth) / 2) + math.floor(self.map.tileWidth/2 * (tx - ty-2))
+	local drawY = math.floor(self.map.tileHeight/2 * (tx + ty+2))
 	drawY = drawY - (self.map.tileHeight/2)
 	return drawX, drawY + (self.map.tileHeight/2)
 end
 
-function GameRules:worldCoordinatesFromTileCenter( tile_x, tile_y )
-	local wx, wy = self.map:fromIso( tile_x, tile_y )
-	return wx, wy + (self.map.tileHeight/2)
+
+-- worldToScreen conversion
+function GameRules:worldToScreen( world_x, world_y )
+	return math.floor(world_x + self.camera_x), math.floor(world_y + self.camera_y)
+end
+
+function GameRules:screenToWorld( screen_x, screen_y )
+	return (screen_x - self.camera_x), (screen_y - self.camera_y)
 end
 
 function GameRules:tileCoordinatesFromWorld( world_x, world_y )
@@ -95,6 +102,15 @@ end
 
 function EntityManager:addEntity( e )
 	table.insert( self.entList, e )
+end
+
+function sortDescendingDepth(a,b)
+	return a.world_y < b.world_y
+end
+
+-- sort the entities in descending depth order such that lower objects in the screen are drawn in front
+function EntityManager:sortForDrawing()
+	table.sort( self.entList, sortDescendingDepth )
 end
 
 function EntityManager:eventForEachEntity( event_name, params )

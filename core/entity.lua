@@ -28,6 +28,7 @@ function WorldEntity:initialize()
 	self.tile_x = -1
 	self.tile_y = -1
 
+	self.current_frame = "down"
 	
 	self.frame_width = 32
 	self.frame_height = 64
@@ -55,8 +56,28 @@ function WorldEntity:onUpdate( params )
 end
 
 function WorldEntity:onDraw( params )
-	local x, y = math.floor(self.world_x + params.screen_x - (self.frame_width/2)), math.floor(self.world_y + params.screen_y - self.frame_height)
-	love.graphics.drawq(self.image, self.quads["left"], x, y)
-
-	
+	local x, y = params.gameRules:worldToScreen( (self.world_x - (self.frame_width/2)), self.world_y - self.frame_height )
+	-- local x, y = math.floor(self.world_x + params.screen_x - (self.frame_width/2)), math.floor(self.world_y + params.screen_y - self.frame_height)
+	love.graphics.drawq(self.image, self.quads[ self.current_frame ], x, y)
 end
+
+
+EntitySpawner = class( "EntitySpawner", Entity )
+function EntitySpawner:initialize()
+	self.spawn_time = 1
+	self.time_left = self.spawn_time
+	self.spawn_class = nil
+end
+
+
+function EntitySpawner:onUpdate( params )
+	local dt = params.dt
+	self.time_left = self.time_left - dt
+
+	if self.time_left <= 0 then
+		self.time_left = self.spawn_time
+		logging.verbose( "spawn class: " .. tostring(self.spawn_class) )
+	end
+end
+
+

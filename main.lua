@@ -106,11 +106,20 @@ function love.load()
 	-- and then center the camera on the player
 	local spawn = gameRules.spawn
 	player_tile.x, player_tile.y = spawn.x, spawn.y
-	player.world_x, player.world_y = gameRules:worldCoordinatesFromTile( spawn.x, spawn.y )
-
-	gameRules:snapCameraToPlayer( player )
+	player.world_x, player.world_y = gameRules:worldCoordinatesFromTileCenter( 2, 1 )
+	player.current_frame = "downleft"
+	--gameRules:snapCameraToPlayer( player )
 
 	logging.verbose( "initialization complete." )
+--[[
+	local spawnerABC = core.entity.EntitySpawner:new()
+	spawnerABC.spawn_class = "WorldEntity"
+	em:addEntity( spawnerABC )
+--]]
+	blah = core.entity.WorldEntity:new()
+	blah.current_frame = "left"
+	em:addEntity( blah )
+	blah.world_x, blah.world_y = gameRules:worldCoordinatesFromTileCenter( 3, 1 )
 end
 
 function love.draw()
@@ -146,7 +155,8 @@ function love.draw()
 
 	love.graphics.push()
 	love.graphics.setColor( 255, 255, 255, 255 )
-	em:eventForEachEntity( "onDraw", {screen_x=cx, screen_y=cy} )
+	em:sortForDrawing()
+	em:eventForEachEntity( "onDraw", {screen_x=cx, screen_y=cy, gameRules=gameRules} )
 	love.graphics.pop()
 
 	love.graphics.setColor( 255, 255, 255, 255 )
@@ -200,7 +210,7 @@ function love.update(dt)
 
 	gameRules:handleMovePlayerCommand( command, player )
 
-	gameRules:snapCameraToPlayer( player )
+	--gameRules:snapCameraToPlayer( player )
 
 
 	if tileLayer ~= nil then
