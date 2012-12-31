@@ -27,37 +27,69 @@ end
 -- a base "world" entity that exists in the game world
 WorldEntity = class( "WorldEntity", Entity )
 function WorldEntity:initialize()
-	self.current_frame = "down"
+	self.current_animation = 0
+
+	-- directions will be each row
+	-- frames of the animation will be each column
 	
+	-- the frame size of this animation
 	self.frame_width = 32
 	self.frame_height = 64
 
-	self.quads = {				-- The frames of the image
-		down = 		love.graphics.newQuad(0,0,32,64,256,64),
-		downright = love.graphics.newQuad(32,0,32,64,256,64),
-		right = 	love.graphics.newQuad(64,0,32,64,256,64),
-		upright = 	love.graphics.newQuad(96,0,32,64,256,64),
-		up = 		love.graphics.newQuad(128,0,32,64,256,64),
-		upleft = 	love.graphics.newQuad(160,0,32,64,256,64),
-		left = 		love.graphics.newQuad(192,0,32,64,256,64),
-		downleft = 	love.graphics.newQuad(224,0,32,64,256,64),
-	}
 	-- The image
 	self.image = love.graphics.newImage("images/guy.png")
 
+	self.spritesheet = core.SpriteSheet.new( self.image, self.frame_width, self.frame_height )
+	self.animations = {}
+
+
+	local image_width = self.image:getWidth()
+	local image_height = self.image:getHeight()
+
+	logging.verbose( "image_width: " .. image_width )
+	logging.verbose( "image_height: " .. image_height )
+
+	-- calculate rows and columns
+	local total_rows = (self.image:getHeight() / self.frame_height)
+	local total_cols = (self.image:getWidth() / self.frame_width)
+	
+	logging.verbose( "total_rows: " .. total_rows )
+	logging.verbose( "total_cols: " .. total_cols )
+
+	for row=1,total_rows do
+		local a = self.spritesheet:createAnimation()
+		a:setDelay( 0.25 )
+		for col=1,total_cols do
+			a:addFrame( col, row )
+		end
+		self.animations[#self.animations+1] = a
+	end
 end
 
 function WorldEntity:__tostring()
 	return "WorldEntity at world:[ " .. self.world_x .. ", " .. self.world_y .. " ]"
 end
 
+-- params:
+--	dt: the frame delta time
 function WorldEntity:onUpdate( params )
+	for k,v in ipairs(self.animations) do v:update(params.dt) end
 end
 
+-- params:
+--	gameRules: the instance of the active gamerules class
 function WorldEntity:onDraw( params )
 	local x, y = params.gameRules:worldToScreen( (self.world_x - (self.frame_width/2)), self.world_y - self.frame_height )
-	-- local x, y = math.floor(self.world_x + params.screen_x - (self.frame_width/2)), math.floor(self.world_y + params.screen_y - self.frame_height)
-	love.graphics.drawq(self.image, self.quads[ self.current_frame ], x, y)
+
+	for k,v in ipairs(self.animations) do
+		v:draw(x, y)
+		if k == self.current_animation then
+			love.graphics.setColor( 255, 0, 0, 127 )
+			love.graphics.rectangle('fill', k*self.frame_width, 0, self.frame_width, self.frame_height )
+			love.graphics.setColor( 255, 255, 255, 255 )
+		end
+	end
+
 end
 
 
@@ -70,7 +102,8 @@ function EntitySpawner:initialize()
 	self.onSpawn = nil
 end
 
-
+-- params:
+--	entity: the instance of the entity being spawned
 function EntitySpawner:onUpdate( params )
 	local dt = params.dt
 	self.time_left = self.time_left - dt

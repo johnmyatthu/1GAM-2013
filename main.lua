@@ -115,6 +115,8 @@ function love.load()
 
 	logging.verbose( "initialization complete." )
 
+--[[
+	-- testing the entity spawner
 	local spawnerABC = core.entity.EntitySpawner:new()
 	spawnerABC.spawn_class = gameRules.entity_factory:findClass( "WorldEntity" )
 	em:addEntity( spawnerABC )
@@ -122,7 +124,7 @@ function love.load()
 		em:addEntity( params.entity )
 		params.entity.world_x, params.entity.world_y = gameRules:worldCoordinatesFromTileCenter( math.random( 1, 20 ), math.random( 1, 20 ))		
 	end
-
+--]]
 	if blah then
 		blah.current_frame = "left"
 		em:addEntity( blah )
