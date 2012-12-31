@@ -32,6 +32,8 @@ function WorldEntity:initialize()
 	-- directions will be each row
 	-- frames of the animation will be each column
 	
+	self.is_moving = false
+
 	-- the frame size of this animation
 	self.frame_width = 32
 	self.frame_height = 64
@@ -64,6 +66,9 @@ function WorldEntity:initialize()
 		end
 		logging.verbose( "adding animation: " .. (#self.animations+1) )
 		self.animations[#self.animations+1] = a
+
+		-- make sure this renders as the first frame
+		a.currentFrame = 1
 	end
 end
 
@@ -75,7 +80,7 @@ end
 --	dt: the frame delta time
 function WorldEntity:onUpdate( params )
 	local animation = self.animations[ self.current_animation ]
-	if animation then
+	if animation and self.is_moving then
 		animation:update(params.dt)
 	end
 end

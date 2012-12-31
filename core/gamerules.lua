@@ -94,7 +94,13 @@ function GameRules:handleMovePlayerCommand( command, player )
 	if command.left then player.world_x = player.world_x - command.move_speed * command.dt end
 	if command.right then player.world_x = player.world_x + command.move_speed * command.dt end
 
-	player.tile_x, player.tile_y = self:tileCoordinatesFromWorld( player.world_x, player.world_y )	
+	player.tile_x, player.tile_y = self:tileCoordinatesFromWorld( player.world_x, player.world_y )
+
+	if command.up or command.down or command.left or command.right then
+		player.is_moving = true
+	else
+		player.is_moving = false
+	end
 end
 
 -- -------------------------------------------------------------
