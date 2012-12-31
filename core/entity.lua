@@ -27,7 +27,7 @@ end
 -- a base "world" entity that exists in the game world
 WorldEntity = class( "WorldEntity", Entity )
 function WorldEntity:initialize()
-	self.current_animation = 0
+	self.current_animation = 1
 
 	-- directions will be each row
 	-- frames of the animation will be each column
@@ -62,6 +62,7 @@ function WorldEntity:initialize()
 		for col=1,total_cols do
 			a:addFrame( col, row )
 		end
+		logging.verbose( "adding animation: " .. (#self.animations+1) )
 		self.animations[#self.animations+1] = a
 	end
 end
@@ -73,7 +74,10 @@ end
 -- params:
 --	dt: the frame delta time
 function WorldEntity:onUpdate( params )
-	for k,v in ipairs(self.animations) do v:update(params.dt) end
+	local animation = self.animations[ self.current_animation ]
+	if animation then
+		animation:update(params.dt)
+	end
 end
 
 -- params:
@@ -81,15 +85,10 @@ end
 function WorldEntity:onDraw( params )
 	local x, y = params.gameRules:worldToScreen( (self.world_x - (self.frame_width/2)), self.world_y - self.frame_height )
 
-	for k,v in ipairs(self.animations) do
-		v:draw(x, y)
-		if k == self.current_animation then
-			love.graphics.setColor( 255, 0, 0, 127 )
-			love.graphics.rectangle('fill', k*self.frame_width, 0, self.frame_width, self.frame_height )
-			love.graphics.setColor( 255, 255, 255, 255 )
-		end
+	local animation = self.animations[ self.current_animation ]
+	if animation then
+		animation:draw(x, y)
 	end
-
 end
 
 
