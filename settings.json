@@ -1,6 +1,6 @@
 {
 	"map" : "generic.tmx",
-	"move_speed" : 100,
+	"move_speed" : 170,
 	"spawn" : [0, 0],
 	"game" : "jan"
 }

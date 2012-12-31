@@ -8,3 +8,7 @@ end
 function verbose( msg )
 	message( "verbose", tostring(msg) )
 end
+
+function warning( msg )
+	message( "warning", tostring(msg) )
+end

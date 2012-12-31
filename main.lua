@@ -1,4 +1,4 @@
-require "json4lua.trunk.json.json"
+
 loader = require "AdvTiledLoader.Loader"
 require "core"
 local logging = core.logging
@@ -12,7 +12,8 @@ global.conf = {}
 
 
 
-local player = core.entity.WorldEntity:new()
+local player = core.entity.AnimatedSprite:new()
+player:loadSprite( "assets/sprites/guy.conf" )
 
 local em = core.gamerules.EntityManager:new()
 
@@ -103,7 +104,7 @@ function love.load()
 	core.util.callLogic( gameLogic, "onLoad", {} )
 
 
-	blah = gameRules.entity_factory:createClass( "WorldEntity" )
+	blah = gameRules.entity_factory:createClass( "AnimatedSprite" )
 
 	-- assuming this map has a spawn point; we'll set the player spawn
 	-- and then center the camera on the player
@@ -118,7 +119,7 @@ function love.load()
 --[[
 	-- testing the entity spawner
 	local spawnerABC = core.entity.EntitySpawner:new()
-	spawnerABC.spawn_class = gameRules.entity_factory:findClass( "WorldEntity" )
+	spawnerABC.spawn_class = gameRules.entity_factory:findClass( "AnimatedSprite" )
 	em:addEntity( spawnerABC )
 	spawnerABC.onSpawn = function ( params )
 		em:addEntity( params.entity )

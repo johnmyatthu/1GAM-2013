@@ -1,7 +1,7 @@
 module( ..., package.seeall )
 init_path = init_path or ({...})[1]:gsub("[%.\\/]init$", "") .. '.'
 
-
+require "json4lua.trunk.json.json"
 
 return {
 	require (init_path .. "logging"),

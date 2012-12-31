@@ -97,9 +97,10 @@ function GameRules:handleMovePlayerCommand( command, player )
 	player.tile_x, player.tile_y = self:tileCoordinatesFromWorld( player.world_x, player.world_y )
 
 	if command.up or command.down or command.left or command.right then
-		player.is_moving = true
+		player:setDirectionFromMoveCommand( command )
+		player:playAnimation( "run" )
 	else
-		player.is_moving = false
+		player:playAnimation( "idle" )
 	end
 end
 
