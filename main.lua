@@ -288,6 +288,11 @@ function love.mousepressed( x, y, button )
 	end
 
 	core.util.callLogic( gameLogic, "onMousePressed", {x=x, y=y, button=button} )
+
+	if button == "l" then
+		player:playAnimation( "attack1" )
+		player.is_attacking = true
+	end
 end
 
 function love.mousereleased( x, y, button )
@@ -296,6 +301,7 @@ function love.mousereleased( x, y, button )
 	end
 
 	core.util.callLogic( gameLogic, "onMouseReleased", {x=x, y=y, button=button} )
+	player.is_attacking = false
 end
 
 

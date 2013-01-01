@@ -89,8 +89,20 @@ function GameRules:tileCoordinatesFromMouse( mouse_x, mouse_y )
 end
 
 function GameRules:handleMovePlayerCommand( command, player )
-	if command.up then player.world_y = player.world_y - command.move_speed * command.dt end
-	if command.down then player.world_y = player.world_y + command.move_speed * command.dt end
+	-- determine if the sprite is moving diagonally
+	-- if so, tweak their speed so it doesn't look strange
+	local is_diagonal = false
+	local is_ns = command.up or command.down
+	local is_ew = command.left or command.right
+
+	is_diagonal = is_ns and is_ew
+	local move_speed = command.move_speed
+	if is_diagonal then
+		move_speed = command.move_speed * 0.5
+	end
+
+	if command.up then player.world_y = player.world_y - move_speed * command.dt end
+	if command.down then player.world_y = player.world_y + move_speed * command.dt end
 	if command.left then player.world_x = player.world_x - command.move_speed * command.dt end
 	if command.right then player.world_x = player.world_x + command.move_speed * command.dt end
 
@@ -99,7 +111,8 @@ function GameRules:handleMovePlayerCommand( command, player )
 	if command.up or command.down or command.left or command.right then
 		player:setDirectionFromMoveCommand( command )
 		player:playAnimation( "run" )
-	else
+		player.is_attacking = false
+	elseif not player.is_attacking then
 		player:playAnimation( "idle" )
 	end
 end

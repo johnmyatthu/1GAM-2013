@@ -120,6 +120,7 @@ end
 
 
 function AnimatedSprite:initialize()
+	self.is_attacking = false
 	self.current_animation = 1
 	self.current_direction = "northeast"
 	self.animations = {}
