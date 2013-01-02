@@ -3,10 +3,13 @@ require "middleclass.middleclass"
 require "core"
 GameRules = class( "GameRules" )
 
+local MAP_COLLISION_LAYER_NAME = "Collision"
+
 function GameRules:initialize()
 	self.camera_x = 0
 	self.camera_y = 0
 	self.map = nil
+	self.collision_layer = nil
 	self.spawn = {x=0, y=0}
 	self.entity_factory = EntityFactory:new()
 
@@ -16,6 +19,13 @@ end
 
 function GameRules:loadMap( mapname )
 	print( "loading gamerules map" )
+
+
+	-- cache collision layer and disable rendering
+	self.collision_layer = self.map.layers[ MAP_COLLISION_LAYER_NAME ]
+	if self.collision_layer then
+		self.collision_layer.visible = false
+	end
 end
 
 function GameRules:__tostring()
@@ -49,6 +59,14 @@ end
 function GameRules:snapCameraToPlayer( player )
 	local window_width, window_height = love.graphics.getWidth(), love.graphics.getHeight()
 	self:warpCameraTo( -(player.world_x-(window_width/2)), -(player.world_y-(window_height/2)) )
+end
+
+function GameRules:getCollisionTile( tx, ty )
+	if self.collision_layer then
+		return self.collision_layer( tx, ty )
+	end
+
+	return nil
 end
 
 -- -------------------------------------------------------------
@@ -101,12 +119,23 @@ function GameRules:handleMovePlayerCommand( command, player )
 		move_speed = command.move_speed * 0.5
 	end
 
-	if command.up then player.world_y = player.world_y - move_speed * command.dt end
-	if command.down then player.world_y = player.world_y + move_speed * command.dt end
-	if command.left then player.world_x = player.world_x - command.move_speed * command.dt end
-	if command.right then player.world_x = player.world_x + command.move_speed * command.dt end
+	-- get the next world position of the entity
+	local nwx, nwy = player.world_x, player.world_y
 
-	player.tile_x, player.tile_y = self:tileCoordinatesFromWorld( player.world_x, player.world_y )
+	if command.up then nwy = player.world_y - (move_speed * command.dt) end
+	if command.down then nwy = player.world_y + (move_speed * command.dt) end
+	if command.left then nwx = player.world_x - (command.move_speed * command.dt) end
+	if command.right then nwx = player.world_x + (command.move_speed * command.dt) end
+
+	local tx, ty = self:tileCoordinatesFromWorld( nwx, nwy )
+	local tile = self:getCollisionTile( tx-1, ty-1 )
+
+	-- for now, just collide with tiles that exist on the collision layer.
+	if not tile then
+		player.world_x, player.world_y = nwx, nwy
+		player.tile_x, player.tile_y = tx, ty
+	end
+	
 
 	if command.up or command.down or command.left or command.right then
 		player:setDirectionFromMoveCommand( command )

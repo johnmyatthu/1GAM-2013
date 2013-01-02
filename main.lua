@@ -60,10 +60,10 @@ function love.load()
 	-- core.util.queryJoysticks()
 
 	-- set maps path
-	loader.path = "maps/" .. global.conf.game .. "/"
+	loader.path = "assets/maps/" .. global.conf.game .. "/"
 	global.map = loader.load( global.conf.map )
 	gameRules.map = global.map
-	gameRules.loadMap( global.conf.map )
+	gameRules:loadMap( global.conf.map )
 
 	--logging.verbose( "map width: " .. global.map.width .. " -> " .. (global.map.width * 64) )
 	--logging.verbose( "map height: " .. global.map.height .. " -> " .. (global.map.height * 32) )	
@@ -143,7 +143,7 @@ function love.draw()
 	global.map:autoDrawRange( ftx, fty, 1, 50 )
 
 	global.map:draw()
-	love.graphics.rectangle("line", global.map:getDrawRange())
+	--love.graphics.rectangle("line", global.map:getDrawRange())
 	love.graphics.pop()
 
 	--love.graphics.setColor(255,128,0,255)

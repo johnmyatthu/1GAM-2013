@@ -74,10 +74,10 @@ function AnimatedSprite:loadSprite( config_file )
 			local directions = { "east", "northeast", "north", "northwest", "west", "southwest", "south", "southeast" }
 
 			for _,animdata in pairs(sprite_config.animations) do
-				logging.verbose( "ANIMATION: " .. animdata.name )
+				--logging.verbose( "ANIMATION: " .. animdata.name )
 
 				local anim_index = (#self.animations+1)
-				logging.verbose( "anim_index: " .. anim_index )
+				--logging.verbose( "anim_index: " .. anim_index )
 				self.animation_index_from_name[ animdata.name ] = anim_index
 				self.animations[ anim_index ] = {}
 
@@ -86,21 +86,19 @@ function AnimatedSprite:loadSprite( config_file )
 					local direction = directions[ row ]
 					local animation = self.spritesheet:createAnimation()
 
-					logging.verbose( "-> row: " .. row )
-					logging.verbose( "-> direction: " .. direction )
+					--logging.verbose( "-> row: " .. row )
+					--logging.verbose( "-> direction: " .. direction )
 
 					-- if specified, update the animation delay.
 					if animdata.delay_seconds then
 						animation:setDelay( animdata.delay_seconds )
 					end
 
+					-- add frames of the animation
 					for col = animdata.column_start, (animdata.column_start+animdata.num_frames-1) do
 						animation:addFrame( col, row )
 					end
 
-
-
-					
 					self.animations[ anim_index ][ direction ] = animation
 
 					-- make sure this renders as the first frame
