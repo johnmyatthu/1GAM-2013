@@ -7,3 +7,6 @@
 [submodule "lib/json4lua"]
 	path = lib/json4lua
 	url = git://github.com/luaforge/json.git
+[submodule "lib/jumper"]
+	path = lib/jumper
+	url = git://github.com/Yonaba/Jumper.git

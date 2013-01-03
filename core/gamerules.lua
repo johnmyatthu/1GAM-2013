@@ -2,6 +2,7 @@ module( ..., package.seeall )
 require "core"
 logging = core.logging
 GameRules = class( "GameRules" )
+Jumper = require "lib.jumper.jumper"
 
 local MAP_COLLISION_LAYER_NAME = "Collision"
 
@@ -27,6 +28,32 @@ function GameRules:loadMap( mapname )
 	if self.collision_layer then
 		--self.collision_layer.visible = false
 	end
+
+
+
+	local testmap = {
+		{ 0, 0, 0, 0 },
+		{ 0, 1, 1, 0 },
+		{ 0, 1, 1, 0 },
+		{ 0, 0, 0, 0 }
+	}
+
+	local f = Jumper( testmap, 0, true )
+	--f:setMode( "ORTHOGONAL" )
+	logging.verbose( f )
+
+	local path = f:getPath( 1, 1, 4, 4 )
+	logging.verbose( path )
+
+	-- print out all steps in the path
+	for a, b in pairs(path) do
+		--logging.verbose( "i: " .. a .. " -> " .. b )
+		logging.verbose( "-> " .. a )
+		for x, y in pairs(b) do
+			logging.verbose( "x: " .. x .. ", y: " .. y )
+		end
+	end
+
 end
 
 function GameRules:__tostring()
