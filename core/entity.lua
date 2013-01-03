@@ -123,6 +123,8 @@ function AnimatedSprite:initialize()
 	self.animations = {}
 	self.spritesheet = nil
 	self.animation_index_from_name = {}
+	self.tile_x = 'nil'
+	self.tile_y = 'nil'
 end
 
 function AnimatedSprite:__tostring()
@@ -148,7 +150,7 @@ end
 -- params:
 --	gameRules: the instance of the active gamerules class
 function AnimatedSprite:onDraw( params )
-	local x, y = params.gameRules:worldToScreen( (self.world_x - (self.frame_width/2)), self.world_y - self.frame_height )
+	local x, y = params.gameRules:worldToScreen( (self.world_x - (self.frame_width/2)), self.world_y - (self.frame_height/2) )
 
 	local animation = self.animations[ self.current_animation ][ self.current_direction ]
 	if animation then

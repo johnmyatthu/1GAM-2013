@@ -23,7 +23,6 @@ local gameLogic = nil
 local gameRules = nil
 
 local mouse_tile = {x = 0, y = 0}
-local player_tile = {x = 0, y = 0}
 
 -- temporary support middle-click drag
 local map_drag = {isDragging = false, startX = 0, startY = 0, deltaX = 0, deltaY = 0}
@@ -89,7 +88,6 @@ function love.load()
 		logging.verbose( "Searching in layer: " .. name )
 		for x, y, tile in layer:iterate() do
 			if tile then
-				--logging.verbose( x )
 				if class_tiles[ tile.id ] then
 					logging.verbose( "handle '" .. class_tiles[ tile.id ] .. "' at " .. x .. ", " .. y )
 					gameRules:handleTileProperty( layer, x, y, prop_name_map[ tile.id ], class_tiles[ tile.id ] )
@@ -98,7 +96,7 @@ function love.load()
 		end
 	end
 
-	tileLayer = global.map.layers["Ground"]
+	tileLayer = global.map.layers["Collision"]
 
 
 	core.util.callLogic( gameLogic, "onLoad", {} )
@@ -109,8 +107,15 @@ function love.load()
 	-- assuming this map has a spawn point; we'll set the player spawn
 	-- and then center the camera on the player
 	local spawn = gameRules.spawn
-	player_tile.x, player_tile.y = spawn.x, spawn.y
+	--player.tile_x, player.tile_y = spawn.x+1, spawn.y+1
+	logging.verbose( "spawn at: " .. spawn.x .. ", " .. spawn.y )
+
 	player.world_x, player.world_y = gameRules:worldCoordinatesFromTileCenter( spawn.x, spawn.y )
+
+	logging.verbose( "world coordinates: " .. player.world_x .. ", " .. player.world_y )
+	player.tile_x, player.tile_y = gameRules:tileCoordinatesFromWorld( player.world_x, player.world_y )
+
+
 	player.current_frame = "downleft"
 	--gameRules:snapCameraToPlayer( player )
 
@@ -134,29 +139,17 @@ function love.load()
 end
 
 function love.draw()
-	love.graphics.push()
-	love.graphics.setColor(255,255,255,255)
-	local cx, cy = gameRules:getCameraPosition()
-	local ftx, fty = math.floor(cx), math.floor(cy)
-	love.graphics.translate(ftx, fty)
-	
-	global.map:autoDrawRange( ftx, fty, 1, 50 )
-
-	global.map:draw()
-	--love.graphics.rectangle("line", global.map:getDrawRange())
-	love.graphics.pop()
-
-	--love.graphics.setColor(255,128,0,255)
-	--love.graphics.print('Hello World!', 400, 300)
+	gameRules:drawWorld()
 
 	if highlight then
 		love.graphics.setColor(0,255,0,128)
-		--love.graphics.rectangle( "line", highlight.x, highlight.y, highlight.w, highlight.h )
 		love.graphics.quad( "fill", 
-			highlight.x - highlight.w, highlight.y + highlight.h/2, -- top left
-			highlight.x, highlight.y, 			-- top right
-			highlight.x + highlight.w, highlight.y + highlight.h/2, -- bottom right
-			highlight.x, highlight.y + highlight.h -- bottom left
+
+			highlight.x - highlight.w, highlight.y, -- east
+			highlight.x, highlight.y - highlight.h/2,                       -- north
+			highlight.x + highlight.w, highlight.y, -- west
+			highlight.x, highlight.y + highlight.h/2 -- south
+
 			)
 	end
 
@@ -167,7 +160,7 @@ function love.draw()
 	love.graphics.push()
 	love.graphics.setColor( 255, 255, 255, 255 )
 	em:sortForDrawing()
-	em:eventForEachEntity( "onDraw", {screen_x=cx, screen_y=cy, gameRules=gameRules} )
+	em:eventForEachEntity( "onDraw", {gameRules=gameRules} )
 	love.graphics.pop()
 
 	love.graphics.setColor( 255, 255, 255, 255 )
@@ -181,8 +174,8 @@ function love.draw()
 	love.graphics.print( "player: ", 10, 150 )
 	love.graphics.print( "x: " .. player.world_x, 20, 170 )
 	love.graphics.print( "y: " .. player.world_y, 20, 190 )
-	love.graphics.print( "tx: " .. player_tile.x, 20, 210 )
-	love.graphics.print( "ty: " .. player_tile.y, 20, 230 )	
+	love.graphics.print( "tx: " .. player.tile_x, 20, 210 )
+	love.graphics.print( "ty: " .. player.tile_y, 20, 230 )	
 end
 
 --function love.run()
@@ -221,42 +214,29 @@ function love.update(dt)
 
 	gameRules:handleMovePlayerCommand( command, player )
 
-	--gameRules:snapCameraToPlayer( player )
-
 
 	if tileLayer ~= nil then
 		local cx, cy = gameRules:getCameraPosition()
-
 		local mx, my = love.mouse.getPosition()
-		--print( "mouseX: " .. mx .. ", mouseY: " .. my )
 
-		--local ix, iy = global.map:toIso( mx-cx, my-cy )
 		local tx, ty = gameRules:tileCoordinatesFromMouse( mx, my )
-		--print( "IsoX: " .. ix .. ", IsoY: " .. iy )
+		local wx, wy = gameRules:worldCoordinatesFromMouse( mx, my )
 
-		-- for debug purposes, place the player at the analog position of the highlighted tile
-		--player.world_x, player.world_y = gameRules:worldCoordinatesFromTileCenter( tx, ty )
-		--player.world_x, player.world_y = gameRules:worldCoordinatesFromTile( tx, ty )
-
-		--local tx, ty = math.floor(ix/global.map.tileHeight), math.floor(iy/global.map.tileHeight)
-		--print( "tileX: " .. tx .. ", tileY: " .. ty )
-
+		--logging.verbose( "wx: " .. wx .. ", wy: " .. wy )
 
 
 		local tile = tileLayer( tx, ty )
+		mouse_tile.x = tx
+		mouse_tile.y = ty
 		highlight = nil
 		if tile then
-			mouse_tile.x = tx+1
-			mouse_tile.y = ty+1
-			local drawX, drawY = core.util.IsoTileToScreen( global.map, cx, cy, tx, ty )
+			local wx, wy = gameRules:worldCoordinatesFromTileCenter( tx, ty )
+			local drawX, drawY = gameRules:worldToScreen( wx, wy )
+			--logging.verbose( "drawX: " .. drawX .. ", drawY: " .. drawY )
 			highlight = { x=drawX, y=drawY, w=global.map.tileHeight, h=global.map.tileHeight }
 		else
 			mouse_tile = {x = 'nil', y = 'nil'}
 		end
-
-		player_tile.x, player_tile.y = gameRules:tileCoordinatesFromWorld( player.world_x, player.world_y )
-		player_tile.x = player_tile.x+1
-		player_tile.y = player_tile.y+1
 	end
 
 

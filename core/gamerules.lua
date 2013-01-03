@@ -1,5 +1,6 @@
 module( ..., package.seeall )
 require "core"
+logging = core.logging
 GameRules = class( "GameRules" )
 
 local MAP_COLLISION_LAYER_NAME = "Collision"
@@ -23,7 +24,7 @@ function GameRules:loadMap( mapname )
 	-- cache collision layer and disable rendering
 	self.collision_layer = self.map.layers[ MAP_COLLISION_LAYER_NAME ]
 	if self.collision_layer then
-		self.collision_layer.visible = false
+		--self.collision_layer.visible = false
 	end
 end
 
@@ -49,8 +50,8 @@ function GameRules:handleTileProperty( layer, tile_x, tile_y, property_key, prop
 	-- very crude handling of this until I implement a better way
 	if property_key == "classname" then
 		if property_value == "func_spawn" then
-			self.spawn = {x = tile_x, y = tile_y }
-			layer:set( tile_x, tile_y, nil )
+			self.spawn = { x = tile_x, y = tile_y }
+			--layer:set( tile_x, tile_y, nil )
 		end
 	end
 end
@@ -68,6 +69,21 @@ function GameRules:getCollisionTile( tx, ty )
 	return nil
 end
 
+
+function GameRules:drawWorld()
+	love.graphics.push()
+	love.graphics.setColor(255,255,255,255)
+	local cx, cy = self:getCameraPosition()
+	local ftx, fty = math.floor(cx), math.floor(cy)
+	love.graphics.translate(ftx, fty)
+
+	self.map:autoDrawRange( ftx, fty, 1, 50 )
+
+	self.map:draw()
+	--love.graphics.rectangle("line", global.map:getDrawRange())
+	love.graphics.pop()	
+end
+
 -- -------------------------------------------------------------
 -- there are three coordinate systems:
 -- tile coordinates: A 1-based coordinate pair referring to a tile in the map: (1, 3)
@@ -77,32 +93,38 @@ end
 -- coordinate system functions
 function GameRules:worldCoordinatesFromTileCenter( tile_x, tile_y )
 	-- input tile coordinates are 1-based, so decrement these
-	local tx, ty = tile_x-1, tile_y-2
+	local tx, ty = tile_x, tile_y
 
 	-- we need to further offset the returned value by half the entire map's width to get the correct value
-	local drawX = ((self.map.width * self.map.tileWidth) / 2) + math.floor(self.map.tileWidth/2 * (tx - ty-2))
-	local drawY = math.floor(self.map.tileHeight/2 * (tx + ty+2))
-	drawY = drawY - (self.map.tileHeight/2)
-	return drawX, drawY + (self.map.tileHeight/2)
+	local drawX = ((self.map.width * self.map.tileWidth) / 2) + math.floor(self.map.tileWidth/2 * (tx - ty))
+	local drawY = math.floor(self.map.tileHeight/2 * (tx + ty))
+	--drawX = drawX + (self.map.tileWidth/2)
+	drawY = drawY + (self.map.tileHeight/2)
+	return drawX, drawY
 end
 
 
 -- worldToScreen conversion
 function GameRules:worldToScreen( world_x, world_y )
-	return math.floor(world_x + self.camera_x), math.floor(world_y + self.camera_y)
+	return math.floor(world_x + self.camera_x) - (self.map.tileWidth/2), math.floor(world_y + self.camera_y)
 end
 
 function GameRules:screenToWorld( screen_x, screen_y )
-	return (screen_x - self.camera_x), (screen_y - self.camera_y)
+	return (screen_x - self.camera_x) + (self.map.tileWidth/2), (screen_y - self.camera_y)
 end
 
 function GameRules:tileCoordinatesFromWorld( world_x, world_y )
-	local ix, iy = self.map:toIso( world_x, world_y )
+	local ix, iy = self.map:toIso( world_x - (self.map.tileWidth/2), world_y )
 	return math.floor(ix/self.map.tileHeight), math.floor(iy/self.map.tileHeight)
 end
 
 function GameRules:tileCoordinatesFromMouse( mouse_x, mouse_y )
-	return self:tileCoordinatesFromWorld( mouse_x-self.camera_x, mouse_y-self.camera_y )
+	local wx, wy = self:screenToWorld( mouse_x, mouse_y )
+	return self:tileCoordinatesFromWorld( wx, wy )
+end
+
+function GameRules:worldCoordinatesFromMouse( mouse_x, mouse_y )
+	return self:screenToWorld( mouse_x, mouse_y )
 end
 
 function GameRules:handleMovePlayerCommand( command, player )
@@ -127,12 +149,12 @@ function GameRules:handleMovePlayerCommand( command, player )
 	if command.right then nwx = player.world_x + (command.move_speed * command.dt) end
 
 	local tx, ty = self:tileCoordinatesFromWorld( nwx, nwy )
-	local tile = self:getCollisionTile( tx-1, ty-1 )
+	local tile = self:getCollisionTile( tx, ty )
 
+	--logging.verbose( "tx: " .. tx .. ", ty: " .. ty )
 	-- for now, just collide with tiles that exist on the collision layer.
 	if not tile then
 		player.world_x, player.world_y = nwx, nwy
-		player.tile_x, player.tile_y = tx, ty
 	end
 	
 
@@ -143,6 +165,8 @@ function GameRules:handleMovePlayerCommand( command, player )
 	elseif not player.is_attacking then
 		player:playAnimation( "idle" )
 	end
+
+	player.tile_x, player.tile_y = self:tileCoordinatesFromWorld( player.world_x, player.world_y )
 end
 
 -- -------------------------------------------------------------
