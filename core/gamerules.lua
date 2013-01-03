@@ -12,6 +12,7 @@ function GameRules:initialize()
 	self.collision_layer = nil
 	self.spawn = {x=0, y=0}
 	self.entity_factory = EntityFactory:new()
+	self.entity_manager = EntityManager:new()
 
 	-- need to register all entity classes somewhere; this is not the best spot :/
 	self.entity_factory:registerClass( "WorldEntity", core.entity.WorldEntity )
@@ -81,6 +82,15 @@ function GameRules:drawWorld()
 
 	self.map:draw()
 	--love.graphics.rectangle("line", global.map:getDrawRange())
+	love.graphics.pop()	
+end
+
+function GameRules:drawEntities()
+	self.entity_manager:sortForDrawing()
+
+	love.graphics.push()
+	love.graphics.setColor( 255, 255, 255, 255 )
+	self.entity_manager:eventForEachEntity( "onDraw", {gameRules=self} )
 	love.graphics.pop()	
 end
 

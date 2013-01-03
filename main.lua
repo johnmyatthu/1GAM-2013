@@ -15,9 +15,7 @@ global.conf = {}
 local player = core.entity.AnimatedSprite:new()
 player:loadSprite( "assets/sprites/guy.conf" )
 
-local em = core.gamerules.EntityManager:new()
 
-em:addEntity( player )
 
 local gameLogic = nil
 local gameRules = nil
@@ -53,7 +51,10 @@ function love.load()
 
 	logging.verbose( "initializing game: " .. global.conf.game )
 	gameLogic = require ( global.conf.game )
-	
+
+	gameRules.entity_manager:addEntity( player )
+
+
 	-- gamepad/wiimote testing
 	-- core.util.queryJoysticks()
 
@@ -118,15 +119,15 @@ function love.load()
 	-- testing the entity spawner
 	local spawnerABC = core.entity.EntitySpawner:new()
 	spawnerABC.spawn_class = gameRules.entity_factory:findClass( "AnimatedSprite" )
-	em:addEntity( spawnerABC )
+	gameRules.entity_manager:addEntity( spawnerABC )
 	spawnerABC.onSpawn = function ( params )
-		em:addEntity( params.entity )
+		gameRules.entity_manager:addEntity( params.entity )
 		params.entity.world_x, params.entity.world_y = gameRules:worldCoordinatesFromTileCenter( math.random( 1, 20 ), math.random( 1, 20 ))		
 	end
 --]]
 	if blah then
 		blah.current_frame = "left"
-		em:addEntity( blah )
+		gameRules.entity_manager:addEntity( blah )
 		blah.world_x, blah.world_y = gameRules:worldCoordinatesFromTileCenter( spawn.x+1, spawn.y-1 )
 	end
 end
@@ -134,6 +135,7 @@ end
 function love.draw()
 	gameRules:drawWorld()
 
+	-- draw highlighted tile
 	if highlight then
 		love.graphics.setColor(0,255,0,128)
 		love.graphics.quad( "fill", 
@@ -148,21 +150,16 @@ function love.draw()
 
 
 	-- draw entities here
+	gameRules:drawEntities()
+
+	-- draw overlay text
 	local cx, cy = gameRules:getCameraPosition()
-
-	love.graphics.push()
-	love.graphics.setColor( 255, 255, 255, 255 )
-	em:sortForDrawing()
-	em:eventForEachEntity( "onDraw", {gameRules=gameRules} )
-	love.graphics.pop()
-
 	love.graphics.setColor( 255, 255, 255, 255 )
 	love.graphics.print( "map_translate: ", 10, 50 )
 	love.graphics.print( "x: " .. cx, 20, 70 )
 	love.graphics.print( "y: " .. cy, 20, 90 )
 	love.graphics.print( "tx: " .. mouse_tile.x, 20, 110 )
 	love.graphics.print( "ty: " .. mouse_tile.y, 20, 130 )
-
 
 	love.graphics.print( "player: ", 10, 150 )
 	love.graphics.print( "x: " .. player.world_x, 20, 170 )
@@ -178,9 +175,7 @@ function love.quit()
 end
 
 function love.update(dt)
-
-	em:eventForEachEntity( "onUpdate", {dt=dt} )
-
+	gameRules.entity_manager:eventForEachEntity( "onUpdate", {dt=dt} )
 
 	if map_drag.isDragging then
 		local mx, my = love.mouse.getPosition()
@@ -207,7 +202,7 @@ function love.update(dt)
 
 	gameRules:handleMovePlayerCommand( command, player )
 
-	gameRules:snapCameraToPlayer( player )
+	--gameRules:snapCameraToPlayer( player )
 	local cx, cy = gameRules:getCameraPosition()
 	local mx, my = love.mouse.getPosition()
 
