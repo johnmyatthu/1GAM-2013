@@ -1,5 +1,4 @@
 module( ..., package.seeall )
-require "middleclass.middleclass"
 require "core"
 GameRules = class( "GameRules" )
 

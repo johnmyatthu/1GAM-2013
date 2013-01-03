@@ -1,5 +1,4 @@
 module( ..., package.seeall )
-require "middleclass.middleclass"
 require "core"
 local logging = core.logging
 

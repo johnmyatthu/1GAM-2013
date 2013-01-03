@@ -1,5 +1,5 @@
 
-loader = require "AdvTiledLoader.Loader"
+loader = require "lib.AdvTiledLoader.Loader"
 require "core"
 local logging = core.logging
 
