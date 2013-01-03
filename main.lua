@@ -28,7 +28,6 @@ local mouse_tile = {x = 0, y = 0}
 local map_drag = {isDragging = false, startX = 0, startY = 0, deltaX = 0, deltaY = 0}
 local highlight = nil
 
-local tileLayer = nil
 local menu_open = {
 	main = false,
 	right = false,
@@ -64,9 +63,6 @@ function love.load()
 	gameRules.map = global.map
 	gameRules:loadMap( global.conf.map )
 
-	--logging.verbose( "map width: " .. global.map.width .. " -> " .. (global.map.width * 64) )
-	--logging.verbose( "map height: " .. global.map.height .. " -> " .. (global.map.height * 32) )	
-
 	global.map.drawObjects = false
 
 	-- this crashes on a retina mbp if true; perhaps something to do with the GPUs switching?
@@ -95,9 +91,6 @@ function love.load()
 			end
 		end
 	end
-
-	tileLayer = global.map.layers["Collision"]
-
 
 	core.util.callLogic( gameLogic, "onLoad", {} )
 
@@ -214,32 +207,21 @@ function love.update(dt)
 
 	gameRules:handleMovePlayerCommand( command, player )
 
+	gameRules:snapCameraToPlayer( player )
+	local cx, cy = gameRules:getCameraPosition()
+	local mx, my = love.mouse.getPosition()
 
-	if tileLayer ~= nil then
-		local cx, cy = gameRules:getCameraPosition()
-		local mx, my = love.mouse.getPosition()
+	local tx, ty = gameRules:tileCoordinatesFromMouse( mx, my )
+	local wx, wy = gameRules:worldCoordinatesFromMouse( mx, my )
 
-		local tx, ty = gameRules:tileCoordinatesFromMouse( mx, my )
-		local wx, wy = gameRules:worldCoordinatesFromMouse( mx, my )
+	mouse_tile.x = tx
+	mouse_tile.y = ty
 
-		--logging.verbose( "wx: " .. wx .. ", wy: " .. wy )
-
-
-		local tile = tileLayer( tx, ty )
-		mouse_tile.x = tx
-		mouse_tile.y = ty
-		highlight = nil
-		if tile then
-			local wx, wy = gameRules:worldCoordinatesFromTileCenter( tx, ty )
-			local drawX, drawY = gameRules:worldToScreen( wx, wy )
-			--logging.verbose( "drawX: " .. drawX .. ", drawY: " .. drawY )
-			highlight = { x=drawX, y=drawY, w=global.map.tileHeight, h=global.map.tileHeight }
-		else
-			mouse_tile = {x = 'nil', y = 'nil'}
-		end
-	end
-
-
+	local wx, wy = gameRules:worldCoordinatesFromTileCenter( tx, ty )
+	--logging.verbose( "wx: " .. wx .. ", wy: " .. wy )
+	local drawX, drawY = gameRules:worldToScreen( wx, wy )
+	--logging.verbose( "drawX: " .. drawX .. ", drawY: " .. drawY )
+	highlight = { x=drawX, y=drawY, w=global.map.tileHeight, h=global.map.tileHeight }
 
 	core.util.callLogic( gameLogic, "onUpdate", {dt=dt} )
 end

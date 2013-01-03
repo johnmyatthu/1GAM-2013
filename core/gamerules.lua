@@ -87,7 +87,7 @@ end
 -- -------------------------------------------------------------
 -- there are three coordinate systems:
 -- tile coordinates: A 1-based coordinate pair referring to a tile in the map: (1, 3)
--- world coordinates: The actual pixels converted tile coordinates. This need not align anywhere to a tile for smooth world movements.
+-- world coordinates: The actual pixels converted tile coordinates. This need not align anywhere to a tile for smooth world movements. This is offset by tileWidth/2 in the x direction.
 -- screen coordinates: The actual pixels mapped to the window. These values should be floored for best drawing quality
 
 -- coordinate system functions
@@ -97,12 +97,9 @@ function GameRules:worldCoordinatesFromTileCenter( tile_x, tile_y )
 
 	-- we need to further offset the returned value by half the entire map's width to get the correct value
 	local drawX = ((self.map.width * self.map.tileWidth) / 2) + math.floor(self.map.tileWidth/2 * (tx - ty))
-	local drawY = math.floor(self.map.tileHeight/2 * (tx + ty))
-	--drawX = drawX + (self.map.tileWidth/2)
-	drawY = drawY + (self.map.tileHeight/2)
+	local drawY = math.floor(self.map.tileHeight/2 * (tx + ty)) + (self.map.tileHeight/2)
 	return drawX, drawY
 end
-
 
 -- worldToScreen conversion
 function GameRules:worldToScreen( world_x, world_y )
@@ -127,6 +124,11 @@ function GameRules:worldCoordinatesFromMouse( mouse_x, mouse_y )
 	return self:screenToWorld( mouse_x, mouse_y )
 end
 
+
+
+
+
+
 function GameRules:handleMovePlayerCommand( command, player )
 	-- determine if the sprite is moving diagonally
 	-- if so, tweak their speed so it doesn't look strange
@@ -148,16 +150,15 @@ function GameRules:handleMovePlayerCommand( command, player )
 	if command.left then nwx = player.world_x - (command.move_speed * command.dt) end
 	if command.right then nwx = player.world_x + (command.move_speed * command.dt) end
 
+	-- could offset by sprite's half bounds to ensure they don't intersect with tiles
 	local tx, ty = self:tileCoordinatesFromWorld( nwx, nwy )
 	local tile = self:getCollisionTile( tx, ty )
 
-	--logging.verbose( "tx: " .. tx .. ", ty: " .. ty )
 	-- for now, just collide with tiles that exist on the collision layer.
 	if not tile then
 		player.world_x, player.world_y = nwx, nwy
 	end
 	
-
 	if command.up or command.down or command.left or command.right then
 		player:setDirectionFromMoveCommand( command )
 		player:playAnimation( "run" )
