@@ -14,6 +14,7 @@ function GameRules:initialize()
 	self.spawn = {x=0, y=0}
 	self.entity_factory = EntityFactory:new()
 	self.entity_manager = EntityManager:new()
+	self.pathfinder = nil
 
 	-- need to register all entity classes somewhere; this is not the best spot :/
 	self.entity_factory:registerClass( "WorldEntity", core.entity.WorldEntity )
@@ -22,35 +23,42 @@ end
 function GameRules:loadMap( mapname )
 	print( "loading gamerules map" )
 
-
 	-- cache collision layer and disable rendering
 	self.collision_layer = self.map.layers[ MAP_COLLISION_LAYER_NAME ]
+
+	local walkable_map = {}
 	if self.collision_layer then
 		--self.collision_layer.visible = false
+
+		-- use collision map for path finding
+		for y=1, self.map.height do
+			local row = {}
+			for x=1, self.map.width do
+				local tile = self.collision_layer( x, y )
+				local walkable_value = 0
+				if tile then
+					walkable_value = 1
+				end
+
+				-- insert the value into this row
+				table.insert( row, walkable_value )			
+			end
+			-- insert this row into the grid
+			table.insert( walkable_map, row )		
+		end
 	end
 
-
-
-	local testmap = {
-		{ 0, 0, 0, 0 },
-		{ 0, 1, 1, 0 },
-		{ 0, 1, 1, 0 },
-		{ 0, 0, 0, 0 }
-	}
-
-	local f = Jumper( testmap, 0, true )
-	--f:setMode( "ORTHOGONAL" )
-	logging.verbose( f )
-
-	local path = f:getPath( 1, 1, 4, 4 )
-	logging.verbose( path )
+	self.pathfinder = Jumper( walkable_map, 0, true )
+	self.pathfinder:setHeuristic( "DIAGONAL" )
+	--self.pathfinder:setMode( "ORTHOGONAL" )
+	--self.pathfinder:setAutoFill( true )
+	local path, cost = self.pathfinder:getPath( 1, 1, 23, 23 )
 
 	-- print out all steps in the path
-	for a, b in pairs(path) do
-		--logging.verbose( "i: " .. a .. " -> " .. b )
-		logging.verbose( "-> " .. a )
-		for x, y in pairs(b) do
-			logging.verbose( "x: " .. x .. ", y: " .. y )
+	if path and cost then
+		for a, b in pairs(path) do
+			--logging.verbose( "i: " .. a .. " -> " .. b )
+			logging.verbose( "step " .. a .. " ( " .. b.x .. ", " .. b.y .. " )" )
 		end
 	end
 

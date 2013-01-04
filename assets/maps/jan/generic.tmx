@@ -15,7 +15,7 @@
  </layer>
  <layer name="Collision" width="25" height="25">
   <data encoding="base64" compression="zlib">
-   eJxjZGBgYKQDpiUYtWPUjlE7Ru0YtWPUjlE7Ru0YbHbQGgMA31MAYQ==
+   eJxjZGBgYKQDpiUYtWPUjlE7hpYd5LhnMPpj1I5RO0btGLUDnx20xgDknwBi
   </data>
  </layer>
  <layer name="Entities" width="25" height="25">
