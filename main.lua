@@ -1,14 +1,12 @@
 
-loader = require "lib.AdvTiledLoader.Loader"
+
 require "core"
 local logging = core.logging
 
 
 local CONFIGURATION_FILE = "settings.json"
 
-global = {}
-global.map = nil
-global.conf = {}
+local config = {}
 
 
 
@@ -36,12 +34,12 @@ local input_data = { text = "" }
 
 function load_config()
 	if love.filesystem.exists( CONFIGURATION_FILE ) then
-		global.conf = json.decode( love.filesystem.read( CONFIGURATION_FILE ) )
+		config = json.decode( love.filesystem.read( CONFIGURATION_FILE ) )
 
 		-- initialize GameRules
 		gameRules = core.gamerules.GameRules:new()
 
-		gameRules:warpCameraTo( global.conf.spawn[1], global.conf.spawn[2] )
+		gameRules:warpCameraTo( config.spawn[1], config.spawn[2] )
 	end
 end
 
@@ -49,8 +47,8 @@ function love.load()
 	logging.verbose( "loading configuration: " .. CONFIGURATION_FILE .. "..." )
 	load_config()
 
-	logging.verbose( "initializing game: " .. global.conf.game )
-	gameLogic = require ( global.conf.game )
+	logging.verbose( "initializing game: " .. config.game )
+	gameLogic = require ( config.game )
 
 	gameRules.entity_manager:addEntity( player )
 
@@ -58,40 +56,7 @@ function love.load()
 	-- gamepad/wiimote testing
 	-- core.util.queryJoysticks()
 
-	-- set maps path
-	loader.path = "assets/maps/" .. global.conf.game .. "/"
-	global.map = loader.load( global.conf.map )
-	gameRules.map = global.map
-	gameRules:loadMap( global.conf.map )
-
-	global.map.drawObjects = false
-
-	-- this crashes on a retina mbp if true; perhaps something to do with the GPUs switching?
-	global.map.useSpriteBatch = false
-
-	-- scan through map properties
-	prop_name_map = {}
-	class_tiles = {}
-	for id, tile in pairs(global.map.tiles) do
-		for key, value in pairs(tile.properties) do
-			logging.verbose( key .. " -> " .. value .. "; tile: " .. tile.id )
-			class_tiles[ tile.id ] = value
-			prop_name_map[ tile.id ] = key
-		end
-	end
-
-	-- iterate through all layers
-	for name, layer in pairs(global.map.layers) do
-		logging.verbose( "Searching in layer: " .. name )
-		for x, y, tile in layer:iterate() do
-			if tile then
-				if class_tiles[ tile.id ] then
-					logging.verbose( "handle '" .. class_tiles[ tile.id ] .. "' at " .. x .. ", " .. y )
-					gameRules:handleTileProperty( layer, x, y, prop_name_map[ tile.id ], class_tiles[ tile.id ] )
-				end
-			end
-		end
-	end
+	gameRules:loadMap( config.map )
 
 	core.util.callLogic( gameLogic, "onLoad", {} )
 
@@ -191,14 +156,14 @@ function love.update(dt)
 
 	
 	cam_x, cam_y = gameRules:getCameraPosition()
-	if love.keyboard.isDown("w") then cam_y = cam_y + global.conf.move_speed*dt end
-	if love.keyboard.isDown("s") then cam_y = cam_y - global.conf.move_speed*dt end
-	if love.keyboard.isDown("a") then cam_x = cam_x + global.conf.move_speed*dt end
-	if love.keyboard.isDown("d") then cam_x = cam_x - global.conf.move_speed*dt end
+	if love.keyboard.isDown("w") then cam_y = cam_y + config.move_speed*dt end
+	if love.keyboard.isDown("s") then cam_y = cam_y - config.move_speed*dt end
+	if love.keyboard.isDown("a") then cam_x = cam_x + config.move_speed*dt end
+	if love.keyboard.isDown("d") then cam_x = cam_x - config.move_speed*dt end
 	gameRules:setCameraPosition( cam_x, cam_y )
 	
 
-	command = { up=love.keyboard.isDown("up"), down=love.keyboard.isDown("down"), left=love.keyboard.isDown("left"), right=love.keyboard.isDown("right"), move_speed=global.conf.move_speed, dt=dt }
+	command = { up=love.keyboard.isDown("up"), down=love.keyboard.isDown("down"), left=love.keyboard.isDown("left"), right=love.keyboard.isDown("right"), move_speed=config.move_speed, dt=dt }
 
 	gameRules:handleMovePlayerCommand( command, player )
 
@@ -216,7 +181,7 @@ function love.update(dt)
 	--logging.verbose( "wx: " .. wx .. ", wy: " .. wy )
 	local drawX, drawY = gameRules:worldToScreen( wx, wy )
 	--logging.verbose( "drawX: " .. drawX .. ", drawY: " .. drawY )
-	highlight = { x=drawX, y=drawY, w=global.map.tileHeight, h=global.map.tileHeight }
+	highlight = { x=drawX, y=drawY, w=gameRules.map.tileHeight, h=gameRules.map.tileHeight }
 
 	core.util.callLogic( gameLogic, "onUpdate", {dt=dt} )
 end

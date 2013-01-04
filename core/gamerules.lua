@@ -3,6 +3,7 @@ require "core"
 logging = core.logging
 GameRules = class( "GameRules" )
 Jumper = require "lib.jumper.jumper"
+loader = require "lib.AdvTiledLoader.Loader"
 
 local MAP_COLLISION_LAYER_NAME = "Collision"
 
@@ -22,6 +23,37 @@ end
 
 function GameRules:loadMap( mapname )
 	print( "loading gamerules map" )
+	loader.path = "assets/maps/"
+	self.map = loader.load( mapname )
+	self.map.drawObjects = false
+
+	-- this crashes on a retina mbp if true; perhaps something to do with the GPUs switching?
+	self.map.useSpriteBatch = false
+
+	-- scan through map properties
+	prop_name_map = {}
+	class_tiles = {}
+	for id, tile in pairs(self.map.tiles) do
+		for key, value in pairs(tile.properties) do
+			logging.verbose( key .. " -> " .. value .. "; tile: " .. tile.id )
+			class_tiles[ tile.id ] = value
+			prop_name_map[ tile.id ] = key
+		end
+	end
+
+	-- iterate through all layers
+	for name, layer in pairs(self.map.layers) do
+		logging.verbose( "Searching in layer: " .. name )
+		for x, y, tile in layer:iterate() do
+			if tile then
+				if class_tiles[ tile.id ] then
+					logging.verbose( "handle '" .. class_tiles[ tile.id ] .. "' at " .. x .. ", " .. y )
+					self:handleTileProperty( layer, x, y, prop_name_map[ tile.id ], class_tiles[ tile.id ] )
+				end
+			end
+		end
+	end
+
 
 	-- cache collision layer and disable rendering
 	self.collision_layer = self.map.layers[ MAP_COLLISION_LAYER_NAME ]
@@ -116,7 +148,7 @@ function GameRules:drawWorld()
 	self.map:autoDrawRange( ftx, fty, 1, 50 )
 
 	self.map:draw()
-	--love.graphics.rectangle("line", global.map:getDrawRange())
+	--love.graphics.rectangle("line", self.map:getDrawRange())
 	love.graphics.pop()	
 end
 
