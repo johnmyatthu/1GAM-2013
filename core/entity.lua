@@ -10,8 +10,8 @@ function Entity:initialize()
 	self.world_y = 0
 
 	-- current tile
-	self.tile_x = -1
-	self.tile_y = -1	
+	self.tile_x = 1
+	self.tile_y = 1
 end
 
 function Entity:onSpawn( params )
@@ -117,14 +117,15 @@ end
 
 
 function AnimatedSprite:initialize()
+	Entity.initialize(self)
 	self.is_attacking = false
 	self.current_animation = 1
 	self.current_direction = "northeast"
-	self.animations = {}
+	self.animations = nil
 	self.spritesheet = nil
 	self.animation_index_from_name = {}
-	self.tile_x = 'nil'
-	self.tile_y = 'nil'
+	self.frame_width = 0
+	self.frame_height = 0
 end
 
 function AnimatedSprite:__tostring()
@@ -141,22 +142,119 @@ end
 -- params:
 --	dt: the frame delta time
 function AnimatedSprite:onUpdate( params )
-	local animation = self.animations[ self.current_animation ][ self.current_direction ]
-	if animation then
-		animation:update(params.dt)
+	if self.animations then
+		local animation = self.animations[ self.current_animation ][ self.current_direction ]
+		if animation then
+			animation:update(params.dt)
+		end
 	end
 end
 
 -- params:
 --	gameRules: the instance of the active gamerules class
 function AnimatedSprite:onDraw( params )
-	local x, y = params.gameRules:worldToScreen( (self.world_x - (self.frame_width/2)), self.world_y - (self.frame_height/2) )
+	if self.animations then
+		local x, y = params.gameRules:worldToScreen( (self.world_x - (self.frame_width/2)), self.world_y - (self.frame_height/2) )
 
-	local animation = self.animations[ self.current_animation ][ self.current_direction ]
-	if animation then
-		animation:draw(x, y)
+		local animation = self.animations[ self.current_animation ][ self.current_direction ]
+		if animation then
+			animation:draw(x, y)
+		end
 	end
 end
+
+
+PathFollower = class( "PathFollower", AnimatedSprite )
+function PathFollower:initialize()
+	AnimatedSprite.initialize(self)
+
+	self.path = nil
+	self.current_path_step = 1
+
+	self.velocity = { x=0, y=0 }
+end
+
+function PathFollower:setPath( path )
+	self.path = path
+	self.current_path_step = 2
+end
+
+function PathFollower:currentTarget()
+	if self.path and self.current_path_step < #self.path then
+		return self.path[ self.current_path_step ]
+	else
+		return {x=-1, y=-1}
+	end
+end
+
+function PathFollower:onUpdate( params )
+	--AnimatedSprite:onUpdate( params )
+
+	local command = { up=false, down=false, left=false, right=false }
+	command.move_speed = 150
+	command.dt = params.dt
+
+	if self.path then
+		tile = self.path[ self.current_path_step ]
+
+
+
+		local cx, cy = params.gameRules:worldCoordinatesFromTileCenter( tile.x, tile.y )
+		self.velocity.x = cx - self.world_x
+		self.velocity.y = cy - self.world_y
+
+		-- determine absolute distance
+		--logging.verbose( "velocity: " .. self.velocity.x .. ", " .. self.velocity.y )
+		local dx, dy = math.abs(self.velocity.x), math.abs(self.velocity.y)
+		if dx < 2 and dy < 2 then
+			self.world_x = cx
+			self.world_y = cy
+
+			if self.current_path_step == #self.path then
+				logging.verbose( "ended path at " .. self.current_path_step )
+				self.path = nil
+				return			
+			end
+
+			logging.verbose( "dx: " .. dx .. ", dy: " .. dy )
+			self.current_path_step = self.current_path_step + 1
+			logging.verbose( "next path step ... " .. self.current_path_step )
+
+			return
+		end
+
+		--logging.verbose( "tile.x: " .. tile.x .. ", tile.y: " .. tile.y )
+
+		-- this mess should be refactored and put into gamerules to use collision.
+		local min_vel = command.move_speed
+		
+		local mx = 0
+		local my = 0
+		if self.velocity.x ~= 0 then
+			if self.velocity.x > 0 then mx = command.move_speed else mx = -command.move_speed end
+		end
+		if self.velocity.y ~= 0 then
+			if self.velocity.y > 0 then my = command.move_speed else my = -command.move_speed end
+		end
+
+		local vertical_speed = my
+		if mx ~= 0 and my ~= 0 then
+			vertical_speed = my * 0.5
+		end
+
+
+
+		self.world_x = self.world_x + (mx * params.dt)
+		self.world_y = self.world_y + (vertical_speed * params.dt)
+		--logging.verbose( "up: " .. tostring(command.up) .. ", down: " .. tostring(command.down) .. ", left: " .. tostring(command.left) .. ", right: " .. tostring(command.right) )
+	end
+
+	--params.gameRules:handleMovePlayerCommand( command, self )
+	--logging.verbose( "rolling... " .. params.dt )
+end
+
+
+
 
 
 EntitySpawner = class( "EntitySpawner", Entity )

@@ -19,6 +19,8 @@ function GameRules:initialize()
 
 	-- need to register all entity classes somewhere; this is not the best spot :/
 	self.entity_factory:registerClass( "WorldEntity", core.entity.WorldEntity )
+	self.entity_factory:registerClass( "AnimatedSprite", core.entity.AnimatedSprite )
+	self.entity_factory:registerClass( "PathFollower", core.entity.PathFollower )
 end
 
 function GameRules:loadMap( mapname )
@@ -84,6 +86,8 @@ function GameRules:loadMap( mapname )
 	self.pathfinder:setHeuristic( "DIAGONAL" )
 	--self.pathfinder:setMode( "ORTHOGONAL" )
 	--self.pathfinder:setAutoFill( true )
+
+	--[[
 	local path, cost = self.pathfinder:getPath( 1, 1, 23, 23 )
 
 	-- print out all steps in the path
@@ -93,7 +97,12 @@ function GameRules:loadMap( mapname )
 			logging.verbose( "step " .. a .. " ( " .. b.x .. ", " .. b.y .. " )" )
 		end
 	end
+	--]]
+end
 
+-- returns path and cost or nil, nil if there is no path
+function GameRules:getPath( start_x, start_y, end_x, end_y )
+	return self.pathfinder:getPath( start_x, start_y, end_x, end_y )
 end
 
 function GameRules:__tostring()
@@ -204,7 +213,9 @@ end
 
 
 
-
+function GameRules:moveEntity( entity, move_speed, dt )
+	
+end
 
 function GameRules:handleMovePlayerCommand( command, player )
 	-- determine if the sprite is moving diagonally
@@ -218,6 +229,9 @@ function GameRules:handleMovePlayerCommand( command, player )
 	if is_diagonal then
 		move_speed = command.move_speed * 0.5
 	end
+
+
+	self:moveEntity( player, command.move_speed, dt )
 
 	-- get the next world position of the entity
 	local nwx, nwy = player.world_x, player.world_y
@@ -262,6 +276,10 @@ end
 
 function sortDescendingDepth(a,b)
 	return a.world_y < b.world_y
+end
+
+function EntityManager:entityCount()
+	return # self.entity_list
 end
 
 -- sort the entities in descending depth order such that lower objects in the screen are drawn in front

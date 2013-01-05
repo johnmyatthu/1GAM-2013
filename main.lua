@@ -10,19 +10,14 @@ local config = {}
 
 
 
-local player = core.entity.AnimatedSprite:new()
-player:loadSprite( "assets/sprites/guy.conf" )
-
-
-
+local player = nil
 local gameLogic = nil
 local gameRules = nil
 
 local mouse_tile = {x = 0, y = 0}
-
+local target_tile = {x = 0, y = 0}
 -- temporary support middle-click drag
 local map_drag = {isDragging = false, startX = 0, startY = 0, deltaX = 0, deltaY = 0}
-local highlight = nil
 
 local menu_open = {
 	main = false,
@@ -50,6 +45,8 @@ function love.load()
 	logging.verbose( "initializing game: " .. config.game )
 	gameLogic = require ( config.game )
 
+	player = gameRules.entity_factory:createClass( "PathFollower" )
+	player:loadSprite( "assets/sprites/guy.conf" )
 	gameRules.entity_manager:addEntity( player )
 
 
@@ -61,7 +58,7 @@ function love.load()
 	core.util.callLogic( gameLogic, "onLoad", {} )
 
 
-	blah = gameRules.entity_factory:createClass( "AnimatedSprite" )
+	
 
 	-- assuming this map has a spawn point; we'll set the player spawn
 	-- and then center the camera on the player
@@ -90,29 +87,33 @@ function love.load()
 		params.entity.world_x, params.entity.world_y = gameRules:worldCoordinatesFromTileCenter( math.random( 1, 20 ), math.random( 1, 20 ))		
 	end
 --]]
+	--[[
+	blah = gameRules.entity_factory:createClass( "PathFollower" )
+	logging.verbose( blah )
 	if blah then
+		blah:loadSprite( "assets/sprites/guy.conf" )
 		blah.current_frame = "left"
 		gameRules.entity_manager:addEntity( blah )
-		blah.world_x, blah.world_y = gameRules:worldCoordinatesFromTileCenter( spawn.x+1, spawn.y-1 )
+		blah.world_x, blah.world_y = gameRules:worldCoordinatesFromTileCenter( spawn.x+1, spawn.y+1 )
+		blah.tile_x, blah.tile_y = gameRules:tileCoordinatesFromWorld( blah.world_x, blah.world_y )
 	end
+	--]]
 end
 
 function love.draw()
 	gameRules:drawWorld()
 
 	-- draw highlighted tile
-	if highlight then
-		love.graphics.setColor(0,255,0,128)
-		love.graphics.quad( "fill", 
+	highlight_tile( mouse_tile.x, mouse_tile.y, {r=0, g=255, b=0, a=128} )
 
-			highlight.x - highlight.w, highlight.y, -- east
-			highlight.x, highlight.y - highlight.h/2,                       -- north
-			highlight.x + highlight.w, highlight.y, -- west
-			highlight.x, highlight.y + highlight.h/2 -- south
 
-			)
+	highlight_tile( target_tile.x, target_tile.y, {r=255, g=0, b=0, a=128} )
+
+	local nt = player:currentTarget()
+	if nt.x < 0 or nt.y < 0 then
+	else
+		highlight_tile( nt.x, nt.y, {r=0, g=255, b=255, a=128} )
 	end
-
 
 	-- draw entities here
 	gameRules:drawEntities()
@@ -120,9 +121,10 @@ function love.draw()
 	-- draw overlay text
 	local cx, cy = gameRules:getCameraPosition()
 	love.graphics.setColor( 255, 255, 255, 255 )
-	love.graphics.print( "map_translate: ", 10, 50 )
-	love.graphics.print( "x: " .. cx, 20, 70 )
-	love.graphics.print( "y: " .. cy, 20, 90 )
+	love.graphics.print( "total entities: " .. gameRules.entity_manager:entityCount(), 10, 20 )
+	--love.graphics.print( "map_translate: ", 10, 50 )
+	--love.graphics.print( "x: " .. cx, 20, 70 )
+	--love.graphics.print( "y: " .. cy, 20, 90 )
 	love.graphics.print( "tx: " .. mouse_tile.x, 20, 110 )
 	love.graphics.print( "ty: " .. mouse_tile.y, 20, 130 )
 
@@ -130,7 +132,16 @@ function love.draw()
 	love.graphics.print( "x: " .. player.world_x, 20, 170 )
 	love.graphics.print( "y: " .. player.world_y, 20, 190 )
 	love.graphics.print( "tx: " .. player.tile_x, 20, 210 )
-	love.graphics.print( "ty: " .. player.tile_y, 20, 230 )	
+	love.graphics.print( "ty: " .. player.tile_y, 20, 230 )
+
+	local target = player:currentTarget()
+	love.graphics.print( "targetx: " .. target.x, 20, 250 )
+	love.graphics.print( "targety: " .. target.y, 20, 270 )
+
+	love.graphics.print( "velocity.x: " .. player.velocity.x, 20, 290 )
+	love.graphics.print( "velocity.y: " .. player.velocity.y, 20, 310 )
+
+	
 end
 
 --function love.run()
@@ -140,7 +151,7 @@ function love.quit()
 end
 
 function love.update(dt)
-	gameRules.entity_manager:eventForEachEntity( "onUpdate", {dt=dt} )
+	gameRules.entity_manager:eventForEachEntity( "onUpdate", {dt=dt, gameRules=gameRules} )
 
 	if map_drag.isDragging then
 		local mx, my = love.mouse.getPosition()
@@ -164,7 +175,6 @@ function love.update(dt)
 	
 
 	command = { up=love.keyboard.isDown("up"), down=love.keyboard.isDown("down"), left=love.keyboard.isDown("left"), right=love.keyboard.isDown("right"), move_speed=config.move_speed, dt=dt }
-
 	gameRules:handleMovePlayerCommand( command, player )
 
 	--gameRules:snapCameraToPlayer( player )
@@ -177,13 +187,20 @@ function love.update(dt)
 	mouse_tile.x = tx
 	mouse_tile.y = ty
 
-	local wx, wy = gameRules:worldCoordinatesFromTileCenter( tx, ty )
-	--logging.verbose( "wx: " .. wx .. ", wy: " .. wy )
-	local drawX, drawY = gameRules:worldToScreen( wx, wy )
-	--logging.verbose( "drawX: " .. drawX .. ", drawY: " .. drawY )
-	highlight = { x=drawX, y=drawY, w=gameRules.map.tileHeight, h=gameRules.map.tileHeight }
-
 	core.util.callLogic( gameLogic, "onUpdate", {dt=dt} )
+end
+
+function highlight_tile( tx, ty, color )
+	local wx, wy = gameRules:worldCoordinatesFromTileCenter( tx, ty )
+	local drawX, drawY = gameRules:worldToScreen( wx, wy )
+
+	love.graphics.setColor(color.r, color.g, color.b, color.a)
+	love.graphics.quad( "fill", 
+		drawX - gameRules.map.tileHeight, drawY, -- east
+		drawX, drawY - gameRules.map.tileHeight/2,                       -- north
+		drawX + gameRules.map.tileHeight, drawY, -- west
+		drawX, drawY + gameRules.map.tileHeight/2 -- south
+	)
 end
 
 function love.keypressed( key, unicode )
@@ -220,6 +237,19 @@ end
 function love.mousereleased( x, y, button )
 	if button == "m" then
 		map_drag.isDragging = false
+	end
+
+	if button == "r" then
+		logging.verbose( "right click" )
+
+		-- plot a course to the tile
+		logging.verbose( "move to: " .. mouse_tile.x .. ", " .. mouse_tile.y )
+
+		target_tile.x = mouse_tile.x
+		target_tile.y = mouse_tile.y
+
+		local path = gameRules:getPath( player.tile_x, player.tile_y, target_tile.x, target_tile.y )
+		player:setPath( path )
 	end
 
 	core.util.callLogic( gameLogic, "onMouseReleased", {x=x, y=y, button=button} )
