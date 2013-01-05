@@ -200,13 +200,20 @@ function PathFollower:onUpdate( params )
 
 
 		local cx, cy = params.gameRules:worldCoordinatesFromTileCenter( tile.x, tile.y )
+		--logging.verbose( "tile.x: " .. tile.x .. ", tile.y: " .. tile.y )
+
 		self.velocity.x = cx - self.world_x
 		self.velocity.y = cy - self.world_y
 
+
+		logging.verbose( "c.x: " .. cx .. ", c.y: " .. cy )
+		logging.verbose( "w.x: " .. self.world_x .. ", w.y: " .. self.world_y )
+		logging.verbose( "v.x: " .. self.velocity.x .. ", v.y: " .. self.velocity.y )
 		-- determine absolute distance
-		--logging.verbose( "velocity: " .. self.velocity.x .. ", " .. self.velocity.y )
+		logging.verbose( "velocity: " .. self.velocity.x .. ", " .. self.velocity.y )
 		local dx, dy = math.abs(self.velocity.x), math.abs(self.velocity.y)
-		if dx < 2 and dy < 2 then
+		if self.tile_x == tile.x and self.tile_y == tile.y and dx < 5 and dy < 5 then
+			logging.verbose( "dx: " .. dx .. ", dy: " .. dy )
 			self.world_x = cx
 			self.world_y = cy
 
@@ -216,14 +223,13 @@ function PathFollower:onUpdate( params )
 				return			
 			end
 
-			logging.verbose( "dx: " .. dx .. ", dy: " .. dy )
+			
 			self.current_path_step = self.current_path_step + 1
 			logging.verbose( "next path step ... " .. self.current_path_step )
 
 			return
 		end
 
-		--logging.verbose( "tile.x: " .. tile.x .. ", tile.y: " .. tile.y )
 
 		-- this mess should be refactored and put into gamerules to use collision.
 		local min_vel = command.move_speed
@@ -254,11 +260,12 @@ function PathFollower:onUpdate( params )
 			command.up = true
 		end
 
-		--self.world_x = self.world_x + (mx * params.dt)
-		--self.world_y = self.world_y + (vertical_speed * params.dt)
+		self.world_x = self.world_x + (mx * params.dt)
+		self.world_y = self.world_y + (vertical_speed * params.dt)
 		--logging.verbose( "up: " .. tostring(command.up) .. ", down: " .. tostring(command.down) .. ", left: " .. tostring(command.left) .. ", right: " .. tostring(command.right) )
 	end
 
+	command.move_speed = 0
 	params.gameRules:handleMovePlayerCommand( command, self )
 	--logging.verbose( "rolling... " .. params.dt )
 end
