@@ -242,14 +242,24 @@ function PathFollower:onUpdate( params )
 			vertical_speed = my * 0.5
 		end
 
+		if self.velocity.x > 0 then
+			command.right = true
+		elseif self.velocity.x < 0 then
+			command.left = true
+		end
 
+		if self.velocity.y > 0 then
+			command.down = true
+		elseif self.velocity.y < 0 then
+			command.up = true
+		end
 
-		self.world_x = self.world_x + (mx * params.dt)
-		self.world_y = self.world_y + (vertical_speed * params.dt)
+		--self.world_x = self.world_x + (mx * params.dt)
+		--self.world_y = self.world_y + (vertical_speed * params.dt)
 		--logging.verbose( "up: " .. tostring(command.up) .. ", down: " .. tostring(command.down) .. ", left: " .. tostring(command.left) .. ", right: " .. tostring(command.right) )
 	end
 
-	--params.gameRules:handleMovePlayerCommand( command, self )
+	params.gameRules:handleMovePlayerCommand( command, self )
 	--logging.verbose( "rolling... " .. params.dt )
 end
 
