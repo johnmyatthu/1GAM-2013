@@ -1,12 +1,12 @@
 module( ..., package.seeall )
 require "core"
 logging = core.logging
-GameRules = class( "GameRules" )
 Jumper = require "lib.jumper.jumper"
 loader = require "lib.AdvTiledLoader.Loader"
 
 local MAP_COLLISION_LAYER_NAME = "Collision"
 
+GameRules = class( "GameRules" )
 function GameRules:initialize()
 	self.camera_x = 0
 	self.camera_y = 0
@@ -21,6 +21,9 @@ function GameRules:initialize()
 	self.entity_factory:registerClass( "WorldEntity", core.entity.WorldEntity )
 	self.entity_factory:registerClass( "AnimatedSprite", core.entity.AnimatedSprite )
 	self.entity_factory:registerClass( "PathFollower", core.entity.PathFollower )
+	self.entity_factory:registerClass( "func_spawn", core.entity.func_spawn )
+	self.entity_factory:registerClass( "Enemy", core.entity.Enemy )
+	self.entity_factory:registerClass( "func_target", core.entity.func_target )
 end
 
 function GameRules:loadMap( mapname )
@@ -33,24 +36,29 @@ function GameRules:loadMap( mapname )
 	self.map.useSpriteBatch = false
 
 	-- scan through map properties
-	prop_name_map = {}
 	class_tiles = {}
 	for id, tile in pairs(self.map.tiles) do
 		for key, value in pairs(tile.properties) do
-			logging.verbose( key .. " -> " .. value .. "; tile: " .. tile.id )
-			class_tiles[ tile.id ] = value
-			prop_name_map[ tile.id ] = key
+			--logging.verbose( key .. " -> " .. value .. "; tile: " .. tile.id )
+			if not class_tiles[ tile.id ] then
+				class_tiles[ tile.id ] = {}
+			end
+
+			class_tiles[ tile.id ][ key ] = value
 		end
 	end
 
 	-- iterate through all layers
 	for name, layer in pairs(self.map.layers) do
-		logging.verbose( "Searching in layer: " .. name )
+		--logging.verbose( "Searching in layer: " .. name )
 		for x, y, tile in layer:iterate() do
 			if tile then
 				if class_tiles[ tile.id ] then
-					logging.verbose( "handle '" .. class_tiles[ tile.id ] .. "' at " .. x .. ", " .. y )
-					self:handleTileProperty( layer, x, y, prop_name_map[ tile.id ], class_tiles[ tile.id ] )
+					--for key,value in pairs( class_tiles[ tile.id ] ) do
+					--	logging.verbose( key .. " -> " .. value )
+					--end
+
+					self:spawnEntityAtTileWithProperties( layer, x, y, class_tiles[ tile.id ] )
 				end
 			end
 		end
@@ -69,9 +77,20 @@ function GameRules:loadMap( mapname )
 			local row = {}
 			for x=1, self.map.width do
 				local tile = self.collision_layer( x, y )
+
+
 				local walkable_value = 0
 				if tile then
 					walkable_value = 1
+
+					if tile.properties then
+						--for key, value in pairs(tile.properties) do
+						--	logging.verbose( key .. " -> " .. tostring(value) )
+						--end
+						if tile.properties.walkable then
+							walkable_value = 0
+						end
+					end
 				end
 
 				-- insert the value into this row
@@ -104,14 +123,17 @@ end
 function GameRules:getPath( start_x, start_y, end_x, end_y )
 	-- verify target tiles are correct
 	if start_x < 0 or start_y < 0 or end_x < 0 or end_y < 0 then
+		logging.warning( "start or end node value is invalid" )
 		return nil, nil
 	end
 
 	if start_x > self.map.width or end_x > self.map.width then
+		logging.warning( "start or end node X value is beyond map" )
 		return nil, nil
 	end
 
 	if start_y > self.map.height or end_y > self.map.height then
+		logging.warning( "start or end node Y value is beyond map" )
 		return nil, nil
 	end
 
@@ -137,13 +159,36 @@ function GameRules:setCameraPosition( camera_x, camera_y )
 	self.camera_y = camera_y
 end
 
-function GameRules:handleTileProperty( layer, tile_x, tile_y, property_key, property_value )
-	-- very crude handling of this until I implement a better way
-	if property_key == "classname" then
-		if property_value == "func_spawn" then
+function GameRules:spawnEntityAtTileWithProperties( layer, tile_x, tile_y, properties )
+	local classname = properties[ "classname" ]
+	if classname then
+		properties[ "classname" ] = nil
+		logging.verbose( "GameRules: spawning entity '" .. classname .. "' at " .. tile_x .. ", " .. tile_y )
+
+		if classname == "info_player_spawn" then
+			-- yadda, yadda, yadda; make this not a HACK
 			self.spawn = { x = tile_x, y = tile_y }
-			--layer:set( tile_x, tile_y, nil )
+		else
+			local entity = self.entity_factory:createClass( classname )
+			if entity then
+				-- set the world position for the entity from the tile coordinates
+				entity.world_x, entity.world_y = self:worldCoordinatesFromTileCenter( tile_x, tile_y )
+
+				-- make sure our entity is spawned properly
+				entity:onSpawn( {gameRules=self, properties=properties} )
+
+				logging.verbose( "-> entity '" .. classname .. "' is at " .. entity.world_x .. ", " .. entity.world_y )
+				logging.verbose( "-> entity tile at " .. entity.tile_x .. ", " .. entity.tile_y )
+
+				-- this entity is now managed.
+				self.entity_manager:addEntity( entity )
+
+				-- remove this tile from the layer
+				layer:set( tile_x, tile_y, nil )
+			end
 		end
+	else
+		logging.warning( "'classname' is required to spawn an entity! Ignoring tile at " .. tile_x .. ", " .. tile_y )
 	end
 end
 
@@ -296,6 +341,16 @@ function EntityManager:entityCount()
 	return # self.entity_list
 end
 
+function EntityManager:findFirstEntityByName( name )
+	for index, entity in pairs(self.entity_list) do
+		if entity.class.name == name then
+			return entity
+		end
+	end
+
+	return nil
+end
+
 -- sort the entities in descending depth order such that lower objects in the screen are drawn in front
 function EntityManager:sortForDrawing()
 	table.sort( self.entity_list, sortDescendingDepth )
@@ -328,6 +383,8 @@ function EntityFactory:findClass( class_name )
 	if self.class_by_name[ class_name ] then 
 		return self.class_by_name[ class_name ]
 	end
+
+	
 	return nil
 end
 
@@ -337,6 +394,8 @@ function EntityFactory:createClass( class_name )
 	if self.class_by_name[ class_name ] then
 		local create_class = self.class_by_name[ class_name ]
 		instance = create_class:new()
+	else
+		logging.warning( "Unable to find class named '" .. class_name .. "'!" )
 	end
 
 	return instance

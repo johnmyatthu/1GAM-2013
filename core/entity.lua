@@ -3,18 +3,24 @@ require "core"
 local logging = core.logging
 
 Entity = class( "Entity" )
-
 function Entity:initialize()
 	-- current position in the world
 	self.world_x = 0
 	self.world_y = 0
 
 	-- current tile
-	self.tile_x = 1
-	self.tile_y = 1
+	self.tile_x = -1
+	self.tile_y = -1
 end
 
 function Entity:onSpawn( params )
+	logging.verbose( "Entity:onSpawn... " .. tostring(self) )
+
+	if self.tile_x < 0 or self.tile_y < 0 then
+		logging.verbose( "Entity:onSpawn world location: " .. self.world_x .. ", " .. self.world_y )
+		self.tile_x, self.tile_y = params.gameRules:tileCoordinatesFromWorld( self.world_x, self.world_y )
+		logging.verbose( "Entity:onSpawn tile location: " .. self.tile_x .. ", " .. self.tile_y )
+	end
 end
 
 function Entity:onUpdate( params )
@@ -25,6 +31,23 @@ end
 
 -- a base "world" entity that exists in the game world
 AnimatedSprite = class( "AnimatedSprite", Entity )
+
+function AnimatedSprite:initialize()
+	logging.verbose( "AnimatedSprite initialize" )
+	Entity:initialize(self)
+	self.is_attacking = false
+	self.current_animation = 1
+	self.current_direction = "northeast"
+	self.animations = nil
+	self.spritesheet = nil
+	self.animation_index_from_name = {}
+	self.frame_width = 0
+	self.frame_height = 0
+end
+
+function AnimatedSprite:__tostring()
+	return "AnimatedSprite at world:[ " .. self.world_x .. ", " .. self.world_y .. " ]"
+end
 
 -- I hate the way this works; it's so hacky. So, until I come up with a better way...
 function AnimatedSprite:setDirectionFromMoveCommand( command )
@@ -46,7 +69,7 @@ end
 function AnimatedSprite:loadSprite( config_file )
 	if love.filesystem.exists( config_file ) then
 		local sprite_config = json.decode( love.filesystem.read( config_file ) )
-		logging.verbose( "loadSprite: image '" .. sprite_config.image .. "'" )
+		--logging.verbose( "loadSprite: image '" .. sprite_config.image .. "'" )
 
 		if sprite_config.frame_width and sprite_config.frame_height then
 			self.frame_width = sprite_config.frame_width
@@ -59,7 +82,7 @@ function AnimatedSprite:loadSprite( config_file )
 		-- load the image for this sprite
 		self.image = love.graphics.newImage( sprite_config.image )
 		if self.image then
-			logging.verbose( "loadSprite: loaded image w x h = " .. self.image:getWidth() .. " x " .. self.image:getHeight() )
+			--logging.verbose( "loadSprite: loaded image w x h = " .. self.image:getWidth() .. " x " .. self.image:getHeight() )
 
 			-- create a spritesheet and load animations
 			self.spritesheet = core.SpriteSheet.new( self.image, self.frame_width, self.frame_height )
@@ -105,7 +128,7 @@ function AnimatedSprite:loadSprite( config_file )
 				end
 			end
 
-			logging.verbose( "loadSprite: animations loaded: " .. (#self.animations) )
+			--logging.verbose( "loadSprite: animations loaded: " .. (#self.animations) )
 		else
 			logging.warning( "loadSprite: Could not load image: '" .. sprite_config.image .. "'" )
 		end
@@ -115,22 +138,6 @@ function AnimatedSprite:loadSprite( config_file )
 	end
 end
 
-
-function AnimatedSprite:initialize()
-	Entity.initialize(self)
-	self.is_attacking = false
-	self.current_animation = 1
-	self.current_direction = "northeast"
-	self.animations = nil
-	self.spritesheet = nil
-	self.animation_index_from_name = {}
-	self.frame_width = 0
-	self.frame_height = 0
-end
-
-function AnimatedSprite:__tostring()
-	return "AnimatedSprite at world:[ " .. self.world_x .. ", " .. self.world_y .. " ]"
-end
 
 function AnimatedSprite:playAnimation( name )
 	self.current_animation = 1
@@ -166,7 +173,8 @@ end
 
 PathFollower = class( "PathFollower", AnimatedSprite )
 function PathFollower:initialize()
-	AnimatedSprite.initialize(self)
+	logging.verbose( "path follower initialize" )
+	AnimatedSprite:initialize(self)
 
 	self.path = nil
 	self.current_path_step = 1
@@ -175,8 +183,12 @@ function PathFollower:initialize()
 end
 
 function PathFollower:setPath( path )
-	self.path = path
-	self.current_path_step = 2
+	if path then
+		self.path = path
+		self.current_path_step = 1
+	else
+		logging.warning( "PathFollower: path is invalid, ignoring!" )
+	end
 end
 
 function PathFollower:currentTarget()
@@ -193,7 +205,7 @@ function PathFollower:onUpdate( params )
 	-- the minimum number of units the sprite can be to a tile's center before it is considered "close enough"
 	local TILE_DISTANCE_THRESHOLD = 5
 	local command = { up=false, down=false, left=false, right=false }
-	command.move_speed = 150
+	command.move_speed = 50
 	command.dt = params.dt
 
 	if self.path then
@@ -285,31 +297,100 @@ function PathFollower:onUpdate( params )
 end
 
 
+func_target = class( "func_target", AnimatedSprite )
+
+
+Enemy = class( "Enemy", PathFollower )
+function Enemy:initialize()
+	logging.verbose( "Enemy:initialize" )
+	PathFollower.initialize(self)
+end
+
+function Enemy:onSpawn( params )
+	--self.class.super:onSpawn( params )
+	PathFollower.onSpawn( self, params )
+
+	logging.verbose( "Enemy: Searching for target..." )
+	local target = params.gameRules.entity_manager:findFirstEntityByName( "func_target" )
+	if target then
+		logging.verbose( "I am setting a course to attack the target!" )
+		logging.verbose( "I am at " .. self.tile_x .. ", " .. self.tile_y )
+		logging.verbose( "Target is at " .. target.tile_x .. ", " .. target.tile_y )
+		local path, cost = params.gameRules:getPath( self.tile_x, self.tile_y, target.tile_x+1, target.tile_y )
+		logging.verbose( path )
+		logging.verbose( cost )
+		self:setPath( path )
+
+	else
+		logging.verbose( "Unable to find target." )
+	end
+end
 
 
 
-EntitySpawner = class( "EntitySpawner", Entity )
-function EntitySpawner:initialize()
-	Entity.initialize( self )
+func_spawn = class( "func_spawn", Entity )
+function func_spawn:initialize()
+	Entity:initialize(self)
+	self.gamerules = nil
 	self.spawn_time = 1
+	self.spawn_class = ""
+	self.config = "assets/sprites/guy.conf"
+
 	self.time_left = self.spawn_time
-	self.spawn_class = nil
-	self.onSpawn = nil
+
+	-- by default, -1 will mean repeatedly spawn
+	-- 0 will mean never fire
+	self.max_entities = -1
+end
+
+function func_spawn:onSpawn( params )
+	Entity.onSpawn( self, params )
+	logging.verbose( "func_spawn ... reading params!" )
+
+	for key, value in pairs(params.properties) do
+		--logging.verbose( key .. " -> " .. value )
+		if self[ key ] then
+			--logging.verbose( "key exists: " .. key )
+			self[ key ] = value
+		end
+	end
+
+	self.spawn_class = params.gameRules.entity_factory:findClass( self.spawn_class )
+	self.gameRules = params.gameRules
 end
 
 -- params:
 --	entity: the instance of the entity being spawned
-function EntitySpawner:onUpdate( params )
+function func_spawn:onUpdate( params )
 	local dt = params.dt
 	self.time_left = self.time_left - dt
 
-	if self.time_left <= 0 then
+	if self.time_left <= 0 and self.max_entities ~= 0  then
+		logging.verbose( "spawning entity at " .. self.tile_x .. ", " .. self.tile_y )
 		self.time_left = self.spawn_time
-		local instance = self.spawn_class:new()
-		if self.onSpawn then
-			self.onSpawn( {entity=instance} )
+		local entity = self.spawn_class:new()
+		if entity then
+			logging.verbose( "-> entity tile at " .. entity.tile_x .. ", " .. entity.tile_y )
+			logging.verbose( "-> entity world at " .. entity.world_x .. ", " .. entity.world_y )
+			entity.world_x, entity.world_y = self.gameRules:worldCoordinatesFromTileCenter( self.tile_x, self.tile_y )
+
+			--entity.tile_x, entity.tile_y = self.tile_x, self.tile_y
+
+			logging.verbose( "-> entity world at " .. entity.world_x .. ", " .. entity.world_y )
+			entity:loadSprite( self.config )
+
+			logging.verbose( "-> now spawning entity..." )
+			entity:onSpawn( {gameRules=self.gameRules, properties=nil} )
+
+			logging.verbose( "-> entity tile at " .. entity.tile_x .. ", " .. entity.tile_y )
+
+			-- manage this entity
+			self.gameRules.entity_manager:addEntity( entity )			
+
+			if self.max_entities > 0 then
+				self.max_entities = self.max_entities - 1
+			end
 		end
 	end
 end
-
 

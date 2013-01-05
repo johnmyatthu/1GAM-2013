@@ -31,6 +31,9 @@ function load_config()
 end
 
 function love.load()
+	logging.verbose( "" )
+	logging.verbose( "---------------------------------------------------------" )
+	logging.verbose( "" )
 	logging.verbose( "loading configuration: " .. CONFIGURATION_FILE .. "..." )
 	load_config()
 
@@ -40,7 +43,6 @@ function love.load()
 	player = gameRules.entity_factory:createClass( "PathFollower" )
 	player:loadSprite( "assets/sprites/guy.conf" )
 	gameRules.entity_manager:addEntity( player )
-
 
 	-- gamepad/wiimote testing
 	-- core.util.queryJoysticks()
@@ -235,6 +237,7 @@ function love.mousereleased( x, y, button )
 		logging.verbose( "right click" )
 
 		-- plot a course to the tile
+		logging.verbose( "move from: " .. player.tile_x .. ", " .. player.tile_y )
 		logging.verbose( "move to: " .. mouse_tile.x .. ", " .. mouse_tile.y )
 
 		target_tile.x = mouse_tile.x
