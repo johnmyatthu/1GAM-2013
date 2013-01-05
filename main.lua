@@ -19,14 +19,6 @@ local target_tile = {x = 0, y = 0}
 -- temporary support middle-click drag
 local map_drag = {isDragging = false, startX = 0, startY = 0, deltaX = 0, deltaY = 0}
 
-local menu_open = {
-	main = false,
-	right = false,
-	foo = false,
-	demo = false
-}
-local input_data = { text = "" }
-
 function load_config()
 	if love.filesystem.exists( CONFIGURATION_FILE ) then
 		config = json.decode( love.filesystem.read( CONFIGURATION_FILE ) )

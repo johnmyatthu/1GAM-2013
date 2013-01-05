@@ -102,6 +102,20 @@ end
 
 -- returns path and cost or nil, nil if there is no path
 function GameRules:getPath( start_x, start_y, end_x, end_y )
+	-- verify target tiles are correct
+	if start_x < 0 or start_y < 0 or end_x < 0 or end_y < 0 then
+		return nil, nil
+	end
+
+	if start_x > self.map.width or end_x > self.map.width then
+		return nil, nil
+	end
+
+	if start_y > self.map.height or end_y > self.map.height then
+		return nil, nil
+	end
+
+
 	return self.pathfinder:getPath( start_x, start_y, end_x, end_y )
 end
 

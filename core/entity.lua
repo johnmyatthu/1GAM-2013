@@ -190,6 +190,8 @@ end
 function PathFollower:onUpdate( params )
 	--AnimatedSprite:onUpdate( params )
 
+	-- the minimum number of units the sprite can be to a tile's center before it is considered "close enough"
+	local TILE_DISTANCE_THRESHOLD = 5
 	local command = { up=false, down=false, left=false, right=false }
 	command.move_speed = 150
 	command.dt = params.dt
@@ -206,26 +208,38 @@ function PathFollower:onUpdate( params )
 		self.velocity.y = cy - self.world_y
 
 
-		logging.verbose( "c.x: " .. cx .. ", c.y: " .. cy )
-		logging.verbose( "w.x: " .. self.world_x .. ", w.y: " .. self.world_y )
-		logging.verbose( "v.x: " .. self.velocity.x .. ", v.y: " .. self.velocity.y )
+		--logging.verbose( "c.x: " .. cx .. ", c.y: " .. cy )
+		--logging.verbose( "w.x: " .. self.world_x .. ", w.y: " .. self.world_y )
+		--logging.verbose( "v.x: " .. self.velocity.x .. ", v.y: " .. self.velocity.y )
 		-- determine absolute distance
-		logging.verbose( "velocity: " .. self.velocity.x .. ", " .. self.velocity.y )
+		--logging.verbose( "velocity: " .. self.velocity.x .. ", " .. self.velocity.y )
 		local dx, dy = math.abs(self.velocity.x), math.abs(self.velocity.y)
-		if self.tile_x == tile.x and self.tile_y == tile.y and dx < 5 and dy < 5 then
-			logging.verbose( "dx: " .. dx .. ", dy: " .. dy )
+
+		-- check x and y separately, snap these in place if they're within the threshold
+		if dx < TILE_DISTANCE_THRESHOLD then
+			self.world_x = cx
+			self.velocity.x = 0
+		end
+
+		if dy < TILE_DISTANCE_THRESHOLD then
+			self.world_y = cy
+			self.velocity.y = 0
+		end
+
+		if self.tile_x == tile.x and self.tile_y == tile.y and dx < TILE_DISTANCE_THRESHOLD and dy < TILE_DISTANCE_THRESHOLD then
+			--logging.verbose( "dx: " .. dx .. ", dy: " .. dy )
 			self.world_x = cx
 			self.world_y = cy
 
 			if self.current_path_step == #self.path then
-				logging.verbose( "ended path at " .. self.current_path_step )
+				--logging.verbose( "ended path at " .. self.current_path_step )
 				self.path = nil
 				return			
 			end
 
 			
 			self.current_path_step = self.current_path_step + 1
-			logging.verbose( "next path step ... " .. self.current_path_step )
+			--logging.verbose( "next path step ... " .. self.current_path_step )
 
 			return
 		end
