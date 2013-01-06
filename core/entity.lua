@@ -18,7 +18,7 @@ function Entity:onSpawn( params )
 
 	if self.tile_x < 0 or self.tile_y < 0 then
 		logging.verbose( "Entity:onSpawn world location: " .. self.world_x .. ", " .. self.world_y )
-		self.tile_x, self.tile_y = params.gameRules:tileCoordinatesFromWorld( self.world_x, self.world_y )
+		self.tile_x, self.tile_y = params.gamerules:tileCoordinatesFromWorld( self.world_x, self.world_y )
 		logging.verbose( "Entity:onSpawn tile location: " .. self.tile_x .. ", " .. self.tile_y )
 	end
 end
@@ -167,10 +167,10 @@ function AnimatedSprite:onUpdate( params )
 end
 
 -- params:
---	gameRules: the instance of the active gamerules class
+--	gamerules: the instance of the active gamerules class
 function AnimatedSprite:onDraw( params )
 	if self.animations then
-		local x, y = params.gameRules:worldToScreen( (self.world_x - (self.frame_width/2)), self.world_y - (self.frame_height/2) )
+		local x, y = params.gamerules:worldToScreen( (self.world_x - (self.frame_width/2)), self.world_y - (self.frame_height/2) )
 
 		local animation = self.animations[ self.current_animation ][ self.current_direction ]
 		if animation then
@@ -222,7 +222,7 @@ function PathFollower:onUpdate( params )
 
 
 
-		local cx, cy = params.gameRules:worldCoordinatesFromTileCenter( tile.x, tile.y )
+		local cx, cy = params.gamerules:worldCoordinatesFromTileCenter( tile.x, tile.y )
 		--logging.verbose( "tile.x: " .. tile.x .. ", tile.y: " .. tile.y )
 
 		self.velocity.x = cx - self.world_x
@@ -301,7 +301,7 @@ function PathFollower:onUpdate( params )
 	end
 
 	command.move_speed = 0
-	params.gameRules:handleMovePlayerCommand( command, self )
+	params.gamerules:handleMovePlayerCommand( command, self )
 	--logging.verbose( "rolling... " .. params.dt )
 end
 
@@ -334,8 +334,8 @@ function func_target:onDraw( params )
 	AnimatedSprite.onDraw( self, params )
 
 	-- get screen coordinates for this entity
-	local sx, sy = params.gameRules:worldToScreen( self.world_x, self.world_y )
-	local r,g,b,a = params.gameRules:colorForHealth(self.health)
+	local sx, sy = params.gamerules:worldToScreen( self.world_x, self.world_y )
+	local r,g,b,a = params.gamerules:colorForHealth(self.health)
 	local x, y = sx-50, sy-32
 	local width = 100
 	love.graphics.setColor( 0, 0, 0, 192 )
@@ -355,9 +355,14 @@ function Enemy:initialize()
 	PathFollower.initialize(self)
 
 	-- random values to get the ball rolling
-	self.attack_damage = 0.5
+	self.attack_damage = 2
 
 	self.target = nil
+
+	-- time between attacks
+	self.attack_cooldown_seconds = 1.0
+
+	self.next_attack_time = 0
 end
 
 function Enemy:onSpawn( params )
@@ -365,13 +370,13 @@ function Enemy:onSpawn( params )
 	PathFollower.onSpawn( self, params )
 
 	logging.verbose( "Enemy: Searching for target..." )
-	local target = params.gameRules.entity_manager:findFirstEntityByName( "func_target" )
+	local target = params.gamerules.entity_manager:findFirstEntityByName( "func_target" )
 	if target then
 		logging.verbose( "I am setting a course to attack the target!" )
 		logging.verbose( "I am at " .. self.tile_x .. ", " .. self.tile_y )
 		logging.verbose( "Target is at " .. target.tile_x .. ", " .. target.tile_y )
 
-		local path, cost = params.gameRules:getPath( self.tile_x, self.tile_y, target.tile_x+1, target.tile_y )
+		local path, cost = params.gamerules:getPath( self.tile_x, self.tile_y, target.tile_x+1, target.tile_y )
 		logging.verbose( path )
 		logging.verbose( cost )
 
@@ -390,10 +395,16 @@ function Enemy:onUpdate( params )
 	local min_range = 1
 	if math.abs(dx) <= min_range and math.abs(dy) <= min_range then
 		--logging.verbose( "I am at " .. self.tile_x .. ", " .. self.tile_y )
+		-- within range to attack
 
-		-- attack the target
-		if self.target and self.target.health > 0 then
-			self.target:onHit( {attacker=self, damage=self.attack_damage} )
+		self.next_attack_time = self.next_attack_time - params.dt
+		if self.next_attack_time <= 0 then
+			self.next_attack_time = self.attack_cooldown_seconds
+
+			-- attack the target
+			if self.target and self.target.health > 0 then
+				self.target:onHit( {attacker=self, damage=self.attack_damage} )
+			end
 		end
 	end
 end
@@ -427,8 +438,8 @@ function func_spawn:onSpawn( params )
 		end
 	end
 
-	self.spawn_class = params.gameRules.entity_factory:findClass( self.spawn_class )
-	self.gameRules = params.gameRules
+	self.spawn_class = params.gamerules.entity_factory:findClass( self.spawn_class )
+	self.gamerules = params.gamerules
 end
 
 -- params:
@@ -444,7 +455,7 @@ function func_spawn:onUpdate( params )
 		if entity then
 			logging.verbose( "-> entity tile at " .. entity.tile_x .. ", " .. entity.tile_y )
 			logging.verbose( "-> entity world at " .. entity.world_x .. ", " .. entity.world_y )
-			entity.world_x, entity.world_y = self.gameRules:worldCoordinatesFromTileCenter( self.tile_x, self.tile_y )
+			entity.world_x, entity.world_y = self.gamerules:worldCoordinatesFromTileCenter( self.tile_x, self.tile_y )
 
 			--entity.tile_x, entity.tile_y = self.tile_x, self.tile_y
 
@@ -452,12 +463,12 @@ function func_spawn:onUpdate( params )
 			entity:loadSprite( self.config )
 
 			logging.verbose( "-> now spawning entity..." )
-			entity:onSpawn( {gameRules=self.gameRules, properties=nil} )
+			entity:onSpawn( {gamerules=self.gamerules, properties=nil} )
 
 			logging.verbose( "-> entity tile at " .. entity.tile_x .. ", " .. entity.tile_y )
 
 			-- manage this entity
-			self.gameRules.entity_manager:addEntity( entity )			
+			self.gamerules.entity_manager:addEntity( entity )			
 
 			if self.max_entities > 0 then
 				self.max_entities = self.max_entities - 1

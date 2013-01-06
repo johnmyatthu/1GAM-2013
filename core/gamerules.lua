@@ -187,7 +187,7 @@ function GameRules:spawnEntityAtTileWithProperties( layer, tile_x, tile_y, prope
 				entity.world_x, entity.world_y = self:worldCoordinatesFromTileCenter( tile_x, tile_y )
 
 				-- make sure our entity is spawned properly
-				entity:onSpawn( {gameRules=self, properties=properties} )
+				entity:onSpawn( {gamerules=self, properties=properties} )
 
 				logging.verbose( "-> entity '" .. classname .. "' is at " .. entity.world_x .. ", " .. entity.world_y )
 				logging.verbose( "-> entity tile at " .. entity.tile_x .. ", " .. entity.tile_y )
@@ -237,7 +237,7 @@ function GameRules:drawEntities()
 
 	love.graphics.push()
 	love.graphics.setColor( 255, 255, 255, 255 )
-	self.entity_manager:eventForEachEntity( "onDraw", {gameRules=self} )
+	self.entity_manager:eventForEachEntity( "onDraw", {gamerules=self} )
 	love.graphics.pop()	
 end
 

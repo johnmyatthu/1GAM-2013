@@ -2,7 +2,7 @@ module( ..., package.seeall )
 
 function callLogic( logic, function_name, param_table )
 	if logic then
-		logic[ function_name ]( param_table )
+		logic[ function_name ]( logic, param_table )
 	end
 end
 
