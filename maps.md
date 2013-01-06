@@ -19,9 +19,9 @@ and the value as one of the following entity classes. The original tile will not
 
 * **func\_spawn** - *spawn an entity at this tile*
 
-		spawn_class: The classname of the entity to spawn<br/>
-		spawn_time: The delay (in seconds) between entity spawns<br/>
-		max_entities: The maximum number of entities to spawn from this. -1 is infinite.<br/>
+		spawn_class: The classname of the entity to spawn
+		spawn_time: The delay (in seconds) between entity spawns
+		max_entities: The maximum number of entities to spawn from this. -1 is infinite.
 
 * **func\_target** - *The target which enemies will try to attack on spawn*
 
