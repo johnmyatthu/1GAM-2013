@@ -11,5 +11,11 @@
 			"path" : "fonts/Minecraftia.ttf",
 			"size" : 8
 		}
+	},
+
+
+	"keys" :
+	{
+		"c" : "toggle_collision_layer"
 	}
 }

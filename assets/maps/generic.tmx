@@ -35,12 +35,12 @@
  </tileset>
  <layer name="Ground" width="25" height="25">
   <data encoding="base64" compression="zlib">
-   eJxjYKAP4KQhHrVj1I5RO0btGLVj1I5RO0btGGx20BoAAANdEpo=
+   eJxjYKAP4KQhHrVj1I7hbAcXHkwNO/CZRaw9xNhByI9DJT5G7Ri1Y9SOUTuItYPWAABPQRKn
   </data>
  </layer>
  <layer name="Collision" width="25" height="25">
   <data encoding="base64" compression="zlib">
-   eJxjZGBgYKQDpiUYtWPUjuFsB6X5ipBafPLE2kOMHciAiYA8JW6hBIzaMWrHqB2jdlDTDlpjADXeAHA=
+   eJxjZGBgYKQDpiUYtWPUjuFsB6X5ipBafPLE2kOMHaTwKXELJWDUjlE7Ru0YtYOadtAaAwAwkgBv
   </data>
  </layer>
  <layer name="Entities" width="25" height="25">

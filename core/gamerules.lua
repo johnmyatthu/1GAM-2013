@@ -79,22 +79,22 @@ function GameRules:loadMap( mapname )
 				local tile = self.collision_layer( x, y )
 
 
-				local walkable_value = 0
+				local is_blocked = 0
 				if tile then
-					walkable_value = 1
+					is_blocked = 1
 
 					if tile.properties then
 						--for key, value in pairs(tile.properties) do
 						--	logging.verbose( key .. " -> " .. tostring(value) )
 						--end
 						if tile.properties.walkable then
-							walkable_value = 0
+							is_blocked = 0
 						end
 					end
 				end
 
 				-- insert the value into this row
-				table.insert( row, walkable_value )			
+				table.insert( row, is_blocked )			
 			end
 			-- insert this row into the grid
 			table.insert( walkable_map, row )		
@@ -131,24 +131,58 @@ function GameRules:colorForHealth( health )
 	end
 end
 
+
+-- determine if a tile is within the map and is valid
+function GameRules:isTileWithinMap( tile_x, tile_y )
+	if tile_x < 0 or tile_x > self.map.width then
+		return false
+	end
+
+	if tile_y < 0 or tile_y > self.map.height then
+		return false
+	end
+
+	return true
+end
+
+
+function GameRules:getCollisionTile( tx, ty )
+	if self.collision_layer then
+		return self.collision_layer( tx, ty )
+	end
+
+	return nil
+end
+
+-- these two functions are identical right now, but this may change...
+function GameRules:isTilePlaceable( tile_x, tile_y )
+	if not self:isTileWithinMap( tile_x, tile_y ) then
+		return false
+	end
+
+	return self:getCollisionTile( tile_x, tile_y ) == nil
+end
+
+function GameRules:isTileWalkable( tile_x, tile_y )
+	if not self:isTileWithinMap( tile_x, tile_y ) then
+		return false
+	end
+
+	return self:getCollisionTile( tile_x, tile_y ) == nil	
+end
+
 -- returns path and cost or nil, nil if there is no path
 function GameRules:getPath( start_x, start_y, end_x, end_y )
 	-- verify target tiles are correct
-	if start_x < 0 or start_y < 0 or end_x < 0 or end_y < 0 then
-		logging.warning( "start or end node value is invalid" )
+	if not self:isTileWalkable( start_x, start_y ) then
+		logging.warning( "start node is out of map bounds" )
 		return nil, nil
 	end
 
-	if start_x > self.map.width or end_x > self.map.width then
-		logging.warning( "start or end node X value is beyond map" )
+	if not self:isTileWalkable( end_x, end_y) then
+		logging.warning( "end node is out of map bounds" )
 		return nil, nil
 	end
-
-	if start_y > self.map.height or end_y > self.map.height then
-		logging.warning( "start or end node Y value is beyond map" )
-		return nil, nil
-	end
-
 
 	return self.pathfinder:getPath( start_x, start_y, end_x, end_y )
 end
@@ -209,13 +243,6 @@ function GameRules:snapCameraToPlayer( player )
 	self:warpCameraTo( -(player.world_x-(window_width/2)), -(player.world_y-(window_height/2)) )
 end
 
-function GameRules:getCollisionTile( tx, ty )
-	if self.collision_layer then
-		return self.collision_layer( tx, ty )
-	end
-
-	return nil
-end
 
 
 function GameRules:drawWorld()
@@ -343,6 +370,7 @@ end
 
 function EntityManager:addEntity( e )
 	table.insert( self.entity_list, e )
+	e.id = #self.entity_list
 end
 
 function sortDescendingDepth(a,b)
@@ -351,6 +379,17 @@ end
 
 function EntityManager:entityCount()
 	return # self.entity_list
+end
+
+function EntityManager:removeEntity( e )
+	-- when sorting normal tables in lua, we can't maintain the association of keys to values
+	-- instead, we'll just do a linear search
+	for index=1, #self.entity_list do
+		if self.entity_list[ index ] == e then
+			table.remove( self.entity_list, index )
+			break
+		end
+	end
 end
 
 function EntityManager:findFirstEntityByName( name )

@@ -324,6 +324,10 @@ function func_target:onHit( params )
 		end
 	end
 
+
+	if self.health == 0 then
+		params.gamerules.entity_manager:removeEntity( self )
+	end
 end
 
 function func_target:__tostring()
@@ -355,17 +359,20 @@ function Enemy:initialize()
 	PathFollower.initialize(self)
 
 	-- random values to get the ball rolling
-	self.attack_damage = 2
+	self.attack_damage = 10
 
 	self.target = nil
 
 	-- time between attacks
-	self.attack_cooldown_seconds = 1.0
+	self.attack_cooldown_seconds = 0.5
 
 	self.next_attack_time = 0
 end
 
 function Enemy:onSpawn( params )
+
+	self:loadSprite( "assets/sprites/guy.conf" )
+
 	--self.class.super:onSpawn( params )
 	PathFollower.onSpawn( self, params )
 
@@ -402,8 +409,10 @@ function Enemy:onUpdate( params )
 			self.next_attack_time = self.attack_cooldown_seconds
 
 			-- attack the target
-			if self.target and self.target.health > 0 then
-				self.target:onHit( {attacker=self, damage=self.attack_damage} )
+			if self.target then
+				if self.target.health > 0 then
+					self.target:onHit( {gamerules=params.gamerules, attacker=self, damage=self.attack_damage} )
+				end
 			end
 		end
 	end
@@ -417,7 +426,6 @@ function func_spawn:initialize()
 	self.gamerules = nil
 	self.spawn_time = 1
 	self.spawn_class = ""
-	self.config = "assets/sprites/guy.conf"
 
 	self.time_left = self.spawn_time
 
@@ -460,7 +468,6 @@ function func_spawn:onUpdate( params )
 			--entity.tile_x, entity.tile_y = self.tile_x, self.tile_y
 
 			logging.verbose( "-> entity world at " .. entity.world_x .. ", " .. entity.world_y )
-			entity:loadSprite( self.config )
 
 			logging.verbose( "-> now spawning entity..." )
 			entity:onSpawn( {gamerules=self.gamerules, properties=nil} )

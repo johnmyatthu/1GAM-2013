@@ -4,22 +4,80 @@ local logging = core.logging
 
 
 local player = nil
-local map_target = nil
+
 local mouse_tile = {x = 0, y = 0}
 local target_tile = {x = 0, y = 0}
 
 -- temporary support middle-click drag
 local map_drag = {isDragging = false, startX = 0, startY = 0, deltaX = 0, deltaY = 0}
 
-
-
+local ACTION_MOVE_MAP_LEFT = "move_map_left"
+local ACTION_MOVE_MAP_RIGHT = "move_map_right"
+local ACTION_MOVE_MAP_UP = "move_map_up"
+local ACTION_MOVE_MAP_DOWN = "move_map_down"
+local ACTION_MOVE_PLAYER_LEFT = "move_player_left"
+local ACTION_MOVE_PLAYER_RIGHT = "move_player_right"
+local ACTION_MOVE_PLAYER_UP = "move_player_up"
+local ACTION_MOVE_PLAYER_DOWN = "move_player_down"
 
 -- Game class
 Game = class( "Game" )
 function Game:initialize( gamerules, config, fonts )
+	-- supplied from the main love entry point
 	self.gamerules = gamerules
 	self.config = config
 	self.fonts = fonts
+
+	-- internal vars
+	self.state = 1 -- 0: defend, 1: build
+
+
+	self.preview_tile = {x=0, y=0}
+	self.selected_tile = {x=0, y=0}
+
+
+	self.key_for_action = {}
+	self.key_for_action[ ACTION_MOVE_MAP_LEFT ] = "a"
+	self.key_for_action[ ACTION_MOVE_MAP_RIGHT ] = "d"
+	self.key_for_action[ ACTION_MOVE_MAP_UP ] = "w"
+	self.key_for_action[ ACTION_MOVE_MAP_DOWN ] = "s"
+
+	self.key_for_action[ ACTION_MOVE_PLAYER_LEFT ] = "left"
+	self.key_for_action[ ACTION_MOVE_PLAYER_RIGHT ] = "right"
+	self.key_for_action[ ACTION_MOVE_PLAYER_UP ] = "up"
+	self.key_for_action[ ACTION_MOVE_PLAYER_DOWN ] = "down"
+
+	self.actionmap = {}
+	self.actionmap[ "toggle_collision_layer" ] = self.toggleDrawCollisions
+
+	self.actions = {}
+	logging.verbose( "mapping keys to actions..." )
+	for key, action in pairs(config.keys) do
+		--self.actions[ "d_togglecollisions" ] = self.toggleDrawCollisions
+		logging.verbose( key .. " -> '" .. action .. "'")
+
+		if self.actionmap[ action ] then
+			self.actions[ key ] = self.actionmap[ action ]
+		elseif self.key_for_action[ action ] then -- override default keys
+			self.key_for_action[ action ] = key
+		else
+			logging.warning( "Unknown action '" .. action .. "', unable to map key: " .. key )
+		end
+	end
+
+
+
+
+end
+
+function Game:keyForAction( action )
+	return self.key_for_action[ action ]
+end
+
+function Game:toggleDrawCollisions()
+	if self.gamerules.collision_layer then
+		self.gamerules.collision_layer.visible = not self.gamerules.collision_layer.visible
+	end
 end
 
 function Game:onLoad( params )
@@ -35,10 +93,6 @@ function Game:onLoad( params )
 
 	-- load the map
 	self.gamerules:loadMap( self.config.map )
-
-	-- map has been loaded, get a reference to the map's target
-	map_target = self.gamerules.entity_manager:findFirstEntityByName( "func_target" )
-
 
 	-- assuming this map has a spawn point; we'll set the player spawn
 	-- and then center the camera on the player
@@ -80,12 +134,12 @@ function Game:onLoad( params )
 	--]]	
 end
 
-function Game:highlight_tile( tx, ty, color )
+function Game:highlight_tile( mode, tx, ty, color )
 	local wx, wy = self.gamerules:worldCoordinatesFromTileCenter( tx, ty )
 	local drawX, drawY = self.gamerules:worldToScreen( wx, wy )
 
 	love.graphics.setColor(color.r, color.g, color.b, color.a)
-	love.graphics.quad( "fill", 
+	love.graphics.quad( mode, 
 		drawX - self.gamerules.map.tileHeight, drawY, -- east
 		drawX, drawY - self.gamerules.map.tileHeight/2,                       -- north
 		drawX + self.gamerules.map.tileHeight, drawY, -- west
@@ -97,15 +151,26 @@ function Game:onDraw( params )
 	self.gamerules:drawWorld()
 
 	-- draw highlighted tile
-	self:highlight_tile( mouse_tile.x, mouse_tile.y, {r=0, g=255, b=0, a=128} )
+	if self.state == 1 then
+		self:highlight_tile( "line", self.selected_tile.x, self.selected_tile.y, {r=0, g=255, b=0, a=255} )
+		
+		local color = {r=0, g=0, b=0, a=128}
+		if self.gamerules:isTilePlaceable( self.preview_tile.x, self.preview_tile.y ) then
+			color.g = 255
+		else
+			color.r = 255
+		end
+
+		self:highlight_tile( "line", self.preview_tile.x, self.preview_tile.y, color )
+	end
 
 
-	self:highlight_tile( target_tile.x, target_tile.y, {r=255, g=0, b=0, a=128} )
+	self:highlight_tile( "line", target_tile.x, target_tile.y, {r=255, g=0, b=0, a=128} )
 
 	local nt = player:currentTarget()
 	if nt.x < 0 or nt.y < 0 then
 	else
-		self:highlight_tile( nt.x, nt.y, {r=0, g=255, b=255, a=128} )
+		self:highlight_tile( "line", nt.x, nt.y, {r=0, g=255, b=255, a=128} )
 	end
 
 	-- draw entities here
@@ -134,10 +199,6 @@ function Game:onDraw( params )
 
 	--love.graphics.print( "velocity.x: " .. player.velocity.x, 20, 290 )
 	--love.graphics.print( "velocity.y: " .. player.velocity.y, 20, 310 )
-
-	if map_target then
-		love.graphics.print( tostring(map_target), 10, 14 )
-	end
 end
 
 function Game:onUpdate( params )
@@ -159,29 +220,35 @@ function Game:onUpdate( params )
 
 	
 	cam_x, cam_y = self.gamerules:getCameraPosition()
-	if love.keyboard.isDown("w") then cam_y = cam_y + self.config.move_speed*dt end
-	if love.keyboard.isDown("s") then cam_y = cam_y - self.config.move_speed*dt end
-	if love.keyboard.isDown("a") then cam_x = cam_x + self.config.move_speed*dt end
-	if love.keyboard.isDown("d") then cam_x = cam_x - self.config.move_speed*dt end
+	if love.keyboard.isDown( self:keyForAction(ACTION_MOVE_MAP_UP) ) then cam_y = cam_y + self.config.move_speed*params.dt end
+	if love.keyboard.isDown( self:keyForAction(ACTION_MOVE_MAP_DOWN) ) then cam_y = cam_y - self.config.move_speed*params.dt end
+	if love.keyboard.isDown( self:keyForAction(ACTION_MOVE_MAP_LEFT) ) then cam_x = cam_x + self.config.move_speed*params.dt end
+	if love.keyboard.isDown( self:keyForAction(ACTION_MOVE_MAP_RIGHT) ) then cam_x = cam_x - self.config.move_speed*params.dt end
 	self.gamerules:setCameraPosition( cam_x, cam_y )
 	
 
-	command = { up=love.keyboard.isDown("up"), down=love.keyboard.isDown("down"), left=love.keyboard.isDown("left"), right=love.keyboard.isDown("right"), move_speed=self.config.move_speed, dt=params.dt }
+	command = { 
+	up=love.keyboard.isDown( self:keyForAction(ACTION_MOVE_PLAYER_UP) ), 
+	down=love.keyboard.isDown( self:keyForAction(ACTION_MOVE_PLAYER_DOWN) ), 
+	left=love.keyboard.isDown( self:keyForAction(ACTION_MOVE_PLAYER_LEFT) ), 
+	right=love.keyboard.isDown( self:keyForAction(ACTION_MOVE_PLAYER_RIGHT) ), 
+	move_speed=self.config.move_speed, 
+	dt=params.dt }
 	self.gamerules:handleMovePlayerCommand( command, player )
 
 	--self.gamerules:snapCameraToPlayer( player )
-	local cx, cy = self.gamerules:getCameraPosition()
+
 	local mx, my = love.mouse.getPosition()
-
 	local tx, ty = self.gamerules:tileCoordinatesFromMouse( mx, my )
-	local wx, wy = self.gamerules:worldCoordinatesFromMouse( mx, my )
-
-	mouse_tile.x = tx
-	mouse_tile.y = ty	
+	self.preview_tile.x = tx
+	self.preview_tile.y = ty	
 end
 
 function Game:onKeyPressed( params )
 	--logging.verbose( "Game onKeyPressed" )
+	if self.actions[ params.key ] then
+		self.actions[ params.key ]( self )
+	end
 end
 
 function Game:onKeyReleased( params )
@@ -191,6 +258,8 @@ end
 function Game:onMousePressed( params )
 	--logging.verbose( "Game onMousePressed" )
 
+
+
 	if params.button == "m" then
 		-- enter drag mode
 		map_drag.startX = params.x
@@ -199,8 +268,17 @@ function Game:onMousePressed( params )
 	end
 
 	if params.button == "l" then
-		player:playAnimation( "attack1" )
-		player.is_attacking = true
+		--player:playAnimation( "attack1" )
+		--player.is_attacking = true
+
+		if self.state == 1 then
+			local mx, my = love.mouse.getPosition()
+			local tx, ty = self.gamerules:tileCoordinatesFromMouse( mx, my )
+			if self.gamerules:isTilePlaceable( tx, ty ) then
+				self.selected_tile.x = tx
+				self.selected_tile.y = ty
+			end
+		end
 	end	
 end
 
@@ -218,8 +296,8 @@ function Game:onMouseReleased( params )
 		logging.verbose( "move from: " .. player.tile_x .. ", " .. player.tile_y )
 		logging.verbose( "move to: " .. mouse_tile.x .. ", " .. mouse_tile.y )
 
-		target_tile.x = mouse_tile.x
-		target_tile.y = mouse_tile.y
+		target_tile.x = self.preview_tile.x
+		target_tile.y = self.preview_tile.y
 
 		local path = self.gamerules:getPath( player.tile_x, player.tile_y, target_tile.x, target_tile.y )
 		player:setPath( path )
