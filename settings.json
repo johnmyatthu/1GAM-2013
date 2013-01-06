@@ -2,5 +2,14 @@
 	"map" : "generic.tmx",
 	"move_speed" : 170,
 	"spawn" : [0, 0],
-	"game" : "jan"
+	"game" : "jan",
+
+	"fonts" :
+	{
+		"text" : 
+		{
+			"path" : "fonts/Minecraftia.ttf",
+			"size" : 8
+		}
+	}
 }

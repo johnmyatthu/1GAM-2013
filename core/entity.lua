@@ -29,6 +29,15 @@ end
 function Entity:onDraw( params )
 end
 
+function Entity:onCollide( params )
+end
+
+-- params:
+--	attacker: The attacking entity
+--	damage: Base damage for the hit
+function Entity:onHit( params )
+end
+
 -- a base "world" entity that exists in the game world
 AnimatedSprite = class( "AnimatedSprite", Entity )
 
@@ -205,7 +214,7 @@ function PathFollower:onUpdate( params )
 	-- the minimum number of units the sprite can be to a tile's center before it is considered "close enough"
 	local TILE_DISTANCE_THRESHOLD = 5
 	local command = { up=false, down=false, left=false, right=false }
-	command.move_speed = 50
+	command.move_speed = 75
 	command.dt = params.dt
 
 	if self.path then
@@ -298,12 +307,57 @@ end
 
 
 func_target = class( "func_target", AnimatedSprite )
+function func_target:initialize()
+	AnimatedSprite.initialize(self)
 
+	self.health = 100
+end
+
+function func_target:onHit( params )
+	logging.verbose( "Hit target for " .. params.damage .. " damage!" )
+
+	if self.health > 0 then
+		self.health = self.health - params.damage
+
+		if self.health < 0 then
+			self.health = 0
+		end
+	end
+
+end
+
+function func_target:__tostring()
+	return "func_target [" .. self.tile_x .. ", " .. self.tile_y .. "] Health: " .. self.health
+end
+
+function func_target:onDraw( params )
+	AnimatedSprite.onDraw( self, params )
+
+	-- get screen coordinates for this entity
+	local sx, sy = params.gameRules:worldToScreen( self.world_x, self.world_y )
+	local r,g,b,a = params.gameRules:colorForHealth(self.health)
+	local x, y = sx-50, sy-32
+	local width = 100
+	love.graphics.setColor( 0, 0, 0, 192 )
+	love.graphics.rectangle( 'fill', x+10, y, width-20, 14 )
+	love.graphics.setColor( r, g, b, a )
+	love.graphics.printf( "Health: (" .. math.floor(self.health) .. ")", x, y, width, 'center' )
+
+
+
+
+	love.graphics.setColor( 255, 255, 255, 255 )
+end
 
 Enemy = class( "Enemy", PathFollower )
 function Enemy:initialize()
 	logging.verbose( "Enemy:initialize" )
 	PathFollower.initialize(self)
+
+	-- random values to get the ball rolling
+	self.attack_damage = 0.5
+
+	self.target = nil
 end
 
 function Enemy:onSpawn( params )
@@ -316,13 +370,31 @@ function Enemy:onSpawn( params )
 		logging.verbose( "I am setting a course to attack the target!" )
 		logging.verbose( "I am at " .. self.tile_x .. ", " .. self.tile_y )
 		logging.verbose( "Target is at " .. target.tile_x .. ", " .. target.tile_y )
+
 		local path, cost = params.gameRules:getPath( self.tile_x, self.tile_y, target.tile_x+1, target.tile_y )
 		logging.verbose( path )
 		logging.verbose( cost )
-		self:setPath( path )
 
+		self:setPath( path )
+		self.target = target
 	else
 		logging.verbose( "Unable to find target." )
+	end
+end
+
+function Enemy:onUpdate( params )
+	PathFollower.onUpdate( self, params )
+
+	-- calculate distance to target
+	local dx, dy = (self.target.tile_x - self.tile_x), (self.target.tile_y - self.tile_y)
+	local min_range = 1
+	if math.abs(dx) <= min_range and math.abs(dy) <= min_range then
+		--logging.verbose( "I am at " .. self.tile_x .. ", " .. self.tile_y )
+
+		-- attack the target
+		if self.target and self.target.health > 0 then
+			self.target:onHit( {attacker=self, damage=self.attack_damage} )
+		end
 	end
 end
 

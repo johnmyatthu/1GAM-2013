@@ -119,6 +119,18 @@ function GameRules:loadMap( mapname )
 	--]]
 end
 
+function GameRules:colorForHealth( health )
+	if health > 75 then
+		return 0, 255, 0, 255
+	elseif health > 50 then
+		return 255, 255, 0, 255
+	elseif health > 25 then
+		return 255, 128, 0, 255
+	else	
+		return 255, 0, 0, 255
+	end
+end
+
 -- returns path and cost or nil, nil if there is no path
 function GameRules:getPath( start_x, start_y, end_x, end_y )
 	-- verify target tiles are correct

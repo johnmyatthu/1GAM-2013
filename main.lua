@@ -8,14 +8,15 @@ local CONFIGURATION_FILE = "settings.json"
 
 local config = {}
 
-
+local fonts = {}
 
 local player = nil
 local gameLogic = nil
 local gameRules = nil
-
+local map_target = nil
 local mouse_tile = {x = 0, y = 0}
 local target_tile = {x = 0, y = 0}
+
 -- temporary support middle-click drag
 local map_drag = {isDragging = false, startX = 0, startY = 0, deltaX = 0, deltaY = 0}
 
@@ -37,6 +38,13 @@ function love.load()
 	logging.verbose( "loading configuration: " .. CONFIGURATION_FILE .. "..." )
 	load_config()
 
+	if config.fonts then
+		for name, data in pairs(config.fonts) do
+			logging.verbose( name .. " -> " .. data.path )
+			fonts[ name ] = love.graphics.newFont( data.path, data.size )
+		end
+	end
+
 	logging.verbose( "initializing game: " .. config.game )
 	gameLogic = require ( config.game )
 
@@ -48,6 +56,10 @@ function love.load()
 	-- core.util.queryJoysticks()
 
 	gameRules:loadMap( config.map )
+
+
+	-- map has been loaded, get a reference to the map's target
+	map_target = gameRules.entity_manager:findFirstEntityByName( "func_target" )
 
 	core.util.callLogic( gameLogic, "onLoad", {} )
 
@@ -114,28 +126,31 @@ function love.draw()
 
 	-- draw overlay text
 	local cx, cy = gameRules:getCameraPosition()
+	love.graphics.setFont( fonts[ "text" ] )
 	love.graphics.setColor( 255, 255, 255, 255 )
-	love.graphics.print( "total entities: " .. gameRules.entity_manager:entityCount(), 10, 20 )
+	love.graphics.print( "total entities: " .. gameRules.entity_manager:entityCount(), 10, 4 )
 	--love.graphics.print( "map_translate: ", 10, 50 )
 	--love.graphics.print( "x: " .. cx, 20, 70 )
 	--love.graphics.print( "y: " .. cy, 20, 90 )
-	love.graphics.print( "tx: " .. mouse_tile.x, 20, 110 )
-	love.graphics.print( "ty: " .. mouse_tile.y, 20, 130 )
+	--love.graphics.print( "tx: " .. mouse_tile.x, 20, 110 )
+	--love.graphics.print( "ty: " .. mouse_tile.y, 20, 130 )
 
-	love.graphics.print( "player: ", 10, 150 )
-	love.graphics.print( "x: " .. player.world_x, 20, 170 )
-	love.graphics.print( "y: " .. player.world_y, 20, 190 )
-	love.graphics.print( "tx: " .. player.tile_x, 20, 210 )
-	love.graphics.print( "ty: " .. player.tile_y, 20, 230 )
+	--love.graphics.print( "player: ", 10, 150 )
+	--love.graphics.print( "x: " .. player.world_x, 20, 170 )
+	--love.graphics.print( "y: " .. player.world_y, 20, 190 )
+	--love.graphics.print( "tx: " .. player.tile_x, 20, 210 )
+	--love.graphics.print( "ty: " .. player.tile_y, 20, 230 )
 
-	local target = player:currentTarget()
-	love.graphics.print( "targetx: " .. target.x, 20, 250 )
-	love.graphics.print( "targety: " .. target.y, 20, 270 )
+	--local target = player:currentTarget()
+	--love.graphics.print( "targetx: " .. target.x, 20, 250 )
+	--love.graphics.print( "targety: " .. target.y, 20, 270 )
 
-	love.graphics.print( "velocity.x: " .. player.velocity.x, 20, 290 )
-	love.graphics.print( "velocity.y: " .. player.velocity.y, 20, 310 )
+	--love.graphics.print( "velocity.x: " .. player.velocity.x, 20, 290 )
+	--love.graphics.print( "velocity.y: " .. player.velocity.y, 20, 310 )
 
-	
+	if map_target then
+		love.graphics.print( tostring(map_target), 10, 14 )
+	end
 end
 
 --function love.run()

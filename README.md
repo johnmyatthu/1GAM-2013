@@ -1,5 +1,5 @@
 ## OneGameAMonth Challenge
-This is licensed under the MIT license.
+All source is licensed under the MIT license unless otherwise specified. Assets and third party libraries do not necessarily conform to this license, but are used for non-commercial purposes with credits given to the original author(s).
 
 This project is being developed for the <a href="http://onegameamonth.com/">OneGameAMonth challenge</a>. #OneGameAMonth, #1GAM
 
@@ -9,3 +9,4 @@ It uses the <a href="https://love2d.org/">LÖVE framework</a> with third-party d
 <a href="https://github.com/kikito/middleclass">MiddleClass</a><br/>
 <a href="https://github.com/Yonaba/Jumper">Jumper</a><br/>
 
+The "Minecraftia" font is created by <a href="http://andrewtyler.net/fonts/">Andrew Tyler</a>.

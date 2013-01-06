@@ -1,12 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <map version="1.0" orientation="isometric" width="25" height="25" tilewidth="64" tileheight="32">
  <tileset firstgid="1" name="generic_tiles" tilewidth="64" tileheight="32">
-  <image source="generic_tiles.png" width="128" height="96"/>
-  <tile id="1">
-   <properties>
-    <property name="classname" value="info_player_spawn"/>
-   </properties>
-  </tile>
+  <image source="generic_tiles.png" width="256" height="96"/>
   <tile id="2">
    <properties>
     <property name="classname" value="func_spawn"/>
@@ -19,20 +14,38 @@
     <property name="classname" value="func_target"/>
    </properties>
   </tile>
+  <tile id="4">
+   <properties>
+    <property name="classname" value="func_spawn"/>
+    <property name="max_entities" value="1"/>
+    <property name="spawn_class" value="Enemy"/>
+    <property name="spawn_time" value="0.5"/>
+   </properties>
+  </tile>
+  <tile id="5">
+   <properties>
+    <property name="classname" value="func_target"/>
+   </properties>
+  </tile>
+  <tile id="6">
+   <properties>
+    <property name="classname" value="info_player_spawn"/>
+   </properties>
+  </tile>
  </tileset>
  <layer name="Ground" width="25" height="25">
   <data encoding="base64" compression="zlib">
-   eJxjYKAPYKUhHrVj1I5RO0btGLVj1I5RO0btGGx20BoAAJRmClY=
+   eJxjYKAP4KQhHrVj1I5RO0btGLVj1I5RO0btGGx20BoAAANdEpo=
   </data>
  </layer>
  <layer name="Collision" width="25" height="25">
   <data encoding="base64" compression="zlib">
-   eJxjZGBgYKQDpiUYtWPUjuFsB6X5ipBafPLE2kOMHaTwKXELJWDUjlE7Ru0YtYOadtAaAwAwkgBv
+   eJxjZGBgYKQDpiUYtWPUjuFsB6X5ipBafPLE2kOMHciAiYA8JW6hBIzaMWrHqB2jdlDTDlpjADXeAHA=
   </data>
  </layer>
  <layer name="Entities" width="25" height="25">
   <data encoding="base64" compression="zlib">
-   eJxjYBhcgHmgHTAKRgEewDTQDhgmgGWgHTAKRsEoGAXDAAAAR7gACg==
+   eJxjYBhcgHWgHTAKRgEewD7QDhgmgG2gHTAKRsEoGAXDAAAAhZwAEw==
   </data>
  </layer>
 </map>
