@@ -1,6 +1,7 @@
 require "core"
 local logging = core.logging
 
+local SH = require( "lib.broadphase.spatialhash" )
 
 
 local player = nil
@@ -67,7 +68,7 @@ function Game:initialize( gamerules, config, fonts )
 
 
 
-
+	self.grid = SH:new( 100, 100, 64 )
 end
 
 function Game:keyForAction( action )
@@ -88,7 +89,7 @@ function Game:onLoad( params )
 
 
 	player = self.gamerules.entity_factory:createClass( "PathFollower" )
-	player:loadSprite( "assets/sprites/guy.conf" )
+	player:loadSprite( "assets/sprites/arrow.conf" )
 	self.gamerules.entity_manager:addEntity( player )
 
 	-- load the map
@@ -125,7 +126,7 @@ function Game:onLoad( params )
 	blah = self.gamerules.entity_factory:createClass( "PathFollower" )
 	logging.verbose( blah )
 	if blah then
-		blah:loadSprite( "assets/sprites/guy.conf" )
+		blah:loadSprite( "assets/sprites/arrow.conf" )
 		blah.current_frame = "left"
 		self.gamerules.entity_manager:addEntity( blah )
 		blah.world_x, blah.world_y = self.gamerules:worldCoordinatesFromTileCenter( spawn.x+1, spawn.y+1 )

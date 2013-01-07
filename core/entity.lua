@@ -16,6 +16,16 @@ end
 function Entity:onSpawn( params )
 	logging.verbose( "Entity:onSpawn... " .. tostring(self) )
 
+	-- load properties into instance vars;
+	if params.properties then
+		for key, value in pairs(params.properties) do
+			-- only load variables we expect
+			if self[ key ] then
+				self[ key ] = value
+			end
+		end	
+	end
+
 	if self.tile_x < 0 or self.tile_y < 0 then
 		logging.verbose( "Entity:onSpawn world location: " .. self.world_x .. ", " .. self.world_y )
 		self.tile_x, self.tile_y = params.gamerules:tileCoordinatesFromWorld( self.world_x, self.world_y )
@@ -371,7 +381,7 @@ end
 
 function Enemy:onSpawn( params )
 
-	self:loadSprite( "assets/sprites/guy.conf" )
+	self:loadSprite( "assets/sprites/arrow.conf" )
 
 	--self.class.super:onSpawn( params )
 	PathFollower.onSpawn( self, params )
@@ -436,15 +446,6 @@ end
 
 function func_spawn:onSpawn( params )
 	Entity.onSpawn( self, params )
-	logging.verbose( "func_spawn ... reading params!" )
-
-	for key, value in pairs(params.properties) do
-		--logging.verbose( key .. " -> " .. value )
-		if self[ key ] then
-			--logging.verbose( "key exists: " .. key )
-			self[ key ] = value
-		end
-	end
 
 	self.spawn_class = params.gamerules.entity_factory:findClass( self.spawn_class )
 	self.gamerules = params.gamerules
