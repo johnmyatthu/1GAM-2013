@@ -4,6 +4,8 @@ logging = core.logging
 Jumper = require "lib.jumper.jumper"
 loader = require "lib.AdvTiledLoader.Loader"
 
+local SH = require( "lib.broadphase.spatialhash" )
+
 local MAP_COLLISION_LAYER_NAME = "Collision"
 
 GameRules = class( "GameRules" )
@@ -24,11 +26,16 @@ function GameRules:initialize()
 	self.entity_factory:registerClass( "func_spawn", core.entity.func_spawn )
 	self.entity_factory:registerClass( "Enemy", core.entity.Enemy )
 	self.entity_factory:registerClass( "func_target", core.entity.func_target )
+
 end
 
 function GameRules:loadMap( mapname )
 	print( "loading gamerules map" )
 	loader.path = "assets/maps/"
+
+	-- create a spatial hash
+	self.grid = SH:new( 4000, 4000, 64 )
+
 	self.map = loader.load( mapname )
 	self.map.drawObjects = false
 
@@ -117,6 +124,7 @@ function GameRules:loadMap( mapname )
 		end
 	end
 	--]]
+
 end
 
 function GameRules:colorForHealth( health )
@@ -327,6 +335,12 @@ function GameRules:handleMovePlayerCommand( command, player )
 	if is_diagonal then
 		move_speed = command.move_speed * 0.5
 	end
+
+	-- see what other shapes are in the way...
+
+	local colliding = self.grid:getCollidingPairs( {player} )
+	table.foreach(colliding,
+		function(_,v) print(( "Shape(%d) collides with Shape(%d)"):format(v[1].id, v[2].id)) end)
 
 
 	self:moveEntity( player, command.move_speed, dt )

@@ -1,7 +1,6 @@
 require "core"
 local logging = core.logging
 
-local SH = require( "lib.broadphase.spatialhash" )
 
 
 local player = nil
@@ -67,8 +66,6 @@ function Game:initialize( gamerules, config, fonts )
 	end
 
 
-
-	self.grid = SH:new( 100, 100, 64 )
 end
 
 function Game:keyForAction( action )
@@ -88,13 +85,17 @@ function Game:onLoad( params )
 	-- core.util.queryJoysticks()
 
 
-	player = self.gamerules.entity_factory:createClass( "PathFollower" )
-	player:loadSprite( "assets/sprites/arrow.conf" )
-	self.gamerules.entity_manager:addEntity( player )
+
 
 	-- load the map
 	self.gamerules:loadMap( self.config.map )
 
+
+	player = self.gamerules.entity_factory:createClass( "PathFollower" )
+	player:loadSprite( "assets/sprites/arrow.conf" )
+	self.gamerules.entity_manager:addEntity( player )
+
+	self.gamerules.grid:addShape( player )
 	-- assuming this map has a spawn point; we'll set the player spawn
 	-- and then center the camera on the player
 	local spawn = self.gamerules.spawn

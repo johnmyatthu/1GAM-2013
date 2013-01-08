@@ -31,9 +31,16 @@ function Entity:onSpawn( params )
 		self.tile_x, self.tile_y = params.gamerules:tileCoordinatesFromWorld( self.world_x, self.world_y )
 		logging.verbose( "Entity:onSpawn tile location: " .. self.tile_x .. ", " .. self.tile_y )
 	end
+
+	params.gamerules.grid:addShape( self )
 end
 
 function Entity:onUpdate( params )
+	params.gamerules.grid:updateShape(self)
+end
+
+function Entity:__tostring()
+	return "class Entity at [ " .. self.tile_x .. ", " .. self.tile_y .. " ] | World [ " .. self.world_x .. ", " .. self.world_y .. " ]"
 end
 
 function Entity:onDraw( params )
@@ -48,11 +55,16 @@ end
 function Entity:onHit( params )
 end
 
+
+-- for compatibility with spatialhash
+function Entity:getAABB()
+	return self.world_x, self.world_y, self.world_x+32, self.world_y+32
+end
+
 -- a base "world" entity that exists in the game world
 AnimatedSprite = class( "AnimatedSprite", Entity )
 
 function AnimatedSprite:initialize()
-	logging.verbose( "AnimatedSprite initialize" )
 	Entity:initialize(self)
 	self.is_attacking = false
 	self.current_animation = 1
@@ -174,6 +186,8 @@ function AnimatedSprite:onUpdate( params )
 			animation:update(params.dt)
 		end
 	end
+
+	Entity.onUpdate( self, params )
 end
 
 -- params:
@@ -192,7 +206,6 @@ end
 
 PathFollower = class( "PathFollower", AnimatedSprite )
 function PathFollower:initialize()
-	logging.verbose( "path follower initialize" )
 	AnimatedSprite:initialize(self)
 
 	self.path = nil
@@ -313,12 +326,15 @@ function PathFollower:onUpdate( params )
 	command.move_speed = 0
 	params.gamerules:handleMovePlayerCommand( command, self )
 	--logging.verbose( "rolling... " .. params.dt )
+
+
+	AnimatedSprite.onUpdate(self, params)
 end
 
 
 func_target = class( "func_target", AnimatedSprite )
 function func_target:initialize()
-	AnimatedSprite.initialize(self)
+	AnimatedSprite:initialize(self)
 
 	self.health = 100
 end
@@ -365,7 +381,6 @@ end
 
 Enemy = class( "Enemy", PathFollower )
 function Enemy:initialize()
-	logging.verbose( "Enemy:initialize" )
 	PathFollower.initialize(self)
 
 	-- random values to get the ball rolling
@@ -405,7 +420,7 @@ function Enemy:onSpawn( params )
 end
 
 function Enemy:onUpdate( params )
-	PathFollower.onUpdate( self, params )
+	
 
 	-- calculate distance to target
 	local dx, dy = (self.target.tile_x - self.tile_x), (self.target.tile_y - self.tile_y)
@@ -426,6 +441,8 @@ function Enemy:onUpdate( params )
 			end
 		end
 	end
+
+	PathFollower.onUpdate( self, params )
 end
 
 
@@ -483,5 +500,7 @@ function func_spawn:onUpdate( params )
 			end
 		end
 	end
+
+	Entity.onUpdate( self, params )
 end
 
