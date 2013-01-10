@@ -11,6 +11,13 @@ function Entity:initialize()
 	-- current tile
 	self.tile_x = -1
 	self.tile_y = -1
+
+	self.width = 32
+	self.height = 32
+end
+
+function Entity:size()
+	return self.width, self.height
 end
 
 function Entity:onSpawn( params )
@@ -44,6 +51,16 @@ function Entity:__tostring()
 end
 
 function Entity:onDraw( params )
+	local color = {r=255, g=0, b=0, a=128}
+	love.graphics.setColor(color.r, color.g, color.b, color.a)
+	a,b,c,d = self:getAABB()
+
+	local sx, sy = params.gamerules:worldToScreen(a,b)
+	local sw, sh = params.gamerules:worldToScreen(c,d)
+
+	love.graphics.rectangle( "line", sx, sy, sw-sx, d-b )
+
+	love.graphics.setColor(255, 255, 255, 255)
 end
 
 function Entity:onCollide( params )
@@ -58,7 +75,8 @@ end
 
 -- for compatibility with spatialhash
 function Entity:getAABB()
-	return self.world_x, self.world_y, self.world_x+32, self.world_y+32
+	local w,h = self:size()
+	return self.world_x-(w/2), self.world_y-(h/2), self.world_x+(w/2), self.world_y+(h/2)
 end
 
 -- a base "world" entity that exists in the game world
@@ -193,6 +211,8 @@ end
 -- params:
 --	gamerules: the instance of the active gamerules class
 function AnimatedSprite:onDraw( params )
+	Entity.onDraw(self, params)
+
 	if self.animations then
 		local x, y = params.gamerules:worldToScreen( (self.world_x - (self.frame_width/2)), self.world_y - (self.frame_height/2) )
 
@@ -352,7 +372,7 @@ function func_target:onHit( params )
 
 
 	if self.health == 0 then
-		params.gamerules.entity_manager:removeEntity( self )
+		params.gamerules:removeEntity( self )
 	end
 end
 

@@ -243,7 +243,7 @@ function Game:onUpdate( params )
 	local mx, my = love.mouse.getPosition()
 	local tx, ty = self.gamerules:tileCoordinatesFromMouse( mx, my )
 	self.preview_tile.x = tx
-	self.preview_tile.y = ty	
+	self.preview_tile.y = ty
 end
 
 function Game:onKeyPressed( params )

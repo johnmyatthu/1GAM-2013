@@ -302,6 +302,12 @@ function GameRules:screenToWorld( screen_x, screen_y )
 	return (screen_x - self.camera_x) + (self.map.tileWidth/2), (screen_y - self.camera_y)
 end
 
+function GameRules:tileGridFromWorld( world_x, world_y )
+	local ix, iy = self.map:fromIso( world_x, world_y )
+	return ix, iy
+	--return math.floor(ix/self.map.tileHeight), math.floor(iy/self.map.tileHeight)	
+end
+
 function GameRules:tileCoordinatesFromWorld( world_x, world_y )
 	local ix, iy = self.map:toIso( world_x - (self.map.tileWidth/2), world_y )
 	return math.floor(ix/self.map.tileHeight), math.floor(iy/self.map.tileHeight)
@@ -317,10 +323,9 @@ function GameRules:worldCoordinatesFromMouse( mouse_x, mouse_y )
 end
 
 
-
-
-function GameRules:moveEntity( entity, move_speed, dt )
-	
+function GameRules:removeEntity(entity)
+	self.entity_manager:removeEntity( entity )
+	self.grid:removeShape( entity )
 end
 
 function GameRules:handleMovePlayerCommand( command, player )
@@ -341,9 +346,6 @@ function GameRules:handleMovePlayerCommand( command, player )
 	local colliding = self.grid:getCollidingPairs( {player} )
 	table.foreach(colliding,
 		function(_,v) print(( "Shape(%d) collides with Shape(%d)"):format(v[1].id, v[2].id)) end)
-
-
-	self:moveEntity( player, command.move_speed, dt )
 
 	-- get the next world position of the entity
 	local nwx, nwy = player.world_x, player.world_y
