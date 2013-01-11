@@ -29,23 +29,23 @@ function Game:initialize( gamerules, config, fonts )
 	self.fonts = fonts
 
 	-- internal vars
-	self.state = 1 -- 0: defend, 1: build
-
+	self.state = 0 -- 0: defend, 1: build
+	love.mouse.setVisible( false )
 
 	self.preview_tile = {x=0, y=0}
 	self.selected_tile = {x=0, y=0}
 
 
 	self.key_for_action = {}
-	self.key_for_action[ ACTION_MOVE_MAP_LEFT ] = "a"
-	self.key_for_action[ ACTION_MOVE_MAP_RIGHT ] = "d"
-	self.key_for_action[ ACTION_MOVE_MAP_UP ] = "w"
-	self.key_for_action[ ACTION_MOVE_MAP_DOWN ] = "s"
+	self.key_for_action[ ACTION_MOVE_MAP_LEFT ] = "left"
+	self.key_for_action[ ACTION_MOVE_MAP_RIGHT ] = "right"
+	self.key_for_action[ ACTION_MOVE_MAP_UP ] = "up"
+	self.key_for_action[ ACTION_MOVE_MAP_DOWN ] = "down"
 
-	self.key_for_action[ ACTION_MOVE_PLAYER_LEFT ] = "left"
-	self.key_for_action[ ACTION_MOVE_PLAYER_RIGHT ] = "right"
-	self.key_for_action[ ACTION_MOVE_PLAYER_UP ] = "up"
-	self.key_for_action[ ACTION_MOVE_PLAYER_DOWN ] = "down"
+	self.key_for_action[ ACTION_MOVE_PLAYER_LEFT ] = "a"
+	self.key_for_action[ ACTION_MOVE_PLAYER_RIGHT ] = "d"
+	self.key_for_action[ ACTION_MOVE_PLAYER_UP ] = "w"
+	self.key_for_action[ ACTION_MOVE_PLAYER_DOWN ] = "s"
 
 	self.actionmap = {}
 	self.actionmap[ "toggle_collision_layer" ] = self.toggleDrawCollisions
@@ -65,7 +65,7 @@ function Game:initialize( gamerules, config, fonts )
 		end
 	end
 
-
+	self.cursor = {x=0, y=0}
 end
 
 function Game:keyForAction( action )
@@ -133,7 +133,14 @@ function Game:onLoad( params )
 		blah.world_x, blah.world_y = self.gamerules:worldCoordinatesFromTileCenter( spawn.x+1, spawn.y+1 )
 		blah.tile_x, blah.tile_y = self.gamerules:tileCoordinatesFromWorld( blah.world_x, blah.world_y )
 	end
-	--]]	
+	--]]
+
+	self.cursor_sprite = self.gamerules.entity_factory:createClass( "AnimatedSprite" )
+	self.cursor_sprite:loadSprite( "assets/sprites/cursors.conf" )
+	self.cursor_sprite.current_direction = "east"
+	self.cursor_sprite.current_animation = 1
+	self.cursor_sprite:playAnimation("left")
+	self.gamerules:spawnEntity( self.cursor_sprite, 2, 2, nil )
 end
 
 function Game:highlight_tile( mode, tx, ty, color )
@@ -201,11 +208,13 @@ function Game:onDraw( params )
 
 	--love.graphics.print( "velocity.x: " .. player.velocity.x, 20, 290 )
 	--love.graphics.print( "velocity.y: " .. player.velocity.y, 20, 310 )
+
 end
 
 function Game:onUpdate( params )
 	--logging.verbose( "Game onUpdate" )
-
+	local mx, my = love.mouse.getPosition()
+	self.cursor_sprite.world_x, self.cursor_sprite.world_y = self.gamerules:worldCoordinatesFromMouse( mx, my )
 	self.gamerules.entity_manager:eventForEachEntity( "onUpdate", {dt=params.dt, gamerules=self.gamerules} )
 
 	if map_drag.isDragging then

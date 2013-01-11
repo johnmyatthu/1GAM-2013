@@ -213,6 +213,17 @@ function GameRules:setCameraPosition( camera_x, camera_y )
 	self.camera_y = camera_y
 end
 
+function GameRules:spawnEntity( entity, tile_x, tile_y, properties )
+	-- set the world position for the entity from the tile coordinates
+	entity.world_x, entity.world_y = self:worldCoordinatesFromTileCenter( tile_x, tile_y )
+
+	-- make sure our entity is spawned properly
+	entity:onSpawn( {gamerules=self, properties=properties} )
+
+	-- this entity is now managed.
+	self.entity_manager:addEntity( entity )	
+end
+
 function GameRules:spawnEntityAtTileWithProperties( layer, tile_x, tile_y, properties )
 	local classname = properties[ "classname" ]
 	if classname then
@@ -225,17 +236,11 @@ function GameRules:spawnEntityAtTileWithProperties( layer, tile_x, tile_y, prope
 		else
 			local entity = self.entity_factory:createClass( classname )
 			if entity then
-				-- set the world position for the entity from the tile coordinates
-				entity.world_x, entity.world_y = self:worldCoordinatesFromTileCenter( tile_x, tile_y )
-
-				-- make sure our entity is spawned properly
-				entity:onSpawn( {gamerules=self, properties=properties} )
+				self:spawnEntity( entity, tile_x, tile_y, properties )
 
 				logging.verbose( "-> entity '" .. classname .. "' is at " .. entity.world_x .. ", " .. entity.world_y )
 				logging.verbose( "-> entity tile at " .. entity.tile_x .. ", " .. entity.tile_y )
 
-				-- this entity is now managed.
-				self.entity_manager:addEntity( entity )
 
 				-- remove this tile from the layer
 				layer:set( tile_x, tile_y, nil )
