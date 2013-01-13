@@ -14,6 +14,13 @@ function Entity:initialize()
 
 	self.width = 32
 	self.height = 32
+
+	self.color = { r=255, g=255, b=255, a=255 }
+end
+
+-- this can be overridden in order to skip drawing, for example.
+function Entity:respondsToEvent( event_name )
+	return true
 end
 
 function Entity:size()
@@ -43,6 +50,7 @@ function Entity:onSpawn( params )
 end
 
 function Entity:onUpdate( params )
+	self.tile_x, self.tile_y = params.gamerules:tileCoordinatesFromWorld( self.world_x, self.world_y )
 	params.gamerules.grid:updateShape(self)
 end
 
@@ -88,7 +96,7 @@ function AnimatedSprite:initialize()
 	Entity:initialize(self)
 	self.is_attacking = false
 	self.current_animation = 1
-	self.current_direction = "northeast"
+	self.current_direction = "east"
 	self.animations = nil
 	self.spritesheet = nil
 	self.animation_index_from_name = {}
@@ -215,6 +223,7 @@ end
 function AnimatedSprite:onDraw( params )
 	Entity.onDraw(self, params)
 
+	love.graphics.setColor( self.color.r, self.color.g, self.color.b, self.color.a )
 	if self.animations then
 		local x, y = params.gamerules:worldToScreen( (self.world_x - (self.frame_width/2)), self.world_y - (self.frame_height/2) )
 
@@ -223,6 +232,8 @@ function AnimatedSprite:onDraw( params )
 			animation:draw(x, y)
 		end
 	end
+
+	love.graphics.setColor( 255, 255, 255, 255 )
 end
 
 
@@ -524,5 +535,33 @@ function func_spawn:onUpdate( params )
 	end
 
 	Entity.onUpdate( self, params )
+end
+
+
+Bullet = class("Bullet", AnimatedSprite)
+function Bullet:initialize()
+	AnimatedSprite:initialize(self)
+
+	self.velocity = { x=0, y=0 }
+end
+
+function Bullet:onSpawn( params )
+	self:loadSprite( "assets/sprites/projectiles.conf" )
+	self:playAnimation( "one" )
+	AnimatedSprite.onSpawn( self, params )
+end
+
+function Bullet:onHit( params )
+	logging.verbose( "bullet hit something!" )
+end
+
+function Bullet:onUpdate( params )
+	self.world_x = self.world_x + self.velocity.x * params.dt
+	self.world_y = self.world_y + self.velocity.y * params.dt
+	AnimatedSprite.onUpdate( self, params )
+
+	if not params.gamerules:isTileWalkable( self.tile_x, self.tile_y ) then
+		params.gamerules:removeEntity( self )
+	end
 end
 

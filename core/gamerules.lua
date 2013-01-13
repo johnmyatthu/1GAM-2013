@@ -26,6 +26,7 @@ function GameRules:initialize()
 	self.entity_factory:registerClass( "func_spawn", core.entity.func_spawn )
 	self.entity_factory:registerClass( "Enemy", core.entity.Enemy )
 	self.entity_factory:registerClass( "func_target", core.entity.func_target )
+	self.entity_factory:registerClass( "Bullet", core.entity.Bullet )
 
 end
 
@@ -213,9 +214,9 @@ function GameRules:setCameraPosition( camera_x, camera_y )
 	self.camera_y = camera_y
 end
 
-function GameRules:spawnEntity( entity, tile_x, tile_y, properties )
-	-- set the world position for the entity from the tile coordinates
-	entity.world_x, entity.world_y = self:worldCoordinatesFromTileCenter( tile_x, tile_y )
+function GameRules:spawnEntity( entity, world_x, world_y, properties )
+	entity.world_x = world_x
+	entity.world_y = world_y
 
 	-- make sure our entity is spawned properly
 	entity:onSpawn( {gamerules=self, properties=properties} )
@@ -236,11 +237,12 @@ function GameRules:spawnEntityAtTileWithProperties( layer, tile_x, tile_y, prope
 		else
 			local entity = self.entity_factory:createClass( classname )
 			if entity then
-				self:spawnEntity( entity, tile_x, tile_y, properties )
+					-- set the world position for the entity from the tile coordinates
+				entity.world_x, entity.world_y = self:worldCoordinatesFromTileCenter( tile_x, tile_y )
+				self:spawnEntity( entity, entity.world_x, entity.world_y, properties )
 
 				logging.verbose( "-> entity '" .. classname .. "' is at " .. entity.world_x .. ", " .. entity.world_y )
 				logging.verbose( "-> entity tile at " .. entity.tile_x .. ", " .. entity.tile_y )
-
 
 				-- remove this tile from the layer
 				layer:set( tile_x, tile_y, nil )
@@ -349,8 +351,8 @@ function GameRules:handleMovePlayerCommand( command, player )
 	-- see what other shapes are in the way...
 
 	local colliding = self.grid:getCollidingPairs( {player} )
-	table.foreach(colliding,
-		function(_,v) print(( "Shape(%d) collides with Shape(%d)"):format(v[1].id, v[2].id)) end)
+	--table.foreach(colliding,
+	--	function(_,v) print(( "Shape(%d) collides with Shape(%d)"):format(v[1].id, v[2].id)) end)
 
 	-- get the next world position of the entity
 	local nwx, nwy = player.world_x, player.world_y
@@ -432,7 +434,7 @@ function EntityManager:eventForEachEntity( event_name, params )
 	--logging.verbose( "iterating through for event: " .. event_name )
 	for index, entity in pairs(self.entity_list) do
 		local fn = entity[ event_name ]
-		if fn ~= nil then
+		if fn ~= nil and entity:respondsToEvent( event_name ) then
 			-- call this with the instance, then parameters table
 			fn( entity, params )
 		end

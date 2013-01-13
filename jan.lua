@@ -137,10 +137,11 @@ function Game:onLoad( params )
 
 	self.cursor_sprite = self.gamerules.entity_factory:createClass( "AnimatedSprite" )
 	self.cursor_sprite:loadSprite( "assets/sprites/cursors.conf" )
-	self.cursor_sprite.current_direction = "east"
-	self.cursor_sprite.current_animation = 1
-	self.cursor_sprite:playAnimation("left")
-	self.gamerules:spawnEntity( self.cursor_sprite, 2, 2, nil )
+	self.cursor_sprite:playAnimation("one")
+	self.cursor_sprite.color = {r=0, g=255, b=255, a=255}
+	-- don't draw this automatically; let's draw this ourselves.
+	self.cursor_sprite.respondsToEvent = function (self, name) return (name ~= "onDraw") end
+	self.gamerules:spawnEntity( self.cursor_sprite, 1, 1, nil )
 end
 
 function Game:highlight_tile( mode, tx, ty, color )
@@ -209,6 +210,7 @@ function Game:onDraw( params )
 	--love.graphics.print( "velocity.x: " .. player.velocity.x, 20, 290 )
 	--love.graphics.print( "velocity.y: " .. player.velocity.y, 20, 310 )
 
+	self.cursor_sprite:onDraw( {gamerules=self.gamerules} )
 end
 
 function Game:onUpdate( params )
@@ -281,14 +283,30 @@ function Game:onMousePressed( params )
 	if params.button == "l" then
 		--player:playAnimation( "attack1" )
 		--player.is_attacking = true
+		local mx, my = love.mouse.getPosition()
 
-		if self.state == 1 then
-			local mx, my = love.mouse.getPosition()
+		if self.state == 1 then	
 			local tx, ty = self.gamerules:tileCoordinatesFromMouse( mx, my )
 			if self.gamerules:isTilePlaceable( tx, ty ) then
 				self.selected_tile.x = tx
 				self.selected_tile.y = ty
 			end
+		else
+			local bullet = self.gamerules.entity_factory:createClass( "Bullet" )
+			self.gamerules:spawnEntity( bullet, player.world_x, player.world_y, nil )
+			local bullet_speed = 250
+
+			-- get a vector from player to mouse cursor
+			local wx, wy = self.gamerules:worldCoordinatesFromMouse( mx, my )
+			local dirx = wx - player.world_x
+			local diry = wy - player.world_y
+
+			local magnitude = math.sqrt(dirx * dirx + diry * diry)
+			dirx = dirx / magnitude
+			diry = diry / magnitude
+			bullet.velocity.x = dirx * bullet_speed
+			bullet.velocity.y = diry * bullet_speed
+			logging.verbose( dirx .. ", " .. diry )
 		end
 	end	
 end
@@ -300,6 +318,7 @@ function Game:onMouseReleased( params )
 		map_drag.isDragging = false
 	end
 
+	--[[
 	if params.button == "r" then
 		logging.verbose( "right click" )
 
@@ -313,6 +332,7 @@ function Game:onMouseReleased( params )
 		local path = self.gamerules:getPath( player.tile_x, player.tile_y, target_tile.x, target_tile.y )
 		player:setPath( path )
 	end
+	--]]
 
 	player.is_attacking = false
 
