@@ -91,7 +91,7 @@ function Game:onLoad( params )
 	self.gamerules:loadMap( self.config.map )
 
 
-	player = self.gamerules.entity_factory:createClass( "PathFollower" )
+	player = self.gamerules.entity_factory:createClass( "Player" )
 	player:loadSprite( "assets/sprites/arrow.conf" )
 	self.gamerules.entity_manager:addEntity( player )
 
@@ -109,6 +109,7 @@ function Game:onLoad( params )
 
 
 	player.current_frame = "downleft"
+	player.collision_mask = 1
 	--self.gamerules:snapCameraToPlayer( player )
 
 	logging.verbose( "initialization complete." )
@@ -139,6 +140,7 @@ function Game:onLoad( params )
 	self.cursor_sprite:loadSprite( "assets/sprites/cursors.conf" )
 	self.cursor_sprite:playAnimation("one")
 	self.cursor_sprite.color = {r=0, g=255, b=255, a=255}
+	self.cursor_sprite.collision_mask = 0
 	-- don't draw this automatically; let's draw this ourselves.
 	self.cursor_sprite.respondsToEvent = function (self, name) return (name ~= "onDraw") end
 	self.gamerules:spawnEntity( self.cursor_sprite, 1, 1, nil )
@@ -177,11 +179,13 @@ function Game:onDraw( params )
 
 	self:highlight_tile( "line", target_tile.x, target_tile.y, {r=255, g=0, b=0, a=128} )
 
+	--[[
 	local nt = player:currentTarget()
 	if nt.x < 0 or nt.y < 0 then
 	else
 		self:highlight_tile( "line", nt.x, nt.y, {r=0, g=255, b=255, a=128} )
 	end
+	--]]
 
 	-- draw entities here
 	self.gamerules:drawEntities()
@@ -294,6 +298,7 @@ function Game:onMousePressed( params )
 		else
 			local bullet = self.gamerules.entity_factory:createClass( "Bullet" )
 			self.gamerules:spawnEntity( bullet, player.world_x, player.world_y, nil )
+			bullet.collision_mask = 1
 			local bullet_speed = 250
 
 			-- get a vector from player to mouse cursor

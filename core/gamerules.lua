@@ -27,7 +27,7 @@ function GameRules:initialize()
 	self.entity_factory:registerClass( "Enemy", core.entity.Enemy )
 	self.entity_factory:registerClass( "func_target", core.entity.func_target )
 	self.entity_factory:registerClass( "Bullet", core.entity.Bullet )
-
+	self.entity_factory:registerClass( "Player", core.entity.Player )
 end
 
 function GameRules:loadMap( mapname )
@@ -350,7 +350,7 @@ function GameRules:handleMovePlayerCommand( command, player )
 
 	-- see what other shapes are in the way...
 
-	local colliding = self.grid:getCollidingPairs( {player} )
+	--local colliding = self.grid:getCollidingPairs( {player} )
 	--table.foreach(colliding,
 	--	function(_,v) print(( "Shape(%d) collides with Shape(%d)"):format(v[1].id, v[2].id)) end)
 

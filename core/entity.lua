@@ -1,6 +1,7 @@
 module( ..., package.seeall )
 require "core"
 local logging = core.logging
+require "lib.luabit.bit"
 
 Entity = class( "Entity" )
 function Entity:initialize()
@@ -16,6 +17,8 @@ function Entity:initialize()
 	self.height = 32
 
 	self.color = { r=255, g=255, b=255, a=255 }
+
+	self.collision_mask = 0
 end
 
 -- this can be overridden in order to skip drawing, for example.
@@ -52,14 +55,18 @@ end
 function Entity:onUpdate( params )
 	self.tile_x, self.tile_y = params.gamerules:tileCoordinatesFromWorld( self.world_x, self.world_y )
 	params.gamerules.grid:updateShape(self)
+
+	local colliding = params.gamerules.grid:getCollidingPairs( {self} )
+	table.foreach( colliding,
+		function(_, v) if v[1].collision_mask > 0 and v[2].collision_mask > 0 and bit.band(v[1].collision_mask,v[2].collision_mask) then v[1]:onCollide( {gamerules=params.gamerules, other=v[2]} ) end end )
 end
 
 function Entity:__tostring()
-	return "class Entity at [ " .. self.tile_x .. ", " .. self.tile_y .. " ] | World [ " .. self.world_x .. ", " .. self.world_y .. " ]"
+	return "class '" .. self.class.name ..  "' at [ " .. self.tile_x .. ", " .. self.tile_y .. " ] | World [ " .. self.world_x .. ", " .. self.world_y .. " ]"
 end
 
 function Entity:onDraw( params )
-	--[[
+	
 	local color = {r=255, g=0, b=0, a=128}
 	love.graphics.setColor(color.r, color.g, color.b, color.a)
 	a,b,c,d = self:getAABB()
@@ -70,10 +77,11 @@ function Entity:onDraw( params )
 	love.graphics.rectangle( "line", sx, sy, sw-sx, d-b )
 
 	love.graphics.setColor(255, 255, 255, 255)
-	--]]
+	
 end
 
 function Entity:onCollide( params )
+	--logging.verbose( tostring(self) .. " Collision with: " .. tostring(params.other) )
 end
 
 -- params:
@@ -104,9 +112,6 @@ function AnimatedSprite:initialize()
 	self.frame_height = 0
 end
 
-function AnimatedSprite:__tostring()
-	return "AnimatedSprite at world:[ " .. self.world_x .. ", " .. self.world_y .. " ]"
-end
 
 -- I hate the way this works; it's so hacky. So, until I come up with a better way...
 function AnimatedSprite:setDirectionFromMoveCommand( command )
@@ -390,7 +395,7 @@ function func_target:onHit( params )
 end
 
 function func_target:__tostring()
-	return "func_target [" .. self.tile_x .. ", " .. self.tile_y .. "] Health: " .. self.health
+	return AnimatedSprite.__tostring(self) .. " Health: " .. self.health
 end
 
 function func_target:onDraw( params )
@@ -417,14 +422,18 @@ function Enemy:initialize()
 	PathFollower.initialize(self)
 
 	-- random values to get the ball rolling
-	self.attack_damage = 10
+	self.attack_damage = 25
 
 	self.target = nil
+	self.target_tile = { x=0, y=0 }
 
 	-- time between attacks
 	self.attack_cooldown_seconds = 0.5
 
 	self.next_attack_time = 0
+
+	self.hit_color_cooldown_seconds = 0.1
+	self.time_until_color_restore = 0
 end
 
 function Enemy:onSpawn( params )
@@ -437,23 +446,28 @@ function Enemy:onSpawn( params )
 	logging.verbose( "Enemy: Searching for target..." )
 	local target = params.gamerules.entity_manager:findFirstEntityByName( "func_target" )
 	if target then
-		logging.verbose( "I am setting a course to attack the target!" )
-		logging.verbose( "I am at " .. self.tile_x .. ", " .. self.tile_y )
-		logging.verbose( "Target is at " .. target.tile_x .. ", " .. target.tile_y )
+		--logging.verbose( "I am setting a course to attack the target!" )
+		--logging.verbose( "I am at " .. self.tile_x .. ", " .. self.tile_y )
+		--logging.verbose( "Target is at " .. target.tile_x .. ", " .. target.tile_y )
 
 		local path, cost = params.gamerules:getPath( self.tile_x, self.tile_y, target.tile_x+1, target.tile_y )
-		logging.verbose( path )
-		logging.verbose( cost )
-
 		self:setPath( path )
 		self.target = target
+		self.target_tile = {x=target.tile_x, y=target.tile_y}
 	else
 		logging.verbose( "Unable to find target." )
 	end
+
+
+	self.collision_mask = 1
 end
 
 function Enemy:onUpdate( params )
 	
+	self.time_until_color_restore = self.time_until_color_restore - params.dt
+	if self.time_until_color_restore <= 0 then
+		self.color = { r=255, g=255, b=255, a=255 }
+	end
 
 	-- calculate distance to target
 	local dx, dy = (self.target.tile_x - self.tile_x), (self.target.tile_y - self.tile_y)
@@ -470,14 +484,41 @@ function Enemy:onUpdate( params )
 			if self.target then
 				if self.target.health > 0 then
 					self.target:onHit( {gamerules=params.gamerules, attacker=self, damage=self.attack_damage} )
+				else
+					self.target = nil
+					-- find another target...
+					self.target = params.gamerules.entity_manager:findFirstEntityByName( "Player" )
+					self.target_tile = {x=self.target.tile_x, y=self.target.tile_y}
+					logging.verbose( "found new target: " .. tostring(self.target) )
+
+					local path, cost = params.gamerules:getPath( self.tile_x, self.tile_y, self.target.tile_x+1, self.target.tile_y )
+					self:setPath( path )
 				end
 			end
+		end
+	end
+
+	if self.target then
+		if self.target_tile.x ~= self.target.tile_x or self.target_tile.y ~= self.target.tile_y then
+			logging.verbose( "plotting a new course: " .. self.target_tile.x .. ", " .. self.target_tile.y )
+			logging.verbose( "course: " .. self.target.tile_x .. ", " .. self.target.tile_y )
+			-- plot a new course
+			local path, cost = params.gamerules:getPath( self.tile_x, self.tile_y, self.target.tile_x+1, self.target.tile_y )
+			self:setPath( path )
+			self.target_tile = {x=self.target.tile_x, y=self.target.tile_y}
 		end
 	end
 
 	PathFollower.onUpdate( self, params )
 end
 
+function Enemy:onCollide( params )
+	if params.other.class.name == "Bullet" then
+		self.color = {r=255, g=0, b=0, a=255}
+		params.gamerules:removeEntity( params.other )
+		self.time_until_color_restore = self.hit_color_cooldown_seconds
+	end
+end
 
 
 func_spawn = class( "func_spawn", Entity )
@@ -537,6 +578,10 @@ function func_spawn:onUpdate( params )
 	Entity.onUpdate( self, params )
 end
 
+Player = class("Player", AnimatedSprite)
+function Player:initialize()
+	self.health = 100
+end
 
 Bullet = class("Bullet", AnimatedSprite)
 function Bullet:initialize()
@@ -564,4 +609,5 @@ function Bullet:onUpdate( params )
 		params.gamerules:removeEntity( self )
 	end
 end
+
 
