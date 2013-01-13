@@ -229,7 +229,7 @@ function GameRules:spawnEntityAtTileWithProperties( layer, tile_x, tile_y, prope
 	local classname = properties[ "classname" ]
 	if classname then
 		properties[ "classname" ] = nil
-		logging.verbose( "GameRules: spawning entity '" .. classname .. "' at " .. tile_x .. ", " .. tile_y )
+		--logging.verbose( "GameRules: spawning entity '" .. classname .. "' at " .. tile_x .. ", " .. tile_y )
 
 		if classname == "info_player_spawn" then
 			-- yadda, yadda, yadda; make this not a HACK
@@ -241,8 +241,8 @@ function GameRules:spawnEntityAtTileWithProperties( layer, tile_x, tile_y, prope
 				entity.world_x, entity.world_y = self:worldCoordinatesFromTileCenter( tile_x, tile_y )
 				self:spawnEntity( entity, entity.world_x, entity.world_y, properties )
 
-				logging.verbose( "-> entity '" .. classname .. "' is at " .. entity.world_x .. ", " .. entity.world_y )
-				logging.verbose( "-> entity tile at " .. entity.tile_x .. ", " .. entity.tile_y )
+				--logging.verbose( "-> entity '" .. classname .. "' is at " .. entity.world_x .. ", " .. entity.world_y )
+				--logging.verbose( "-> entity tile at " .. entity.tile_x .. ", " .. entity.tile_y )
 
 				-- remove this tile from the layer
 				layer:set( tile_x, tile_y, nil )

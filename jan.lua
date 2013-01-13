@@ -306,7 +306,6 @@ function Game:onMousePressed( params )
 			diry = diry / magnitude
 			bullet.velocity.x = dirx * bullet_speed
 			bullet.velocity.y = diry * bullet_speed
-			logging.verbose( dirx .. ", " .. diry )
 		end
 	end	
 end

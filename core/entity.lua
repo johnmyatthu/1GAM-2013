@@ -28,7 +28,7 @@ function Entity:size()
 end
 
 function Entity:onSpawn( params )
-	logging.verbose( "Entity:onSpawn... " .. tostring(self) )
+	--logging.verbose( "Entity:onSpawn... " .. tostring(self) )
 
 	-- load properties into instance vars;
 	if params.properties then
@@ -41,9 +41,9 @@ function Entity:onSpawn( params )
 	end
 
 	if self.tile_x < 0 or self.tile_y < 0 then
-		logging.verbose( "Entity:onSpawn world location: " .. self.world_x .. ", " .. self.world_y )
+		--logging.verbose( "Entity:onSpawn world location: " .. self.world_x .. ", " .. self.world_y )
 		self.tile_x, self.tile_y = params.gamerules:tileCoordinatesFromWorld( self.world_x, self.world_y )
-		logging.verbose( "Entity:onSpawn tile location: " .. self.tile_x .. ", " .. self.tile_y )
+		--logging.verbose( "Entity:onSpawn tile location: " .. self.tile_x .. ", " .. self.tile_y )
 	end
 
 	params.gamerules.grid:addShape( self )
