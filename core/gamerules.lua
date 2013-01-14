@@ -109,8 +109,10 @@ function GameRules:loadMap( mapname )
 		end
 	end
 
-	self.pathfinder = Jumper( walkable_map, 0, true )
-	self.pathfinder:setHeuristic( "DIAGONAL" )
+	if #walkable_map > 0 then
+		self.pathfinder = Jumper( walkable_map, 0, true )
+		self.pathfinder:setHeuristic( "DIAGONAL" )
+	end
 	--self.pathfinder:setMode( "ORTHOGONAL" )
 	--self.pathfinder:setAutoFill( true )
 
