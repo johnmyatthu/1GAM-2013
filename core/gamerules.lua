@@ -34,14 +34,17 @@ function GameRules:loadMap( mapname )
 	print( "loading gamerules map" )
 	loader.path = "assets/maps/"
 
-	-- create a spatial hash
-	self.grid = SH:new( 4000, 4000, 64 )
-
+	-- try and load the map...
 	self.map = loader.load( mapname )
 	self.map.drawObjects = false
 
 	-- this crashes on a retina mbp if true; perhaps something to do with the GPUs switching?
 	self.map.useSpriteBatch = false
+
+	-- create a spatial hash
+	local grid_width = self.map.width * self.map.tileWidth
+	local grid_height = self.map.height * self.map.tileHeight
+	self.grid = SH:new( grid_width, grid_height, 64 )
 
 	-- scan through map properties
 	class_tiles = {}
@@ -293,6 +296,9 @@ end
 
 -- coordinate system functions
 function GameRules:worldCoordinatesFromTileCenter( tile_x, tile_y )
+
+	--[[
+	-- ISOMETRIC
 	-- input tile coordinates are 1-based, so decrement these
 	local tx, ty = tile_x, tile_y
 
@@ -300,6 +306,10 @@ function GameRules:worldCoordinatesFromTileCenter( tile_x, tile_y )
 	local drawX = ((self.map.width * self.map.tileWidth) / 2) + math.floor(self.map.tileWidth/2 * (tx - ty))
 	local drawY = math.floor(self.map.tileHeight/2 * (tx + ty)) + (self.map.tileHeight/2)
 	return drawX, drawY
+	--]]
+
+
+	return (self.map.tileWidth * tile_x), (self.map.tileHeight * tile_y)
 end
 
 -- worldToScreen conversion
@@ -318,8 +328,8 @@ function GameRules:tileGridFromWorld( world_x, world_y )
 end
 
 function GameRules:tileCoordinatesFromWorld( world_x, world_y )
-	local ix, iy = self.map:toIso( world_x - (self.map.tileWidth/2), world_y )
-	return math.floor(ix/self.map.tileHeight), math.floor(iy/self.map.tileHeight)
+	--local ix, iy = self.map:toIso( world_x - (self.map.tileWidth/2), world_y )
+	return math.floor(world_x/self.map.tileHeight), math.floor(world_y/self.map.tileHeight)
 end
 
 function GameRules:tileCoordinatesFromMouse( mouse_x, mouse_y )
@@ -340,6 +350,8 @@ end
 function GameRules:handleMovePlayerCommand( command, player )
 	-- determine if the sprite is moving diagonally
 	-- if so, tweak their speed so it doesn't look strange
+	--[[
+	--> ISOMETRIC ONLY
 	local is_diagonal = false
 	local is_ns = command.up or command.down
 	local is_ew = command.left or command.right
@@ -349,12 +361,14 @@ function GameRules:handleMovePlayerCommand( command, player )
 	if is_diagonal then
 		move_speed = command.move_speed * 0.5
 	end
+	--]]
+	local move_speed = command.move_speed
 
 	-- see what other shapes are in the way...
 
 	local colliding = self.grid:getCollidingPairs( {player} )
-	--table.foreach(colliding,
-	--	function(_,v) print(( "Shape(%d) collides with Shape(%d)"):format(v[1].id, v[2].id)) end)
+	table.foreach(colliding,
+	function(_,v) print(( "Shape(%d) collides with Shape(%d)"):format(v[1].id, v[2].id)) end)
 
 	-- get the next world position of the entity
 	local nwx, nwy = player.world_x, player.world_y
@@ -371,6 +385,8 @@ function GameRules:handleMovePlayerCommand( command, player )
 	-- for now, just collide with tiles that exist on the collision layer.
 	if not tile then
 		player.world_x, player.world_y = nwx, nwy
+	else
+		logging.verbose( "player hit a tile!" )
 	end
 	
 	if command.up or command.down or command.left or command.right then

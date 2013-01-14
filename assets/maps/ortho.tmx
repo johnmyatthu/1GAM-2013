@@ -2,10 +2,32 @@
 <map version="1.0" orientation="orthogonal" width="25" height="25" tilewidth="32" tileheight="32">
  <tileset firstgid="1" name="generic_tiles" tilewidth="32" tileheight="32">
   <image source="generic_tiles.png" width="256" height="96"/>
+  <tile id="8">
+   <properties>
+    <property name="classname" value="func_spawn"/>
+    <property name="max_entities" value="1"/>
+    <property name="spawn_class" value="Enemy"/>
+   </properties>
+  </tile>
+  <tile id="10">
+   <properties>
+    <property name="classname" value="func_target"/>
+   </properties>
+  </tile>
+  <tile id="12">
+   <properties>
+    <property name="classname" value="info_player_spawn"/>
+   </properties>
+  </tile>
  </tileset>
- <layer name="Tile Layer 1" width="25" height="25">
+ <layer name="Game" width="25" height="25">
   <data encoding="base64" compression="zlib">
-   eJwTZGBgEAFiQTw0NfCoHaN20MKOUTyKR/EoHsWjeKRiAN1LKdY=
+   eJwTZGBgEAFiQTw0NfBgs4N3mPhjuNnBTUX76YU5B4EbRvEoHsWjeBSPPAwAWuMpxA==
+  </data>
+ </layer>
+ <layer name="Collision" width="25" height="25">
+  <data encoding="base64" compression="zlib">
+   eJxjZmBgYKYDpiUYtWPUjlE7Ru0YtWPUjlE7Ru0YbHbQGgMAio8BIQ==
   </data>
  </layer>
 </map>
