@@ -309,16 +309,16 @@ function GameRules:worldCoordinatesFromTileCenter( tile_x, tile_y )
 	--]]
 
 
-	return (self.map.tileWidth * tile_x), (self.map.tileHeight * tile_y)
+	return (self.map.tileWidth * tile_x) + self.map.tileWidth/2, (self.map.tileHeight * tile_y) + self.map.tileHeight/2
 end
 
 -- worldToScreen conversion
 function GameRules:worldToScreen( world_x, world_y )
-	return math.floor(world_x + self.camera_x) - (self.map.tileWidth/2), math.floor(world_y + self.camera_y)
+	return math.floor(world_x + self.camera_x), math.floor(world_y + self.camera_y)
 end
 
 function GameRules:screenToWorld( screen_x, screen_y )
-	return (screen_x - self.camera_x) + (self.map.tileWidth/2), (screen_y - self.camera_y)
+	return (screen_x - self.camera_x), (screen_y - self.camera_y)
 end
 
 function GameRules:tileGridFromWorld( world_x, world_y )
@@ -329,7 +329,7 @@ end
 
 function GameRules:tileCoordinatesFromWorld( world_x, world_y )
 	--local ix, iy = self.map:toIso( world_x - (self.map.tileWidth/2), world_y )
-	return math.floor(world_x/self.map.tileHeight), math.floor(world_y/self.map.tileHeight)
+	return math.floor(world_x/self.map.tileWidth), math.floor(world_y/self.map.tileHeight)
 end
 
 function GameRules:tileCoordinatesFromMouse( mouse_x, mouse_y )
@@ -385,8 +385,6 @@ function GameRules:handleMovePlayerCommand( command, player )
 	-- for now, just collide with tiles that exist on the collision layer.
 	if not tile then
 		player.world_x, player.world_y = nwx, nwy
-	else
-		logging.verbose( "player hit a tile!" )
 	end
 	
 	if command.up or command.down or command.left or command.right then

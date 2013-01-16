@@ -67,7 +67,7 @@ function Entity:onDraw( params )
 	local sx, sy = params.gamerules:worldToScreen(a,b)
 	local sw, sh = params.gamerules:worldToScreen(c,d)
 
-	love.graphics.rectangle( "line", sx, sy, sw-sx, d-b )
+	love.graphics.rectangle( "fill", sx, sy, sw-sx, d-b )
 
 	love.graphics.setColor(255, 255, 255, 255)
 	
@@ -454,27 +454,27 @@ end
 
 function Enemy:onUpdate( params )
 	
+	if self.target then
+		-- calculate distance to target
+		local dx, dy = (self.target.tile_x - self.tile_x), (self.target.tile_y - self.tile_y)
+		local min_range = 1
+		if math.abs(dx) <= min_range and math.abs(dy) <= min_range then
+			--logging.verbose( "I am at " .. self.tile_x .. ", " .. self.tile_y )
+			-- within range to attack
 
-	-- calculate distance to target
-	local dx, dy = (self.target.tile_x - self.tile_x), (self.target.tile_y - self.tile_y)
-	local min_range = 1
-	if math.abs(dx) <= min_range and math.abs(dy) <= min_range then
-		--logging.verbose( "I am at " .. self.tile_x .. ", " .. self.tile_y )
-		-- within range to attack
+			self.next_attack_time = self.next_attack_time - params.dt
+			if self.next_attack_time <= 0 then
+				self.next_attack_time = self.attack_cooldown_seconds
 
-		self.next_attack_time = self.next_attack_time - params.dt
-		if self.next_attack_time <= 0 then
-			self.next_attack_time = self.attack_cooldown_seconds
-
-			-- attack the target
-			if self.target then
-				if self.target.health > 0 then
-					self.target:onHit( {gamerules=params.gamerules, attacker=self, damage=self.attack_damage} )
+				-- attack the target
+				if self.target then
+					if self.target.health > 0 then
+						self.target:onHit( {gamerules=params.gamerules, attacker=self, damage=self.attack_damage} )
+					end
 				end
 			end
 		end
 	end
-
 	PathFollower.onUpdate( self, params )
 end
 

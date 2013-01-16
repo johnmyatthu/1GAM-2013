@@ -1,7 +1,9 @@
 require "core"
 local logging = core.logging
 
-
+-- bloom shader, by slime
+--require "bloom"
+--be = CreateBloomEffect( 400, 300)
 
 local player = nil
 
@@ -19,6 +21,7 @@ local ACTION_MOVE_PLAYER_LEFT = "move_player_left"
 local ACTION_MOVE_PLAYER_RIGHT = "move_player_right"
 local ACTION_MOVE_PLAYER_UP = "move_player_up"
 local ACTION_MOVE_PLAYER_DOWN = "move_player_down"
+
 
 -- Game class
 Game = class( "Game" )
@@ -158,6 +161,7 @@ function Game:highlight_tile( mode, tx, ty, color )
 end
 
 function Game:onDraw( params )
+
 	self.gamerules:drawWorld()
 
 	-- draw highlighted tile
@@ -197,12 +201,15 @@ function Game:onDraw( params )
 	--love.graphics.print( "tx: " .. mouse_tile.x, 20, 110 )
 	--love.graphics.print( "ty: " .. mouse_tile.y, 20, 130 )
 
-	--love.graphics.print( "player: ", 10, 150 )
-	--love.graphics.print( "x: " .. player.world_x, 20, 170 )
-	--love.graphics.print( "y: " .. player.world_y, 20, 190 )
-	--love.graphics.print( "tx: " .. player.tile_x, 20, 210 )
-	--love.graphics.print( "ty: " .. player.tile_y, 20, 230 )
+	love.graphics.print( "player: ", 10, 150 )
+	love.graphics.print( "x: " .. player.world_x, 20, 170 )
+	love.graphics.print( "y: " .. player.world_y, 20, 190 )
+	love.graphics.print( "tx: " .. player.tile_x, 20, 210 )
+	love.graphics.print( "ty: " .. player.tile_y, 20, 230 )
 
+	local mx, my = love.mouse.getPosition()
+	love.graphics.print( "mx: " .. mx, 20, 90 )
+	love.graphics.print( "my: " .. my, 20, 110 )
 	--local target = player:currentTarget()
 	--love.graphics.print( "targetx: " .. target.x, 20, 250 )
 	--love.graphics.print( "targety: " .. target.y, 20, 270 )
@@ -211,6 +218,17 @@ function Game:onDraw( params )
 	--love.graphics.print( "velocity.y: " .. player.velocity.y, 20, 310 )
 
 	self.cursor_sprite:onDraw( {gamerules=self.gamerules} )
+
+--[[
+	--be:setIntensity(2,2)
+	be:setThreshold( 0.2 )
+	be:predraw()
+	be:enabledrawtobloom()
+
+	self.gamerules:drawEntities()
+	self.cursor_sprite:onDraw( {gamerules=self.gamerules} )
+	be:postdraw()
+--]]
 end
 
 function Game:onUpdate( params )
