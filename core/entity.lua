@@ -587,6 +587,12 @@ function Bullet:onSpawn( params )
 	AnimatedSprite.onSpawn( self, params )
 end
 
+function Bullet:onCollide( params )
+	if params.other == nil then
+		-- bullet hit a wall; play wallhit sound
+	end
+end
+
 function Bullet:onHit( params )
 	logging.verbose( "bullet hit something!" )
 end
@@ -597,6 +603,7 @@ function Bullet:onUpdate( params )
 	AnimatedSprite.onUpdate( self, params )
 
 	if not params.gamerules:isTileWalkable( self.tile_x, self.tile_y ) then
+		self:onCollide( {gamerules=params.gamerules, other=nil} )
 		params.gamerules:removeEntity( self )
 	end
 end
