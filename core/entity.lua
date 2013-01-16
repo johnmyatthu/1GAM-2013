@@ -13,8 +13,8 @@ function Entity:initialize()
 	self.tile_x = -1
 	self.tile_y = -1
 
-	self.width = 32
-	self.height = 32
+	self.frame_width = 32
+	self.frame_height = 32
 
 	self.color = { r=255, g=255, b=255, a=255 }
 	self.collision_mask = 0
@@ -26,7 +26,7 @@ function Entity:respondsToEvent( event_name )
 end
 
 function Entity:size()
-	return self.width, self.height
+	return self.frame_width, self.frame_height
 end
 
 function Entity:onSpawn( params )
@@ -106,8 +106,6 @@ function AnimatedSprite:initialize()
 	self.animations = nil
 	self.spritesheet = nil
 	self.animation_index_from_name = {}
-	self.frame_width = 0
-	self.frame_height = 0
 end
 
 function AnimatedSprite:__tostring()
@@ -409,7 +407,12 @@ function func_target:onDraw( params )
 	local width = 100
 	love.graphics.setColor( 0, 0, 0, 192 )
 	love.graphics.rectangle( 'fill', x+10, y, width-20, 14 )
+
+	--love.graphics.setColor( 0, 255, 0, 255 )
 	love.graphics.setColor( r, g, b, a )
+	love.graphics.rectangle( 'fill', x+10, y, ((self.health*.01)*(width-20)), 14 )
+	
+	love.graphics.setColor( 255, 128, 0, 255 )
 	love.graphics.printf( "Health: (" .. math.floor(self.health) .. ")", x, y, width, 'center' )
 
 
@@ -499,7 +502,7 @@ function Enemy:onUpdate( params )
 			end
 		end
 	end
-	
+
 	PathFollower.onUpdate( self, params )
 end
 
