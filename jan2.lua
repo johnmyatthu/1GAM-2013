@@ -98,7 +98,7 @@ function Game:onLoad( params )
 	player:loadSprite( "assets/sprites/arrow.conf" )
 	self.gamerules.entity_manager:addEntity( player )
 
-	self.gamerules.grid:addShape( player )
+	self.gamerules:addCollision( player )
 	-- assuming this map has a spawn point; we'll set the player spawn
 	-- and then center the camera on the player
 	local spawn = self.gamerules.spawn
@@ -234,6 +234,7 @@ function Game:onDraw( params )
 end
 
 function Game:onUpdate( params )
+	self.gamerules:onUpdate( params )
 	--logging.verbose( "Game onUpdate" )
 	local mx, my = love.mouse.getPosition()
 	self.cursor_sprite.world_x, self.cursor_sprite.world_y = self.gamerules:worldCoordinatesFromMouse( mx, my )

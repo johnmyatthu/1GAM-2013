@@ -47,7 +47,7 @@
  </layer>
  <layer name="Game" width="25" height="25">
   <data encoding="base64" compression="zlib">
-   eJyTZGBgkBxGWJZIdQxUtFN6EPibHpiaYTaQdoy6eRSPYsowAxXMkBkE/hjFo5gUzDAI3ICOAYJBPH0=
+   eJyTZGBgkBxGWJZIdQxUtFN6EPibHpiaYTaQdoy6eWCxzCBwwyimDDMMEjNG8SimJ2YYBG5AxwA2UTxk
   </data>
  </layer>
  <layer name="Collision" width="25" height="25">

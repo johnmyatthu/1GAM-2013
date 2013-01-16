@@ -6,7 +6,11 @@ loader = require "lib.AdvTiledLoader.Loader"
 
 local SH = require( "lib.broadphase.spatialhash" )
 
+bump = require "lib.bump.bump"
+
 local MAP_COLLISION_LAYER_NAME = "Collision"
+
+local global_gamerules = nil
 
 GameRules = class( "GameRules" )
 function GameRules:initialize()
@@ -28,7 +32,57 @@ function GameRules:initialize()
 	self.entity_factory:registerClass( "func_target", core.entity.func_target )
 	self.entity_factory:registerClass( "Bullet", core.entity.Bullet )
 	self.entity_factory:registerClass( "Player", core.entity.Player )
+
+	global_gamerules = self
+
 end
+
+
+function bump.collision( a, b, dx, dy )
+	logging.verbose( "collision: " .. tostring(a) .. " with " .. tostring(b) )
+	a:onCollide( {gamerules=global_gamerules, other=b} )
+end
+
+function bump.endCollision( a, b )
+end
+
+function bump.getBBox(item)
+	return item.world_x, item.world_y, item.frame_width, item.frame_height
+end
+
+function bump.shouldCollide(a, b)
+	return true
+	--return a.collision_mask > 0 and b.collision_mask > 0 and bit.band(a.collision_mask,b.collision_mask)
+end
+
+function GameRules:initCollision()
+	local grid_width = self.map.width * self.map.tileWidth
+	local grid_height = self.map.height * self.map.tileHeight
+	self.grid = SH:new( grid_width, grid_height, 64 )
+
+	--bump.initialize(64)
+	--self.bump = bump
+end
+
+function GameRules:addCollision( entity )
+	self.grid:addShape( entity )
+	--self.bump.add(entity)
+end
+
+function GameRules:removeCollision( entity )
+	self.grid:removeShape( entity )
+	--self.bump.remove(entity)
+end
+
+function GameRules:updateCollision( params )
+	if params.entity then
+		self.grid:updateShape( params.entity )
+	else
+		self.bump.collide()
+	end
+end
+
+
 
 function GameRules:loadMap( mapname )
 	print( "loading gamerules map" )
@@ -38,13 +92,11 @@ function GameRules:loadMap( mapname )
 	self.map = loader.load( mapname )
 	self.map.drawObjects = false
 
+	-- setup collision stuff
+	self:initCollision()
+
 	-- this crashes on a retina mbp if true; perhaps something to do with the GPUs switching?
 	self.map.useSpriteBatch = false
-
-	-- create a spatial hash
-	local grid_width = self.map.width * self.map.tileWidth
-	local grid_height = self.map.height * self.map.tileHeight
-	self.grid = SH:new( grid_width, grid_height, 64 )
 
 	-- scan through map properties
 	class_tiles = {}
@@ -344,7 +396,13 @@ end
 
 function GameRules:removeEntity(entity)
 	self.entity_manager:removeEntity( entity )
-	self.grid:removeShape( entity )
+	self:removeCollision(entity)
+end
+
+function GameRules:onUpdate(params)
+	if self.bump then
+		self:updateCollision(params)
+	end
 end
 
 function GameRules:handleMovePlayerCommand( command, player )
@@ -366,9 +424,36 @@ function GameRules:handleMovePlayerCommand( command, player )
 
 	-- see what other shapes are in the way...
 
+	local colliding = {}
 	--local colliding = self.grid:getCollidingPairs( {player} )
 	--table.foreach(colliding,
 	--function(_,v) print(( "Shape(%d) collides with Shape(%d)"):format(v[1].id, v[2].id)) end)
+
+	local closest_shape = nil
+	local min_dist = 10000
+	local dirx, diry
+	local minx, miny
+
+	for _, v in pairs(colliding) do
+		if v[2] ~= player then
+			local other = v[2]
+
+			-- get direction from this entity to the other
+			local dx = other.world_x - player.world_x
+			local dy = other.world_y - player.world_y
+			local len = math.sqrt( dx*dx + dy*dy )
+			if len < min_dist then
+				min_dist = len
+				closest_shape = other
+				dirx = dx / len
+				diry = dy / len
+				minx = -dx
+				miny = -dy
+			end
+		end
+	end
+
+
 
 	-- get the next world position of the entity
 	local nwx, nwy = player.world_x, player.world_y
@@ -378,12 +463,20 @@ function GameRules:handleMovePlayerCommand( command, player )
 	if command.left then nwx = player.world_x - (command.move_speed * command.dt) end
 	if command.right then nwx = player.world_x + (command.move_speed * command.dt) end
 
+	if closest_shape then
+		logging.verbose( "Closest shape is: " .. tostring(closest_shape))
+		logging.verbose( "Dir: " .. tostring(dirx) .. ", " .. tostring(diry) )		
+		nwx = player.world_x + (minx * command.dt)
+		nwy = player.world_y + (miny * command.dt)
+	end
+
 	-- could offset by sprite's half bounds to ensure they don't intersect with tiles
 	local tx, ty = self:tileCoordinatesFromWorld( nwx, nwy )
 	local tile = self:getCollisionTile( tx, ty )
 
 	-- for now, just collide with tiles that exist on the collision layer.
 	if not tile then
+
 		player.world_x, player.world_y = nwx, nwy
 	end
 	

@@ -48,12 +48,13 @@ function Entity:onSpawn( params )
 		--logging.verbose( "Entity:onSpawn tile location: " .. self.tile_x .. ", " .. self.tile_y )
 	end
 
-	params.gamerules.grid:addShape( self )
+	params.gamerules:addCollision(self)
 end
 
 function Entity:onUpdate( params )
 	self.tile_x, self.tile_y = params.gamerules:tileCoordinatesFromWorld( self.world_x, self.world_y )
-	params.gamerules.grid:updateShape(self)
+	params.gamerules:updateCollision( {entity=self} )
+
 
 	local colliding = params.gamerules.grid:getCollidingPairs( {self} )
 	table.foreach( colliding,
@@ -61,7 +62,7 @@ function Entity:onUpdate( params )
 end
 
 function Entity:__tostring()
-	return "class Entity at [ " .. self.tile_x .. ", " .. self.tile_y .. " ] | World [ " .. self.world_x .. ", " .. self.world_y .. " ]"
+	return "class " .. self.class.name .. " at [ " .. self.tile_x .. ", " .. self.tile_y .. " ] | World [ " .. self.world_x .. ", " .. self.world_y .. " ]"
 end
 
 function Entity:onDraw( params )
@@ -108,9 +109,6 @@ function AnimatedSprite:initialize()
 	self.animation_index_from_name = {}
 end
 
-function AnimatedSprite:__tostring()
-	return "AnimatedSprite at world:[ " .. self.world_x .. ", " .. self.world_y .. " ]"
-end
 
 -- I hate the way this works; it's so hacky. So, until I come up with a better way...
 function AnimatedSprite:setDirectionFromMoveCommand( command )
@@ -394,7 +392,7 @@ function func_target:onHit( params )
 end
 
 function func_target:__tostring()
-	return "func_target [" .. self.tile_x .. ", " .. self.tile_y .. "] Health: " .. self.health
+	return Entity.__tostring(self) .. ", Health: " .. self.health
 end
 
 function func_target:onDraw( params )
