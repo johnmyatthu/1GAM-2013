@@ -1,6 +1,7 @@
 module( ..., package.seeall )
 require "core"
 local logging = core.logging
+require "lib.luabit.bit"
 
 Entity = class( "Entity" )
 function Entity:initialize()
@@ -16,6 +17,7 @@ function Entity:initialize()
 	self.height = 32
 
 	self.color = { r=255, g=255, b=255, a=255 }
+	self.collision_mask = 0
 end
 
 -- this can be overridden in order to skip drawing, for example.
@@ -52,6 +54,10 @@ end
 function Entity:onUpdate( params )
 	self.tile_x, self.tile_y = params.gamerules:tileCoordinatesFromWorld( self.world_x, self.world_y )
 	params.gamerules.grid:updateShape(self)
+
+	local colliding = params.gamerules.grid:getCollidingPairs( {self} )
+	table.foreach( colliding,
+		function(_, v) if v[1].collision_mask > 0 and v[2].collision_mask > 0 and bit.band(v[1].collision_mask,v[2].collision_mask) then v[1]:onCollide( {gamerules=params.gamerules, other=v[2]} ) end end )	
 end
 
 function Entity:__tostring()
@@ -67,7 +73,7 @@ function Entity:onDraw( params )
 	local sx, sy = params.gamerules:worldToScreen(a,b)
 	local sw, sh = params.gamerules:worldToScreen(c,d)
 
-	love.graphics.rectangle( "fill", sx, sy, sw-sx, d-b )
+	love.graphics.rectangle( "line", sx, sy, sw-sx, d-b )
 
 	love.graphics.setColor(255, 255, 255, 255)
 	
@@ -425,6 +431,19 @@ function Enemy:initialize()
 	self.attack_cooldown_seconds = 0.5
 
 	self.next_attack_time = 0
+
+	self.hit_color_cooldown_seconds = 0.1
+	self.time_until_color_restore = 0
+
+	self.collision_mask = 2
+end
+
+function Enemy:onCollide( params )
+	if params.other.class.name == "Bullet" then
+		self.color = {r=255, g=0, b=0, a=255}
+		params.gamerules:removeEntity( params.other )
+		self.time_until_color_restore = self.hit_color_cooldown_seconds
+	end
 end
 
 function Enemy:onSpawn( params )
@@ -454,6 +473,11 @@ end
 
 function Enemy:onUpdate( params )
 	
+	self.time_until_color_restore = self.time_until_color_restore - params.dt
+	if self.time_until_color_restore <= 0 then
+		self.color = { r=255, g=255, b=255, a=255 }
+	end
+
 	if self.target then
 		-- calculate distance to target
 		local dx, dy = (self.target.tile_x - self.tile_x), (self.target.tile_y - self.tile_y)
@@ -475,6 +499,7 @@ function Enemy:onUpdate( params )
 			end
 		end
 	end
+	
 	PathFollower.onUpdate( self, params )
 end
 
@@ -538,11 +563,19 @@ function func_spawn:onUpdate( params )
 end
 
 
+Player = class("Player", AnimatedSprite)
+function Player:initialize()
+	self.health = 100
+	self.collision_mask = 1
+end
+
 Bullet = class("Bullet", AnimatedSprite)
 function Bullet:initialize()
 	AnimatedSprite:initialize(self)
 
 	self.velocity = { x=0, y=0 }
+
+	self.collision_mask = 2
 end
 
 function Bullet:onSpawn( params )

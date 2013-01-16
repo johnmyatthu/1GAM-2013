@@ -47,12 +47,12 @@
  </layer>
  <layer name="Game" width="25" height="25">
   <data encoding="base64" compression="zlib">
-   eJyTZGBgkByBmIGKZkkPAv/QA8sMAjcMRiw7CNwwikfxKB7Fo3jkYQABGjz6
+   eJyTZGBgkBxGWJZIdQxUtFN6EPibHpiaYTaQdoy6eRSPYsowAxXMkBkE/hjFo5gUzDAI3ICOAYJBPH0=
   </data>
  </layer>
  <layer name="Collision" width="25" height="25">
   <data encoding="base64" compression="zlib">
-   eJyTYmBgkKIDpiUYtWPUjlE7Ru0YtWPUjlE7Ru0YbHbQGgMAu4UJwQ==
+   eJyTYmBgkKIDJgYQqw6bvpFmB7lgJNoxXOKc1nZQEm+E8jypZQE+O2gJRu0YtWPUjlE7qGkHrTEA2FQLLQ==
   </data>
  </layer>
 </map>

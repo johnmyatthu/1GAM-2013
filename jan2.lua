@@ -94,7 +94,7 @@ function Game:onLoad( params )
 	self.gamerules:loadMap( self.config.map )
 
 
-	player = self.gamerules.entity_factory:createClass( "PathFollower" )
+	player = self.gamerules.entity_factory:createClass( "Player" )
 	player:loadSprite( "assets/sprites/arrow.conf" )
 	self.gamerules.entity_manager:addEntity( player )
 
@@ -181,11 +181,13 @@ function Game:onDraw( params )
 
 	self:highlight_tile( "line", target_tile.x, target_tile.y, {r=255, g=0, b=0, a=128} )
 
+--[[
 	local nt = player:currentTarget()
 	if nt.x < 0 or nt.y < 0 then
 	else
 		self:highlight_tile( "line", nt.x, nt.y, {r=0, g=255, b=255, a=128} )
 	end
+--]]
 
 	-- draw entities here
 	self.gamerules:drawEntities()
