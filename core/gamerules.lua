@@ -58,7 +58,7 @@ end
 function GameRules:initCollision()
 	local grid_width = self.map.width * self.map.tileWidth
 	local grid_height = self.map.height * self.map.tileHeight
-	self.grid = SH:new( grid_width, grid_height, 64 )
+	self.grid = SH:new( grid_width, grid_height, 128 )
 
 	--bump.initialize(64)
 	--self.bump = bump
@@ -291,6 +291,7 @@ function GameRules:spawnEntityAtTileWithProperties( layer, tile_x, tile_y, prope
 		if classname == "info_player_spawn" then
 			-- yadda, yadda, yadda; make this not a HACK
 			self.spawn = { x = tile_x, y = tile_y }
+			layer:set( tile_x, tile_y, nil )
 		else
 			local entity = self.entity_factory:createClass( classname )
 			if entity then
@@ -405,6 +406,13 @@ function GameRules:onUpdate(params)
 	end
 end
 
+function GameRules:findMinimumDisplacementVector( a, b )
+	-- get direction from this entity to the other
+	local dx = b.world_x - a.world_x
+	local dy = b.world_y - a.world_y
+	return -dx, -dy
+end
+
 function GameRules:handleMovePlayerCommand( command, player )
 	-- determine if the sprite is moving diagonally
 	-- if so, tweak their speed so it doesn't look strange
@@ -424,15 +432,16 @@ function GameRules:handleMovePlayerCommand( command, player )
 
 	-- see what other shapes are in the way...
 
-	local colliding = {}
-	--local colliding = self.grid:getCollidingPairs( {player} )
-	--table.foreach(colliding,
-	--function(_,v) print(( "Shape(%d) collides with Shape(%d)"):format(v[1].id, v[2].id)) end)
+	local colliding = self.grid:getCollidingPairs( {player} )
+	table.foreach(colliding,
+	function(_,v) print(( "Shape(%d) collides with Shape(%d)"):format(v[1].id, v[2].id)) end)
 
 	local closest_shape = nil
 	local min_dist = 10000
 	local dirx, diry
-	local minx, miny
+	local minx = move_speed
+	local miny = move_speed
+
 
 	for _, v in pairs(colliding) do
 		if v[2] ~= player then
@@ -447,8 +456,9 @@ function GameRules:handleMovePlayerCommand( command, player )
 				closest_shape = other
 				dirx = dx / len
 				diry = dy / len
-				minx = -dx
-				miny = -dy
+				minx = dx
+				miny = dy
+				--minx, miny = self:findMinimumDisplacementVector(player, other)
 			end
 		end
 	end
@@ -458,16 +468,14 @@ function GameRules:handleMovePlayerCommand( command, player )
 	-- get the next world position of the entity
 	local nwx, nwy = player.world_x, player.world_y
 
-	if command.up then nwy = player.world_y - (move_speed * command.dt) end
-	if command.down then nwy = player.world_y + (move_speed * command.dt) end
-	if command.left then nwx = player.world_x - (command.move_speed * command.dt) end
-	if command.right then nwx = player.world_x + (command.move_speed * command.dt) end
+	if command.up then nwy = player.world_y - (miny * command.dt) end
+	if command.down then nwy = player.world_y + (miny * command.dt) end
+	if command.left then nwx = player.world_x - (minx * command.dt) end
+	if command.right then nwx = player.world_x + (minx * command.dt) end
 
 	if closest_shape then
 		logging.verbose( "Closest shape is: " .. tostring(closest_shape))
-		logging.verbose( "Dir: " .. tostring(dirx) .. ", " .. tostring(diry) )		
-		nwx = player.world_x + (minx * command.dt)
-		nwy = player.world_y + (miny * command.dt)
+		logging.verbose( "Dir: " .. tostring(dirx) .. ", " .. tostring(diry) )
 	end
 
 	-- could offset by sprite's half bounds to ensure they don't intersect with tiles
@@ -488,6 +496,7 @@ function GameRules:handleMovePlayerCommand( command, player )
 		player:playAnimation( "idle" )
 	end
 
+	
 	player.tile_x, player.tile_y = self:tileCoordinatesFromWorld( player.world_x, player.world_y )
 end
 

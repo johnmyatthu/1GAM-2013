@@ -56,6 +56,8 @@ function Entity:onUpdate( params )
 	params.gamerules:updateCollision( {entity=self} )
 
 
+	logging.verbose( "update for: " .. tostring(self) )
+
 	local colliding = params.gamerules.grid:getCollidingPairs( {self} )
 	table.foreach( colliding,
 		function(_, v) if v[1].collision_mask > 0 and v[2].collision_mask > 0 and bit.band(v[1].collision_mask,v[2].collision_mask) then v[1]:onCollide( {gamerules=params.gamerules, other=v[2]} ) end end )	
@@ -359,7 +361,7 @@ function PathFollower:onUpdate( params )
 	end
 
 	command.move_speed = 0
-	params.gamerules:handleMovePlayerCommand( command, self )
+	--params.gamerules:handleMovePlayerCommand( command, self )
 	--logging.verbose( "rolling... " .. params.dt )
 
 
@@ -401,17 +403,21 @@ function func_target:onDraw( params )
 	-- get screen coordinates for this entity
 	local sx, sy = params.gamerules:worldToScreen( self.world_x, self.world_y )
 	local r,g,b,a = params.gamerules:colorForHealth(self.health)
-	local x, y = sx-50, sy-32
-	local width = 100
+	local width = 32
+	local x, y = sx- (width/2), sy-self.frame_height
+	
+	local left_margin = 0
+	local right_margin = 0
+	local height = 4
 	love.graphics.setColor( 0, 0, 0, 192 )
-	love.graphics.rectangle( 'fill', x+10, y, width-20, 14 )
+	love.graphics.rectangle( 'fill', x+left_margin, y, width-right_margin, height )
 
 	--love.graphics.setColor( 0, 255, 0, 255 )
 	love.graphics.setColor( r, g, b, a )
-	love.graphics.rectangle( 'fill', x+10, y, ((self.health*.01)*(width-20)), 14 )
+	love.graphics.rectangle( 'fill', x+left_margin, y, ((self.health*.01)*(width-right_margin)), height )
 	
-	love.graphics.setColor( 255, 128, 0, 255 )
-	love.graphics.printf( "Health: (" .. math.floor(self.health) .. ")", x, y, width, 'center' )
+	--love.graphics.setColor( 255, 128, 0, 255 )
+	--love.graphics.printf( "Health: (" .. math.floor(self.health) .. ")", x, y, width, 'center' )
 
 
 
