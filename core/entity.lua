@@ -3,6 +3,7 @@ require "core"
 local logging = core.logging
 require "lib.luabit.bit"
 
+
 Entity = class( "Entity" )
 function Entity:initialize()
 	-- current position in the world
@@ -13,12 +14,12 @@ function Entity:initialize()
 	self.tile_x = -1
 	self.tile_y = -1
 
-	self.width = 32
-	self.height = 32
+	self.frame_width = 32
+	self.frame_height = 32
 
 	self.color = { r=255, g=255, b=255, a=255 }
-
 	self.collision_mask = 0
+	self.health = 0
 end
 
 -- this can be overridden in order to skip drawing, for example.
@@ -27,7 +28,23 @@ function Entity:respondsToEvent( event_name )
 end
 
 function Entity:size()
-	return self.width, self.height
+	return self.frame_width, self.frame_height
+end
+
+function Entity:drawHealthBar( params )
+	-- get screen coordinates for this entity
+	local sx, sy = params.gamerules:worldToScreen( self.world_x, self.world_y )
+	local r,g,b,a = params.gamerules:colorForHealth(self.health)
+	local width = 32
+	local x, y = sx-(width/2), sy-self.frame_height
+	local height = 4
+	love.graphics.setColor( 0, 0, 0, 192 )
+	love.graphics.rectangle( 'fill', x, y, width, height )
+
+	love.graphics.setColor( r, g, b, a )
+	love.graphics.rectangle( 'fill', x, y, ((self.health*.01)*width), height )
+
+	love.graphics.setColor( 255, 255, 255, 255 )	
 end
 
 function Entity:onSpawn( params )
@@ -49,20 +66,15 @@ function Entity:onSpawn( params )
 		--logging.verbose( "Entity:onSpawn tile location: " .. self.tile_x .. ", " .. self.tile_y )
 	end
 
-	params.gamerules.grid:addShape( self )
+	params.gamerules:addCollision(self)
 end
 
 function Entity:onUpdate( params )
 	self.tile_x, self.tile_y = params.gamerules:tileCoordinatesFromWorld( self.world_x, self.world_y )
-	params.gamerules.grid:updateShape(self)
-
-	local colliding = params.gamerules.grid:getCollidingPairs( {self} )
-	table.foreach( colliding,
-		function(_, v) if v[1].collision_mask > 0 and v[2].collision_mask > 0 and bit.band(v[1].collision_mask,v[2].collision_mask) then v[1]:onCollide( {gamerules=params.gamerules, other=v[2]} ) end end )
 end
 
 function Entity:__tostring()
-	return "class '" .. self.class.name ..  "' at [ " .. self.tile_x .. ", " .. self.tile_y .. " ] | World [ " .. self.world_x .. ", " .. self.world_y .. " ]"
+	return "class " .. self.class.name .. " at [ " .. self.tile_x .. ", " .. self.tile_y .. " ] | World [ " .. self.world_x .. ", " .. self.world_y .. " ]"
 end
 
 function Entity:onDraw( params )
@@ -81,7 +93,10 @@ function Entity:onDraw( params )
 end
 
 function Entity:onCollide( params )
-	--logging.verbose( tostring(self) .. " Collision with: " .. tostring(params.other) )
+	if params.other then
+		--logging.verbose( tostring(self) .. " COLLIDES WITH " .. tostring(params.other) )
+		--logging.verbose( self.collision_mask .. " vs " .. params.other.collision_mask )
+	end
 end
 
 -- params:
@@ -108,8 +123,6 @@ function AnimatedSprite:initialize()
 	self.animations = nil
 	self.spritesheet = nil
 	self.animation_index_from_name = {}
-	self.frame_width = 0
-	self.frame_height = 0
 end
 
 
@@ -121,13 +134,15 @@ function AnimatedSprite:setDirectionFromMoveCommand( command )
 		self.current_direction = "north"
 	elseif command.down then
 		self.current_direction = "south"
+	elseif command.left then
+		self.current_direction = "east"
+	elseif command.right then
+		self.current_direction = "west"
 	end
 
-	if command.left then
-		self.current_direction = self.current_direction .. "east"
-	elseif command.right then
-		self.current_direction = self.current_direction .. "west"
-	end
+	-- for isometric animations, split north/south and east/west into two separate ifs instead of if elseif.
+	-- then concat the directions to form: "northeast" or "southwest"
+
 end
 
 function AnimatedSprite:loadSprite( config_file )
@@ -156,8 +171,20 @@ function AnimatedSprite:loadSprite( config_file )
 			-- * The sprite sheet can contain any number of animations across columns (horizontally).
 			-- * The sprite sheet uses each row (vertical axis) for different directions
 
+			local total_rows = self.image:getWidth() / self.frame_width
+			local total_cols = self.image:getHeight() / self.frame_height
+			--logging.verbose( "total_rows: " .. total_rows )
+			--logging.verbose( "total_cols: " .. total_cols )
 
-			local directions = { "east", "northeast", "north", "northwest", "west", "southwest", "south", "southeast" }
+			-- isometric
+			--local directions = { "east", "northeast", "north", "northwest", "west", "southwest", "south", "southeast" }
+			local directions = { "east", "north", "west", "south" }
+
+			self.total_directions = #directions
+
+			if total_cols < #directions then
+				self.total_directions = total_cols
+			end
 
 			for _,animdata in pairs(sprite_config.animations) do
 				--logging.verbose( "ANIMATION: " .. animdata.name )
@@ -169,6 +196,9 @@ function AnimatedSprite:loadSprite( config_file )
 
 				-- start processing only the first row for now
 				for row=1,#directions do
+					if row > total_cols then
+						break
+					end
 					local direction = directions[ row ]
 					local animation = self.spritesheet:createAnimation()
 
@@ -207,6 +237,8 @@ function AnimatedSprite:playAnimation( name )
 	self.current_animation = 1
 	if self.animation_index_from_name[ name ] then
 		self.current_animation = self.animation_index_from_name[ name ]
+	else
+		logging.verbose( "Unable to find animation: " .. name )
 	end
 end
 
@@ -214,6 +246,10 @@ end
 --	dt: the frame delta time
 function AnimatedSprite:onUpdate( params )
 	if self.animations then
+		-- constrain the animation to the first direction if this one is invalid
+		if self.animations[ self.current_animation ][ self.current_direction ] == nil then
+			self.current_direction = "east"
+		end
 		local animation = self.animations[ self.current_animation ][ self.current_direction ]
 		if animation then
 			animation:update(params.dt)
@@ -273,7 +309,7 @@ function PathFollower:onUpdate( params )
 	--AnimatedSprite:onUpdate( params )
 
 	-- the minimum number of units the sprite can be to a tile's center before it is considered "close enough"
-	local TILE_DISTANCE_THRESHOLD = 5
+	local TILE_DISTANCE_THRESHOLD = 2
 	local command = { up=false, down=false, left=false, right=false }
 	command.move_speed = 75
 	command.dt = params.dt
@@ -363,8 +399,6 @@ function PathFollower:onUpdate( params )
 
 	command.move_speed = 0
 	params.gamerules:handleMovePlayerCommand( command, self )
-	--logging.verbose( "rolling... " .. params.dt )
-
 
 	AnimatedSprite.onUpdate(self, params)
 end
@@ -377,17 +411,21 @@ function func_target:initialize()
 	self.health = 100
 end
 
+function func_target:onSpawn( params )
+	self:loadSprite( "assets/sprites/target.conf" )
+	self:playAnimation( "one" )
+	AnimatedSprite.onSpawn( self, params )
+end
+
 function func_target:onHit( params )
-	logging.verbose( "Hit target for " .. params.damage .. " damage!" )
+	--logging.verbose( "Hit target for " .. tostring(params.attack_damage) .. " damage!" )
 
 	if self.health > 0 then
-		self.health = self.health - params.damage
-
+		self.health = self.health - params.attack_damage
 		if self.health < 0 then
 			self.health = 0
 		end
 	end
-
 
 	if self.health == 0 then
 		params.gamerules:removeEntity( self )
@@ -395,26 +433,13 @@ function func_target:onHit( params )
 end
 
 function func_target:__tostring()
-	return AnimatedSprite.__tostring(self) .. " Health: " .. self.health
+	return AnimatedSprite.__tostring(self) .. ", Health: " .. self.health
 end
 
 function func_target:onDraw( params )
 	AnimatedSprite.onDraw( self, params )
 
-	-- get screen coordinates for this entity
-	local sx, sy = params.gamerules:worldToScreen( self.world_x, self.world_y )
-	local r,g,b,a = params.gamerules:colorForHealth(self.health)
-	local x, y = sx-50, sy-32
-	local width = 100
-	love.graphics.setColor( 0, 0, 0, 192 )
-	love.graphics.rectangle( 'fill', x+10, y, width-20, 14 )
-	love.graphics.setColor( r, g, b, a )
-	love.graphics.printf( "Health: (" .. math.floor(self.health) .. ")", x, y, width, 'center' )
-
-
-
-
-	love.graphics.setColor( 255, 255, 255, 255 )
+	self:drawHealthBar( params )
 end
 
 Enemy = class( "Enemy", PathFollower )
@@ -422,7 +447,7 @@ function Enemy:initialize()
 	PathFollower.initialize(self)
 
 	-- random values to get the ball rolling
-	self.attack_damage = 25
+	self.attack_damage = 2
 
 	self.target = nil
 	self.target_tile = { x=0, y=0 }
@@ -434,16 +459,31 @@ function Enemy:initialize()
 
 	self.hit_color_cooldown_seconds = 0.1
 	self.time_until_color_restore = 0
+
+	self.collision_mask = 2
+	self.health = 100
+end
+
+function Enemy:onCollide( params )
+	if params.other and params.other.class.name == "Bullet" then
+		self.color = {r=255, g=0, b=0, a=255}
+		params.gamerules:removeEntity( params.other )
+		self.time_until_color_restore = self.hit_color_cooldown_seconds
+
+		self.health = self.health - params.other.attack_damage
+	end
+
+	Entity.onCollide( self, params )
 end
 
 function Enemy:onSpawn( params )
 
-	self:loadSprite( "assets/sprites/arrow.conf" )
-
+	self:loadSprite( "assets/sprites/critters.conf" )
+	self:playAnimation( "two" )
 	--self.class.super:onSpawn( params )
 	PathFollower.onSpawn( self, params )
 
-	logging.verbose( "Enemy: Searching for target..." )
+	--logging.verbose( "Enemy: Searching for target..." )
 	local target = params.gamerules.entity_manager:findFirstEntityByName( "func_target" )
 	if target then
 		--logging.verbose( "I am setting a course to attack the target!" )
@@ -451,15 +491,14 @@ function Enemy:onSpawn( params )
 		--logging.verbose( "Target is at " .. target.tile_x .. ", " .. target.tile_y )
 
 		local path, cost = params.gamerules:getPath( self.tile_x, self.tile_y, target.tile_x+1, target.tile_y )
+		--logging.verbose( path )
+		--logging.verbose( cost )
 		self:setPath( path )
 		self.target = target
 		self.target_tile = {x=target.tile_x, y=target.tile_y}
 	else
 		logging.verbose( "Unable to find target." )
 	end
-
-
-	self.collision_mask = 1
 end
 
 function Enemy:onUpdate( params )
@@ -469,36 +508,29 @@ function Enemy:onUpdate( params )
 		self.color = { r=255, g=255, b=255, a=255 }
 	end
 
-	-- calculate distance to target
-	local dx, dy = (self.target.tile_x - self.tile_x), (self.target.tile_y - self.tile_y)
-	local min_range = 1
-	if math.abs(dx) <= min_range and math.abs(dy) <= min_range then
-		--logging.verbose( "I am at " .. self.tile_x .. ", " .. self.tile_y )
-		-- within range to attack
+	if self.target then
+		-- calculate distance to target
+		local dx, dy = (self.target.tile_x - self.tile_x), (self.target.tile_y - self.tile_y)
+		local min_range = 1
+		if math.abs(dx) <= min_range and math.abs(dy) <= min_range then
+			--logging.verbose( "I am at " .. self.tile_x .. ", " .. self.tile_y )
+			-- within range to attack
 
-		self.next_attack_time = self.next_attack_time - params.dt
-		if self.next_attack_time <= 0 then
-			self.next_attack_time = self.attack_cooldown_seconds
+			self.next_attack_time = self.next_attack_time - params.dt
+			if self.next_attack_time <= 0 then
+				self.next_attack_time = self.attack_cooldown_seconds
 
-			-- attack the target
-			if self.target then
-				if self.target.health > 0 then
-					self.target:onHit( {gamerules=params.gamerules, attacker=self, damage=self.attack_damage} )
-				else
-					self.target = nil
-					-- find another target...
-					self.target = params.gamerules.entity_manager:findFirstEntityByName( "Player" )
-					self.target_tile = {x=self.target.tile_x, y=self.target.tile_y}
-					logging.verbose( "found new target: " .. tostring(self.target) )
-
-					local path, cost = params.gamerules:getPath( self.tile_x, self.tile_y, self.target.tile_x+1, self.target.tile_y )
-					self:setPath( path )
+				-- attack the target
+				if self.target then
+					if self.target.health > 0 then
+						self.target:onHit( {gamerules=params.gamerules, attacker=self, attack_damage=self.attack_damage} )
+					end
 				end
 			end
 		end
 	end
 
-	if self.target then
+	if self.target and false then
 		if self.target_tile.x ~= self.target.tile_x or self.target_tile.y ~= self.target.tile_y then
 			logging.verbose( "plotting a new course: " .. self.target_tile.x .. ", " .. self.target_tile.y )
 			logging.verbose( "course: " .. self.target.tile_x .. ", " .. self.target.tile_y )
@@ -509,15 +541,17 @@ function Enemy:onUpdate( params )
 		end
 	end
 
+	if self.health <= 0 then
+		params.gamerules:removeEntity( self )
+	end
+
 	PathFollower.onUpdate( self, params )
 end
 
-function Enemy:onCollide( params )
-	if params.other.class.name == "Bullet" then
-		self.color = {r=255, g=0, b=0, a=255}
-		params.gamerules:removeEntity( params.other )
-		self.time_until_color_restore = self.hit_color_cooldown_seconds
-	end
+
+function Enemy:onDraw( params )
+	PathFollower.onDraw( self, params )
+	self:drawHealthBar( params )
 end
 
 
@@ -549,22 +583,22 @@ function func_spawn:onUpdate( params )
 	self.time_left = self.time_left - dt
 
 	if self.time_left <= 0 and self.max_entities ~= 0  then
-		logging.verbose( "spawning entity at " .. self.tile_x .. ", " .. self.tile_y )
+		--logging.verbose( "spawning entity at " .. self.tile_x .. ", " .. self.tile_y )
 		self.time_left = self.spawn_time
 		local entity = self.spawn_class:new()
 		if entity then
-			logging.verbose( "-> entity tile at " .. entity.tile_x .. ", " .. entity.tile_y )
-			logging.verbose( "-> entity world at " .. entity.world_x .. ", " .. entity.world_y )
+			--logging.verbose( "-> entity tile at " .. entity.tile_x .. ", " .. entity.tile_y )
+			--logging.verbose( "-> entity world at " .. entity.world_x .. ", " .. entity.world_y )
 			entity.world_x, entity.world_y = self.gamerules:worldCoordinatesFromTileCenter( self.tile_x, self.tile_y )
 
 			--entity.tile_x, entity.tile_y = self.tile_x, self.tile_y
 
-			logging.verbose( "-> entity world at " .. entity.world_x .. ", " .. entity.world_y )
+			--logging.verbose( "-> entity world at " .. entity.world_x .. ", " .. entity.world_y )
 
-			logging.verbose( "-> now spawning entity..." )
+			--logging.verbose( "-> now spawning entity..." )
 			entity:onSpawn( {gamerules=self.gamerules, properties=nil} )
 
-			logging.verbose( "-> entity tile at " .. entity.tile_x .. ", " .. entity.tile_y )
+			--logging.verbose( "-> entity tile at " .. entity.tile_x .. ", " .. entity.tile_y )
 
 			-- manage this entity
 			self.gamerules.entity_manager:addEntity( entity )			
@@ -583,17 +617,34 @@ function Player:initialize()
 	self.health = 100
 end
 
+Player = class("Player", AnimatedSprite)
+function Player:initialize()
+	self.health = 100
+	self.collision_mask = 1
+end
+
 Bullet = class("Bullet", AnimatedSprite)
 function Bullet:initialize()
 	AnimatedSprite:initialize(self)
 
 	self.velocity = { x=0, y=0 }
+
+	self.collision_mask = 2
+	self.attack_damage = 0
 end
 
 function Bullet:onSpawn( params )
 	self:loadSprite( "assets/sprites/projectiles.conf" )
 	self:playAnimation( "one" )
 	AnimatedSprite.onSpawn( self, params )
+end
+
+function Bullet:onCollide( params )
+	if params.other == nil then
+		-- bullet hit a wall; play wallhit sound
+	end
+
+	Entity.onCollide( self, params )
 end
 
 function Bullet:onHit( params )
@@ -606,6 +657,7 @@ function Bullet:onUpdate( params )
 	AnimatedSprite.onUpdate( self, params )
 
 	if not params.gamerules:isTileWalkable( self.tile_x, self.tile_y ) then
+		--self:onCollide( {gamerules=params.gamerules, other=nil} )
 		params.gamerules:removeEntity( self )
 	end
 end
