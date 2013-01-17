@@ -99,7 +99,7 @@ function Game:onLoad( params )
 
 
 	player = self.gamerules.entity_factory:createClass( "Player" )
-	player:loadSprite( "assets/sprites/arrow.conf" )
+	player:loadSprite( "assets/sprites/player.conf" )
 	self.gamerules.entity_manager:addEntity( player )
 
 	self.gamerules:addCollision( player )

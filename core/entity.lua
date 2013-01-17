@@ -134,13 +134,15 @@ function AnimatedSprite:setDirectionFromMoveCommand( command )
 		self.current_direction = "north"
 	elseif command.down then
 		self.current_direction = "south"
+	elseif command.left then
+		self.current_direction = "east"
+	elseif command.right then
+		self.current_direction = "west"
 	end
 
-	if command.left then
-		self.current_direction = self.current_direction .. "east"
-	elseif command.right then
-		self.current_direction = self.current_direction .. "west"
-	end
+	-- for isometric animations, split north/south and east/west into two separate ifs instead of if elseif.
+	-- then concat the directions to form: "northeast" or "southwest"
+
 end
 
 function AnimatedSprite:loadSprite( config_file )
@@ -174,7 +176,9 @@ function AnimatedSprite:loadSprite( config_file )
 			--logging.verbose( "total_rows: " .. total_rows )
 			--logging.verbose( "total_cols: " .. total_cols )
 
-			local directions = { "east", "northeast", "north", "northwest", "west", "southwest", "south", "southeast" }
+			-- isometric
+			--local directions = { "east", "northeast", "north", "northwest", "west", "southwest", "south", "southeast" }
+			local directions = { "east", "north", "west", "south" }
 
 			self.total_directions = #directions
 
@@ -305,7 +309,7 @@ function PathFollower:onUpdate( params )
 	--AnimatedSprite:onUpdate( params )
 
 	-- the minimum number of units the sprite can be to a tile's center before it is considered "close enough"
-	local TILE_DISTANCE_THRESHOLD = 5
+	local TILE_DISTANCE_THRESHOLD = 2
 	local command = { up=false, down=false, left=false, right=false }
 	command.move_speed = 75
 	command.dt = params.dt
