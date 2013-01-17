@@ -388,6 +388,12 @@ function func_target:initialize()
 	self.health = 100
 end
 
+function func_target:onSpawn( params )
+	self:loadSprite( "assets/sprites/target.conf" )
+	self:playAnimation( "one" )
+	AnimatedSprite.onSpawn( self, params )
+end
+
 function func_target:onHit( params )
 	logging.verbose( "Hit target for " .. tostring(params.attack_damage) .. " damage!" )
 
