@@ -38,6 +38,10 @@ function Game:initialize( gamerules, config, fonts )
 	self.preview_tile = {x=0, y=0}
 	self.selected_tile = {x=0, y=0}
 
+	self.fire = false
+	self.next_attack_time = 0
+	self.attack_delay = 0.05
+
 
 	self.key_for_action = {}
 	self.key_for_action[ ACTION_MOVE_MAP_LEFT ] = "left"
@@ -233,8 +237,50 @@ function Game:onDraw( params )
 --]]
 end
 
+function Game:playerAttack( params )
+	--player:playAnimation( "attack1" )
+	--player.is_attacking = true
+	local mx, my = love.mouse.getPosition()
+
+	if self.state == 1 then	
+		local tx, ty = self.gamerules:tileCoordinatesFromMouse( mx, my )
+		if self.gamerules:isTilePlaceable( tx, ty ) then
+			self.selected_tile.x = tx
+			self.selected_tile.y = ty
+		end
+	else
+		local bullet = self.gamerules.entity_factory:createClass( "Bullet" )
+		self.gamerules:spawnEntity( bullet, player.world_x, player.world_y, nil )
+		local bullet_speed = 250
+
+		-- get a vector from player to mouse cursor
+		local wx, wy = self.gamerules:worldCoordinatesFromMouse( mx, my )
+		local dirx = wx - player.world_x
+		local diry = wy - player.world_y
+
+		local magnitude = math.sqrt(dirx * dirx + diry * diry)
+		dirx = dirx / magnitude
+		diry = diry / magnitude
+		bullet.velocity.x = dirx * bullet_speed
+		bullet.velocity.y = diry * bullet_speed
+		bullet.attack_damage = 25
+	end	
+end
+
 function Game:onUpdate( params )
+
 	self.gamerules:onUpdate( params )
+
+
+	self.next_attack_time = self.next_attack_time - params.dt
+	if self.next_attack_time <= 0 then
+
+		if self.fire then
+			self:playerAttack( params )
+			self.next_attack_time = self.attack_delay
+		end
+	end
+
 	--logging.verbose( "Game onUpdate" )
 	local mx, my = love.mouse.getPosition()
 	self.cursor_sprite.world_x, self.cursor_sprite.world_y = self.gamerules:worldCoordinatesFromMouse( mx, my )
@@ -302,33 +348,7 @@ function Game:onMousePressed( params )
 	end
 
 	if params.button == "l" then
-		--player:playAnimation( "attack1" )
-		--player.is_attacking = true
-		local mx, my = love.mouse.getPosition()
-
-		if self.state == 1 then	
-			local tx, ty = self.gamerules:tileCoordinatesFromMouse( mx, my )
-			if self.gamerules:isTilePlaceable( tx, ty ) then
-				self.selected_tile.x = tx
-				self.selected_tile.y = ty
-			end
-		else
-			local bullet = self.gamerules.entity_factory:createClass( "Bullet" )
-			self.gamerules:spawnEntity( bullet, player.world_x, player.world_y, nil )
-			local bullet_speed = 250
-
-			-- get a vector from player to mouse cursor
-			local wx, wy = self.gamerules:worldCoordinatesFromMouse( mx, my )
-			local dirx = wx - player.world_x
-			local diry = wy - player.world_y
-
-			local magnitude = math.sqrt(dirx * dirx + diry * diry)
-			dirx = dirx / magnitude
-			diry = diry / magnitude
-			bullet.velocity.x = dirx * bullet_speed
-			bullet.velocity.y = diry * bullet_speed
-			bullet.attack_damage = 25
-		end
+		self.fire = true
 	end	
 end
 
@@ -354,6 +374,10 @@ function Game:onMouseReleased( params )
 		player:setPath( path )
 	end
 	--]]
+
+	if params.button == "l" then
+		self.fire = false
+	end
 
 	player.is_attacking = false
 

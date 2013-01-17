@@ -22,6 +22,11 @@
  </tileset>
  <tileset firstgid="25" name="orthotiles" tilewidth="32" tileheight="32">
   <image source="orthotiles.png" width="128" height="128"/>
+  <tile id="0">
+   <properties>
+    <property name="classname" value="func_target"/>
+   </properties>
+  </tile>
   <tile id="2">
    <properties>
     <property name="classname" value="info_player_spawn"/>
@@ -30,24 +35,20 @@
   <tile id="3">
    <properties>
     <property name="classname" value="func_spawn"/>
-    <property name="max_entities" value="5"/>
+    <property name="max_entities" value="-1"/>
     <property name="spawn_class" value="Enemy"/>
-   </properties>
-  </tile>
-  <tile id="4">
-   <properties>
-    <property name="classname" value="func_target"/>
+    <property name="spawn_time" value="0.5"/>
    </properties>
   </tile>
  </tileset>
  <layer name="Ground" width="25" height="25">
   <data encoding="base64" compression="zlib">
-   eJztwwEJAAAMBKGr8f2LLsdAwVVTVfXVA5s+PQo=
+   eJyTY2BgkKMDliUCE6sOm76RZge5eCTaMVzinNZ2UBJvhPI8qWXBUEhXo3aM2jFqx6gdhOygNQYAj/BHPA==
   </data>
  </layer>
  <layer name="Game" width="25" height="25">
   <data encoding="base64" compression="zlib">
-   eJyTZGBgkBxGWJZIdQxUtFN6EPibHpiaYTaQdoy6eWCxzCBwwyimDDMMEjNG8SimJ2YYBG5AxwA2UTxk
+   eJxjYBheQHIA7JQeADtHwSgYqkBmoB0wCkbBKBgFwwQAAGP2AFE=
   </data>
  </layer>
  <layer name="Collision" width="25" height="25">

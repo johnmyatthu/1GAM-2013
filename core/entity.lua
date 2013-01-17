@@ -169,8 +169,18 @@ function AnimatedSprite:loadSprite( config_file )
 			-- * The sprite sheet can contain any number of animations across columns (horizontally).
 			-- * The sprite sheet uses each row (vertical axis) for different directions
 
+			local total_rows = self.image:getWidth() / self.frame_width
+			local total_cols = self.image:getHeight() / self.frame_height
+			--logging.verbose( "total_rows: " .. total_rows )
+			--logging.verbose( "total_cols: " .. total_cols )
 
 			local directions = { "east", "northeast", "north", "northwest", "west", "southwest", "south", "southeast" }
+
+			self.total_directions = #directions
+
+			if total_cols < #directions then
+				self.total_directions = total_cols
+			end
 
 			for _,animdata in pairs(sprite_config.animations) do
 				--logging.verbose( "ANIMATION: " .. animdata.name )
@@ -182,6 +192,9 @@ function AnimatedSprite:loadSprite( config_file )
 
 				-- start processing only the first row for now
 				for row=1,#directions do
+					if row > total_cols then
+						break
+					end
 					local direction = directions[ row ]
 					local animation = self.spritesheet:createAnimation()
 
@@ -220,6 +233,8 @@ function AnimatedSprite:playAnimation( name )
 	self.current_animation = 1
 	if self.animation_index_from_name[ name ] then
 		self.current_animation = self.animation_index_from_name[ name ]
+	else
+		logging.verbose( "Unable to find animation: " .. name )
 	end
 end
 
@@ -227,6 +242,10 @@ end
 --	dt: the frame delta time
 function AnimatedSprite:onUpdate( params )
 	if self.animations then
+		-- constrain the animation to the first direction if this one is invalid
+		if self.animations[ self.current_animation ][ self.current_direction ] == nil then
+			self.current_direction = "east"
+		end
 		local animation = self.animations[ self.current_animation ][ self.current_direction ]
 		if animation then
 			animation:update(params.dt)
@@ -395,7 +414,7 @@ function func_target:onSpawn( params )
 end
 
 function func_target:onHit( params )
-	logging.verbose( "Hit target for " .. tostring(params.attack_damage) .. " damage!" )
+	--logging.verbose( "Hit target for " .. tostring(params.attack_damage) .. " damage!" )
 
 	if self.health > 0 then
 		self.health = self.health - params.attack_damage
@@ -454,21 +473,21 @@ end
 
 function Enemy:onSpawn( params )
 
-	self:loadSprite( "assets/sprites/arrow.conf" )
-
+	self:loadSprite( "assets/sprites/critters.conf" )
+	self:playAnimation( "two" )
 	--self.class.super:onSpawn( params )
 	PathFollower.onSpawn( self, params )
 
-	logging.verbose( "Enemy: Searching for target..." )
+	--logging.verbose( "Enemy: Searching for target..." )
 	local target = params.gamerules.entity_manager:findFirstEntityByName( "func_target" )
 	if target then
-		logging.verbose( "I am setting a course to attack the target!" )
-		logging.verbose( "I am at " .. self.tile_x .. ", " .. self.tile_y )
-		logging.verbose( "Target is at " .. target.tile_x .. ", " .. target.tile_y )
+		--logging.verbose( "I am setting a course to attack the target!" )
+		--logging.verbose( "I am at " .. self.tile_x .. ", " .. self.tile_y )
+		--logging.verbose( "Target is at " .. target.tile_x .. ", " .. target.tile_y )
 
 		local path, cost = params.gamerules:getPath( self.tile_x, self.tile_y, target.tile_x+1, target.tile_y )
-		logging.verbose( path )
-		logging.verbose( cost )
+		--logging.verbose( path )
+		--logging.verbose( cost )
 
 		self:setPath( path )
 		self.target = target
@@ -548,22 +567,22 @@ function func_spawn:onUpdate( params )
 	self.time_left = self.time_left - dt
 
 	if self.time_left <= 0 and self.max_entities ~= 0  then
-		logging.verbose( "spawning entity at " .. self.tile_x .. ", " .. self.tile_y )
+		--logging.verbose( "spawning entity at " .. self.tile_x .. ", " .. self.tile_y )
 		self.time_left = self.spawn_time
 		local entity = self.spawn_class:new()
 		if entity then
-			logging.verbose( "-> entity tile at " .. entity.tile_x .. ", " .. entity.tile_y )
-			logging.verbose( "-> entity world at " .. entity.world_x .. ", " .. entity.world_y )
+			--logging.verbose( "-> entity tile at " .. entity.tile_x .. ", " .. entity.tile_y )
+			--logging.verbose( "-> entity world at " .. entity.world_x .. ", " .. entity.world_y )
 			entity.world_x, entity.world_y = self.gamerules:worldCoordinatesFromTileCenter( self.tile_x, self.tile_y )
 
 			--entity.tile_x, entity.tile_y = self.tile_x, self.tile_y
 
-			logging.verbose( "-> entity world at " .. entity.world_x .. ", " .. entity.world_y )
+			--logging.verbose( "-> entity world at " .. entity.world_x .. ", " .. entity.world_y )
 
-			logging.verbose( "-> now spawning entity..." )
+			--logging.verbose( "-> now spawning entity..." )
 			entity:onSpawn( {gamerules=self.gamerules, properties=nil} )
 
-			logging.verbose( "-> entity tile at " .. entity.tile_x .. ", " .. entity.tile_y )
+			--logging.verbose( "-> entity tile at " .. entity.tile_x .. ", " .. entity.tile_y )
 
 			-- manage this entity
 			self.gamerules.entity_manager:addEntity( entity )			

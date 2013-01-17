@@ -150,9 +150,10 @@ function GameRules:loadMap( mapname )
 
 	if #walkable_map > 0 then
 		self.pathfinder = Jumper( walkable_map, 0, true )
-		self.pathfinder:setHeuristic( "DIAGONAL" )
+		--self.pathfinder:setHeuristic( "DIAGONAL" )
+		self.pathfinder:setMode( "ORTHOGONAL" )
 	end
-	--self.pathfinder:setMode( "ORTHOGONAL" )
+	
 	--self.pathfinder:setAutoFill( true )
 
 	--[[
@@ -474,10 +475,10 @@ function GameRules:handleMovePlayerCommand( command, player )
 	
 	if command.up or command.down or command.left or command.right then
 		player:setDirectionFromMoveCommand( command )
-		player:playAnimation( "run" )
+		--player:playAnimation( "run" )
 		player.is_attacking = false
 	elseif not player.is_attacking then
-		player:playAnimation( "idle" )
+		--player:playAnimation( "idle" )
 	end
 
 	
