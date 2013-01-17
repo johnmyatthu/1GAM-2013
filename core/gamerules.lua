@@ -3,10 +3,15 @@ require "core"
 logging = core.logging
 Jumper = require "lib.jumper.jumper"
 loader = require "lib.AdvTiledLoader.Loader"
-
+require "lib.luabit.bit"
 local SH = require( "lib.broadphase.spatialhash" )
 
+--bump = require "lib.bump.bump"
+bump = {}
+
 local MAP_COLLISION_LAYER_NAME = "Collision"
+
+local global_gamerules = nil
 
 GameRules = class( "GameRules" )
 function GameRules:initialize()
@@ -30,15 +35,47 @@ function GameRules:initialize()
 	self.entity_factory:registerClass( "Player", core.entity.Player )
 end
 
+
+function GameRules:initCollision()
+	local grid_width = self.map.width
+	local grid_height = self.map.height
+	self.grid = SH:new( grid_width, grid_height, 64 )
+end
+
+function GameRules:addCollision( entity )
+	self.grid:addShape( entity )
+end
+
+function GameRules:removeCollision( entity )
+	self.grid:removeShape( entity )
+end
+
+function GameRules:updateCollision( params )
+	local colliding = self.grid:getCollidingPairs( self.entity_manager:allEntities() )
+	--logging.verbose( "colliders: " .. #colliding)
+
+	table.foreach( colliding,
+	function(_, v) 
+		if (v[1].collision_mask > 0) and (v[2].collision_mask > 0) and (bit.band(v[1].collision_mask,v[2].collision_mask) > 0) then 
+			
+			--logging.verbose( self.collision_mask .. " vs " .. params.other.collision_mask )
+			v[1]:onCollide( {gamerules=self, other=v[2]} )	
+			v[2]:onCollide( {gamerules=self, other=v[1]} )
+		end	end	)
+end
+
+
+
 function GameRules:loadMap( mapname )
 	print( "loading gamerules map" )
 	loader.path = "assets/maps/"
 
-	-- create a spatial hash
-	self.grid = SH:new( 4000, 4000, 64 )
-
+	-- try and load the map...
 	self.map = loader.load( mapname )
 	self.map.drawObjects = false
+
+	-- setup collision stuff
+	self:initCollision()
 
 	-- this crashes on a retina mbp if true; perhaps something to do with the GPUs switching?
 	self.map.useSpriteBatch = false
@@ -47,7 +84,7 @@ function GameRules:loadMap( mapname )
 	class_tiles = {}
 	for id, tile in pairs(self.map.tiles) do
 		for key, value in pairs(tile.properties) do
-			--logging.verbose( key .. " -> " .. value .. "; tile: " .. tile.id )
+			logging.verbose( key .. " -> " .. value .. "; tile: " .. tile.id )
 			if not class_tiles[ tile.id ] then
 				class_tiles[ tile.id ] = {}
 			end
@@ -58,13 +95,14 @@ function GameRules:loadMap( mapname )
 
 	-- iterate through all layers
 	for name, layer in pairs(self.map.layers) do
-		--logging.verbose( "Searching in layer: " .. name )
+		logging.verbose( "Searching in layer: " .. name )
 		for x, y, tile in layer:iterate() do
 			if tile then
 				if class_tiles[ tile.id ] then
-					--for key,value in pairs( class_tiles[ tile.id ] ) do
-					--	logging.verbose( key .. " -> " .. value )
-					--end
+					logging.verbose( "Properties for tile at: " .. x .. ", " .. y )
+					for key,value in pairs( class_tiles[ tile.id ] ) do
+						logging.verbose( key .. " -> " .. value )
+					end
 
 					self:spawnEntityAtTileWithProperties( layer, x, y, class_tiles[ tile.id ] )
 				end
@@ -109,9 +147,12 @@ function GameRules:loadMap( mapname )
 		end
 	end
 
-	self.pathfinder = Jumper( walkable_map, 0, true )
-	self.pathfinder:setHeuristic( "DIAGONAL" )
-	--self.pathfinder:setMode( "ORTHOGONAL" )
+	if #walkable_map > 0 then
+		self.pathfinder = Jumper( walkable_map, 0, true )
+		--self.pathfinder:setHeuristic( "DIAGONAL" )
+		self.pathfinder:setMode( "ORTHOGONAL" )
+	end
+	
 	--self.pathfinder:setAutoFill( true )
 
 	--[[
@@ -131,9 +172,9 @@ end
 function GameRules:colorForHealth( health )
 	if health > 75 then
 		return 0, 255, 0, 255
-	elseif health > 50 then
+	elseif health > 49 then
 		return 255, 255, 0, 255
-	elseif health > 25 then
+	elseif health > 29 then
 		return 255, 128, 0, 255
 	else	
 		return 255, 0, 0, 255
@@ -234,6 +275,7 @@ function GameRules:spawnEntityAtTileWithProperties( layer, tile_x, tile_y, prope
 		if classname == "info_player_spawn" then
 			-- yadda, yadda, yadda; make this not a HACK
 			self.spawn = { x = tile_x, y = tile_y }
+			layer:set( tile_x, tile_y, nil )
 		else
 			local entity = self.entity_factory:createClass( classname )
 			if entity then
@@ -291,6 +333,9 @@ end
 
 -- coordinate system functions
 function GameRules:worldCoordinatesFromTileCenter( tile_x, tile_y )
+
+	--[[
+	-- ISOMETRIC
 	-- input tile coordinates are 1-based, so decrement these
 	local tx, ty = tile_x, tile_y
 
@@ -298,15 +343,19 @@ function GameRules:worldCoordinatesFromTileCenter( tile_x, tile_y )
 	local drawX = ((self.map.width * self.map.tileWidth) / 2) + math.floor(self.map.tileWidth/2 * (tx - ty))
 	local drawY = math.floor(self.map.tileHeight/2 * (tx + ty)) + (self.map.tileHeight/2)
 	return drawX, drawY
+	--]]
+
+
+	return (self.map.tileWidth * tile_x) + self.map.tileWidth/2, (self.map.tileHeight * tile_y) + self.map.tileHeight/2
 end
 
 -- worldToScreen conversion
 function GameRules:worldToScreen( world_x, world_y )
-	return math.floor(world_x + self.camera_x) - (self.map.tileWidth/2), math.floor(world_y + self.camera_y)
+	return math.floor(world_x + self.camera_x), math.floor(world_y + self.camera_y)
 end
 
 function GameRules:screenToWorld( screen_x, screen_y )
-	return (screen_x - self.camera_x) + (self.map.tileWidth/2), (screen_y - self.camera_y)
+	return (screen_x - self.camera_x), (screen_y - self.camera_y)
 end
 
 function GameRules:tileGridFromWorld( world_x, world_y )
@@ -316,8 +365,8 @@ function GameRules:tileGridFromWorld( world_x, world_y )
 end
 
 function GameRules:tileCoordinatesFromWorld( world_x, world_y )
-	local ix, iy = self.map:toIso( world_x - (self.map.tileWidth/2), world_y )
-	return math.floor(ix/self.map.tileHeight), math.floor(iy/self.map.tileHeight)
+	--local ix, iy = self.map:toIso( world_x - (self.map.tileWidth/2), world_y )
+	return math.floor(world_x/self.map.tileWidth), math.floor(world_y/self.map.tileHeight)
 end
 
 function GameRules:tileCoordinatesFromMouse( mouse_x, mouse_y )
@@ -332,12 +381,28 @@ end
 
 function GameRules:removeEntity(entity)
 	self.entity_manager:removeEntity( entity )
-	self.grid:removeShape( entity )
+	self:removeCollision(entity)
+end
+
+function GameRules:onUpdate(params)
+	self.entity_manager:eventForEachEntity( "onUpdate", {dt=params.dt, gamerules=self} )
+
+
+	self:updateCollision(params)
+end
+
+function GameRules:findMinimumDisplacementVector( a, b )
+	-- get direction from this entity to the other
+	local dx = b.world_x - a.world_x
+	local dy = b.world_y - a.world_y
+	return -dx, -dy
 end
 
 function GameRules:handleMovePlayerCommand( command, player )
 	-- determine if the sprite is moving diagonally
 	-- if so, tweak their speed so it doesn't look strange
+	--[[
+	--> ISOMETRIC ONLY
 	local is_diagonal = false
 	local is_ns = command.up or command.down
 	local is_ew = command.left or command.right
@@ -347,20 +412,55 @@ function GameRules:handleMovePlayerCommand( command, player )
 	if is_diagonal then
 		move_speed = command.move_speed * 0.5
 	end
+	--]]
+	local move_speed = command.move_speed
 
 	-- see what other shapes are in the way...
 
+	local colliding = {}
 	--local colliding = self.grid:getCollidingPairs( {player} )
 	--table.foreach(colliding,
-	--	function(_,v) print(( "Shape(%d) collides with Shape(%d)"):format(v[1].id, v[2].id)) end)
+	--function(_,v) print(( "Shape(%d) collides with Shape(%d)"):format(v[1].id, v[2].id)) end)
+
+	local closest_shape = nil
+	local min_dist = 10000
+	local dirx, diry
+	local minx = move_speed
+	local miny = move_speed
+
+
+	for _, v in pairs(colliding) do
+		local other = v[2]
+
+		-- get direction from this entity to the other
+		local dx = other.world_x - player.world_x
+		local dy = other.world_y - player.world_y
+		local len = math.sqrt( dx*dx + dy*dy )
+		if len < min_dist then
+			min_dist = len
+			closest_shape = other
+			dirx = dx / len
+			diry = dy / len
+			minx = dx
+			miny = dy
+			--minx, miny = self:findMinimumDisplacementVector(player, other)
+		end
+	end
+
+
 
 	-- get the next world position of the entity
 	local nwx, nwy = player.world_x, player.world_y
 
-	if command.up then nwy = player.world_y - (move_speed * command.dt) end
-	if command.down then nwy = player.world_y + (move_speed * command.dt) end
-	if command.left then nwx = player.world_x - (command.move_speed * command.dt) end
-	if command.right then nwx = player.world_x + (command.move_speed * command.dt) end
+	if command.up then nwy = player.world_y - (miny * command.dt) end
+	if command.down then nwy = player.world_y + (miny * command.dt) end
+	if command.left then nwx = player.world_x - (minx * command.dt) end
+	if command.right then nwx = player.world_x + (minx * command.dt) end
+
+	if closest_shape then
+		logging.verbose( "Closest shape is: " .. tostring(closest_shape))
+		logging.verbose( "Dir: " .. tostring(dirx) .. ", " .. tostring(diry) )
+	end
 
 	-- could offset by sprite's half bounds to ensure they don't intersect with tiles
 	local tx, ty = self:tileCoordinatesFromWorld( nwx, nwy )
@@ -368,17 +468,19 @@ function GameRules:handleMovePlayerCommand( command, player )
 
 	-- for now, just collide with tiles that exist on the collision layer.
 	if not tile then
+
 		player.world_x, player.world_y = nwx, nwy
 	end
 	
 	if command.up or command.down or command.left or command.right then
 		player:setDirectionFromMoveCommand( command )
-		player:playAnimation( "run" )
+		--player:playAnimation( "run" )
 		player.is_attacking = false
 	elseif not player.is_attacking then
-		player:playAnimation( "idle" )
+		--player:playAnimation( "idle" )
 	end
 
+	
 	player.tile_x, player.tile_y = self:tileCoordinatesFromWorld( player.world_x, player.world_y )
 end
 
@@ -423,6 +525,10 @@ function EntityManager:findFirstEntityByName( name )
 	end
 
 	return nil
+end
+
+function EntityManager:allEntities()
+	return self.entity_list
 end
 
 -- sort the entities in descending depth order such that lower objects in the screen are drawn in front
