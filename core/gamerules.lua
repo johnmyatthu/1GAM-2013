@@ -86,7 +86,7 @@ function GameRules:loadMap( mapname )
 	class_tiles = {}
 	for id, tile in pairs(self.map.tiles) do
 		for key, value in pairs(tile.properties) do
-			--logging.verbose( key .. " -> " .. value .. "; tile: " .. tile.id )
+			logging.verbose( key .. " -> " .. value .. "; tile: " .. tile.id )
 			if not class_tiles[ tile.id ] then
 				class_tiles[ tile.id ] = {}
 			end
@@ -97,13 +97,14 @@ function GameRules:loadMap( mapname )
 
 	-- iterate through all layers
 	for name, layer in pairs(self.map.layers) do
-		--logging.verbose( "Searching in layer: " .. name )
+		logging.verbose( "Searching in layer: " .. name )
 		for x, y, tile in layer:iterate() do
 			if tile then
 				if class_tiles[ tile.id ] then
-					--for key,value in pairs( class_tiles[ tile.id ] ) do
-					--	logging.verbose( key .. " -> " .. value )
-					--end
+					logging.verbose( "Properties for tile at: " .. x .. ", " .. y )
+					for key,value in pairs( class_tiles[ tile.id ] ) do
+						logging.verbose( key .. " -> " .. value )
+					end
 
 					self:spawnEntityAtTileWithProperties( layer, x, y, class_tiles[ tile.id ] )
 				end

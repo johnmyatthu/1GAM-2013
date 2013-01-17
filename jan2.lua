@@ -107,15 +107,15 @@ function Game:onLoad( params )
 	-- and then center the camera on the player
 	local spawn = self.gamerules.spawn
 	--player.tile_x, player.tile_y = spawn.x+1, spawn.y+1
-	logging.verbose( "spawn at: " .. spawn.x .. ", " .. spawn.y )
+	--logging.verbose( "spawn at: " .. spawn.x .. ", " .. spawn.y )
 
 	player.world_x, player.world_y = self.gamerules:worldCoordinatesFromTileCenter( spawn.x, spawn.y )
 
-	logging.verbose( "world coordinates: " .. player.world_x .. ", " .. player.world_y )
+	--logging.verbose( "world coordinates: " .. player.world_x .. ", " .. player.world_y )
 	player.tile_x, player.tile_y = self.gamerules:tileCoordinatesFromWorld( player.world_x, player.world_y )
 
 
-	player.current_frame = "downleft"
+	player.current_frame = "east"
 	--self.gamerules:snapCameraToPlayer( player )
 
 	logging.verbose( "initialization complete." )
