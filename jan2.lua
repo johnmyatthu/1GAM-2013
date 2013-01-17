@@ -238,7 +238,7 @@ function Game:onUpdate( params )
 	--logging.verbose( "Game onUpdate" )
 	local mx, my = love.mouse.getPosition()
 	self.cursor_sprite.world_x, self.cursor_sprite.world_y = self.gamerules:worldCoordinatesFromMouse( mx, my )
-	self.gamerules.entity_manager:eventForEachEntity( "onUpdate", {dt=params.dt, gamerules=self.gamerules} )
+	
 
 	if map_drag.isDragging then
 		local mx, my = love.mouse.getPosition()
@@ -327,6 +327,7 @@ function Game:onMousePressed( params )
 			diry = diry / magnitude
 			bullet.velocity.x = dirx * bullet_speed
 			bullet.velocity.y = diry * bullet_speed
+			bullet.attack_damage = 25
 		end
 	end	
 end

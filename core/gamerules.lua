@@ -3,10 +3,11 @@ require "core"
 logging = core.logging
 Jumper = require "lib.jumper.jumper"
 loader = require "lib.AdvTiledLoader.Loader"
-
+require "lib.luabit.bit"
 local SH = require( "lib.broadphase.spatialhash" )
 
-bump = require "lib.bump.bump"
+--bump = require "lib.bump.bump"
+bump = {}
 
 local MAP_COLLISION_LAYER_NAME = "Collision"
 
@@ -33,53 +34,36 @@ function GameRules:initialize()
 	self.entity_factory:registerClass( "Bullet", core.entity.Bullet )
 	self.entity_factory:registerClass( "Player", core.entity.Player )
 
-	global_gamerules = self
-
 end
 
-
-function bump.collision( a, b, dx, dy )
-	logging.verbose( "collision: " .. tostring(a) .. " with " .. tostring(b) )
-	a:onCollide( {gamerules=global_gamerules, other=b} )
-end
-
-function bump.endCollision( a, b )
-end
-
-function bump.getBBox(item)
-	return item.world_x, item.world_y, item.frame_width, item.frame_height
-end
-
-function bump.shouldCollide(a, b)
-	return true
-	--return a.collision_mask > 0 and b.collision_mask > 0 and bit.band(a.collision_mask,b.collision_mask)
-end
 
 function GameRules:initCollision()
-	local grid_width = self.map.width * self.map.tileWidth
-	local grid_height = self.map.height * self.map.tileHeight
-	self.grid = SH:new( grid_width, grid_height, 128 )
-
-	--bump.initialize(64)
-	--self.bump = bump
+	local grid_width = self.map.width
+	local grid_height = self.map.height
+	self.grid = SH:new( grid_width, grid_height, 64 )
 end
 
 function GameRules:addCollision( entity )
 	self.grid:addShape( entity )
-	--self.bump.add(entity)
 end
 
 function GameRules:removeCollision( entity )
 	self.grid:removeShape( entity )
-	--self.bump.remove(entity)
 end
 
 function GameRules:updateCollision( params )
-	if params.entity then
-		self.grid:updateShape( params.entity )
-	else
-		self.bump.collide()
-	end
+	local colliding = self.grid:getCollidingPairs( self.entity_manager:allEntities() )
+	--logging.verbose( "colliders: " .. #colliding)
+
+	table.foreach( colliding,
+	function(_, v) 
+		if (v[1].collision_mask > 0) and (v[2].collision_mask > 0) and (bit.band(v[1].collision_mask,v[2].collision_mask) > 0) then 
+			
+			--logging.verbose( self.collision_mask .. " vs " .. params.other.collision_mask )
+			v[1]:onCollide( {gamerules=self, other=v[2]} )	
+			v[2]:onCollide( {gamerules=self, other=v[1]} )
+		end	end	)
+
 end
 
 
@@ -401,9 +385,10 @@ function GameRules:removeEntity(entity)
 end
 
 function GameRules:onUpdate(params)
-	if self.bump then
-		self:updateCollision(params)
-	end
+	self.entity_manager:eventForEachEntity( "onUpdate", {dt=params.dt, gamerules=self} )
+
+
+	self:updateCollision(params)
 end
 
 function GameRules:findMinimumDisplacementVector( a, b )
@@ -432,9 +417,10 @@ function GameRules:handleMovePlayerCommand( command, player )
 
 	-- see what other shapes are in the way...
 
-	local colliding = self.grid:getCollidingPairs( {player} )
-	table.foreach(colliding,
-	function(_,v) print(( "Shape(%d) collides with Shape(%d)"):format(v[1].id, v[2].id)) end)
+	local colliding = {}
+	--local colliding = self.grid:getCollidingPairs( {player} )
+	--table.foreach(colliding,
+	--function(_,v) print(( "Shape(%d) collides with Shape(%d)"):format(v[1].id, v[2].id)) end)
 
 	local closest_shape = nil
 	local min_dist = 10000
@@ -444,22 +430,20 @@ function GameRules:handleMovePlayerCommand( command, player )
 
 
 	for _, v in pairs(colliding) do
-		if v[2] ~= player then
-			local other = v[2]
+		local other = v[2]
 
-			-- get direction from this entity to the other
-			local dx = other.world_x - player.world_x
-			local dy = other.world_y - player.world_y
-			local len = math.sqrt( dx*dx + dy*dy )
-			if len < min_dist then
-				min_dist = len
-				closest_shape = other
-				dirx = dx / len
-				diry = dy / len
-				minx = dx
-				miny = dy
-				--minx, miny = self:findMinimumDisplacementVector(player, other)
-			end
+		-- get direction from this entity to the other
+		local dx = other.world_x - player.world_x
+		local dy = other.world_y - player.world_y
+		local len = math.sqrt( dx*dx + dy*dy )
+		if len < min_dist then
+			min_dist = len
+			closest_shape = other
+			dirx = dx / len
+			diry = dy / len
+			minx = dx
+			miny = dy
+			--minx, miny = self:findMinimumDisplacementVector(player, other)
 		end
 	end
 
@@ -541,6 +525,10 @@ function EntityManager:findFirstEntityByName( name )
 	end
 
 	return nil
+end
+
+function EntityManager:allEntities()
+	return self.entity_list
 end
 
 -- sort the entities in descending depth order such that lower objects in the screen are drawn in front

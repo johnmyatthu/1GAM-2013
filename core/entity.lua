@@ -1,7 +1,7 @@
 module( ..., package.seeall )
 require "core"
 local logging = core.logging
-require "lib.luabit.bit"
+
 
 Entity = class( "Entity" )
 function Entity:initialize()
@@ -18,6 +18,8 @@ function Entity:initialize()
 
 	self.color = { r=255, g=255, b=255, a=255 }
 	self.collision_mask = 0
+
+	self.health = 0
 end
 
 -- this can be overridden in order to skip drawing, for example.
@@ -27,6 +29,22 @@ end
 
 function Entity:size()
 	return self.frame_width, self.frame_height
+end
+
+function Entity:drawHealthBar( params )
+	-- get screen coordinates for this entity
+	local sx, sy = params.gamerules:worldToScreen( self.world_x, self.world_y )
+	local r,g,b,a = params.gamerules:colorForHealth(self.health)
+	local width = 32
+	local x, y = sx-(width/2), sy-self.frame_height
+	local height = 4
+	love.graphics.setColor( 0, 0, 0, 192 )
+	love.graphics.rectangle( 'fill', x, y, width, height )
+
+	love.graphics.setColor( r, g, b, a )
+	love.graphics.rectangle( 'fill', x, y, ((self.health*.01)*width), height )
+
+	love.graphics.setColor( 255, 255, 255, 255 )	
 end
 
 function Entity:onSpawn( params )
@@ -53,14 +71,6 @@ end
 
 function Entity:onUpdate( params )
 	self.tile_x, self.tile_y = params.gamerules:tileCoordinatesFromWorld( self.world_x, self.world_y )
-	params.gamerules:updateCollision( {entity=self} )
-
-
-	logging.verbose( "update for: " .. tostring(self) )
-
-	local colliding = params.gamerules.grid:getCollidingPairs( {self} )
-	table.foreach( colliding,
-		function(_, v) if v[1].collision_mask > 0 and v[2].collision_mask > 0 and bit.band(v[1].collision_mask,v[2].collision_mask) then v[1]:onCollide( {gamerules=params.gamerules, other=v[2]} ) end end )	
 end
 
 function Entity:__tostring()
@@ -83,6 +93,10 @@ function Entity:onDraw( params )
 end
 
 function Entity:onCollide( params )
+	if params.other then
+		--logging.verbose( tostring(self) .. " COLLIDES WITH " .. tostring(params.other) )
+		--logging.verbose( self.collision_mask .. " vs " .. params.other.collision_mask )
+	end
 end
 
 -- params:
@@ -361,9 +375,7 @@ function PathFollower:onUpdate( params )
 	end
 
 	command.move_speed = 0
-	--params.gamerules:handleMovePlayerCommand( command, self )
-	--logging.verbose( "rolling... " .. params.dt )
-
+	params.gamerules:handleMovePlayerCommand( command, self )
 
 	AnimatedSprite.onUpdate(self, params)
 end
@@ -377,16 +389,14 @@ function func_target:initialize()
 end
 
 function func_target:onHit( params )
-	logging.verbose( "Hit target for " .. params.damage .. " damage!" )
+	logging.verbose( "Hit target for " .. tostring(params.attack_damage) .. " damage!" )
 
 	if self.health > 0 then
-		self.health = self.health - params.damage
-
+		self.health = self.health - params.attack_damage
 		if self.health < 0 then
 			self.health = 0
 		end
 	end
-
 
 	if self.health == 0 then
 		params.gamerules:removeEntity( self )
@@ -400,29 +410,7 @@ end
 function func_target:onDraw( params )
 	AnimatedSprite.onDraw( self, params )
 
-	-- get screen coordinates for this entity
-	local sx, sy = params.gamerules:worldToScreen( self.world_x, self.world_y )
-	local r,g,b,a = params.gamerules:colorForHealth(self.health)
-	local width = 32
-	local x, y = sx- (width/2), sy-self.frame_height
-	
-	local left_margin = 0
-	local right_margin = 0
-	local height = 4
-	love.graphics.setColor( 0, 0, 0, 192 )
-	love.graphics.rectangle( 'fill', x+left_margin, y, width-right_margin, height )
-
-	--love.graphics.setColor( 0, 255, 0, 255 )
-	love.graphics.setColor( r, g, b, a )
-	love.graphics.rectangle( 'fill', x+left_margin, y, ((self.health*.01)*(width-right_margin)), height )
-	
-	--love.graphics.setColor( 255, 128, 0, 255 )
-	--love.graphics.printf( "Health: (" .. math.floor(self.health) .. ")", x, y, width, 'center' )
-
-
-
-
-	love.graphics.setColor( 255, 255, 255, 255 )
+	self:drawHealthBar( params )
 end
 
 Enemy = class( "Enemy", PathFollower )
@@ -430,7 +418,7 @@ function Enemy:initialize()
 	PathFollower.initialize(self)
 
 	-- random values to get the ball rolling
-	self.attack_damage = 10
+	self.attack_damage = 2
 
 	self.target = nil
 
@@ -443,14 +431,19 @@ function Enemy:initialize()
 	self.time_until_color_restore = 0
 
 	self.collision_mask = 2
+	self.health = 100
 end
 
 function Enemy:onCollide( params )
-	if params.other.class.name == "Bullet" then
+	if params.other and params.other.class.name == "Bullet" then
 		self.color = {r=255, g=0, b=0, a=255}
 		params.gamerules:removeEntity( params.other )
 		self.time_until_color_restore = self.hit_color_cooldown_seconds
+
+		self.health = self.health - params.other.attack_damage
 	end
+
+	Entity.onCollide( self, params )
 end
 
 function Enemy:onSpawn( params )
@@ -500,16 +493,25 @@ function Enemy:onUpdate( params )
 				-- attack the target
 				if self.target then
 					if self.target.health > 0 then
-						self.target:onHit( {gamerules=params.gamerules, attacker=self, damage=self.attack_damage} )
+						self.target:onHit( {gamerules=params.gamerules, attacker=self, attack_damage=self.attack_damage} )
 					end
 				end
 			end
 		end
 	end
 
+	if self.health <= 0 then
+		params.gamerules:removeEntity( self )
+	end
+
 	PathFollower.onUpdate( self, params )
 end
 
+
+function Enemy:onDraw( params )
+	PathFollower.onDraw( self, params )
+	self:drawHealthBar( params )
+end
 
 
 func_spawn = class( "func_spawn", Entity )
@@ -583,6 +585,7 @@ function Bullet:initialize()
 	self.velocity = { x=0, y=0 }
 
 	self.collision_mask = 2
+	self.attack_damage = 0
 end
 
 function Bullet:onSpawn( params )
@@ -595,6 +598,8 @@ function Bullet:onCollide( params )
 	if params.other == nil then
 		-- bullet hit a wall; play wallhit sound
 	end
+
+	Entity.onCollide( self, params )
 end
 
 function Bullet:onHit( params )
@@ -607,7 +612,7 @@ function Bullet:onUpdate( params )
 	AnimatedSprite.onUpdate( self, params )
 
 	if not params.gamerules:isTileWalkable( self.tile_x, self.tile_y ) then
-		self:onCollide( {gamerules=params.gamerules, other=nil} )
+		--self:onCollide( {gamerules=params.gamerules, other=nil} )
 		params.gamerules:removeEntity( self )
 	end
 end

@@ -30,7 +30,7 @@
   <tile id="3">
    <properties>
     <property name="classname" value="func_spawn"/>
-    <property name="max_entities" value="1"/>
+    <property name="max_entities" value="5"/>
     <property name="spawn_class" value="Enemy"/>
    </properties>
   </tile>
