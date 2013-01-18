@@ -5,15 +5,16 @@ local logging = core.logging
 
 local CONFIGURATION_FILE = "settings.json"
 
-local GAME_STATE_RUN = 0
+
+local GAME_STATE_LOGO = 0
 local GAME_STATE_MENU = 1
-local GAME_STATE_LOGO = 2
+local GAME_STATE_RUN = 2
 
 local config = {}
 local fonts = {}
 local gameLogic = nil
 local gamerules = nil
-local game_state = GAME_STATE_LOGO
+local game_state = GAME_STATE_RUN
 
 
 

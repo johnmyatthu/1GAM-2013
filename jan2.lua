@@ -23,9 +23,17 @@ local ACTION_MOVE_PLAYER_UP = "move_player_up"
 local ACTION_MOVE_PLAYER_DOWN = "move_player_down"
 
 
+local GAME_STATE_BUILD = core.GAME_STATE_BUILD
+local GAME_STATE_DEFEND = core.GAME_STATE_DEFEND
+local GAME_STATE_PRE_DEFEND = core.GAME_STATE_PRE_DEFEND
+
+
 -- Game class
 Game = class( "Game" )
 function Game:initialize( gamerules, config, fonts )
+
+	
+
 	-- supplied from the main love entry point
 	self.gamerules = gamerules
 	self.config = config
@@ -72,6 +80,22 @@ function Game:initialize( gamerules, config, fonts )
 	self.actions[" "] = self.escape_hit
 
 	self.cursor = {x=0, y=0}
+
+	self.state = GAME_STATE_BUILD
+	
+	self.build_time = 3
+	self.timer = self.build_time
+end
+
+
+function Game:nextState()
+	if self.state == GAME_STATE_BUILD then
+		self.state = GAME_STATE_PRE_DEFEND
+		self.timer = 2
+	elseif self.state == GAME_STATE_PRE_DEFEND then
+		self.state = GAME_STATE_DEFEND
+		self.timer = 0
+	end
 end
 
 
@@ -151,22 +175,30 @@ end
 
 
 function Game:onUpdate( params )
+	params.gamestate = self.state
 	self.gamerules:onUpdate( params )
 
-	self.next_attack_time = self.next_attack_time - params.dt
-	if self.next_attack_time <= 0 then
 
-		if self.fire then
-			self:playerAttack( params )
-			self.next_attack_time = player.attack_delay
+	if self.state == GAME_STATE_BUILD or self.state == GAME_STATE_PRE_DEFEND then
+		self.timer = self.timer - params.dt
+		if self.timer <= 0 then
+			self:nextState()
 		end
+	elseif self.state == GAME_STATE_DEFEND then
+		self.next_attack_time = self.next_attack_time - params.dt
+		if self.next_attack_time <= 0 then
+
+			if self.fire then
+				self:playerAttack( params )
+				self.next_attack_time = player.attack_delay
+			end
+		end
+
+
+		--logging.verbose( "Game onUpdate" )
+		local mx, my = love.mouse.getPosition()
+		self.cursor_sprite.world_x, self.cursor_sprite.world_y = self.gamerules:worldCoordinatesFromMouse( mx, my )
 	end
-
-
-	--logging.verbose( "Game onUpdate" )
-	local mx, my = love.mouse.getPosition()
-	self.cursor_sprite.world_x, self.cursor_sprite.world_y = self.gamerules:worldCoordinatesFromMouse( mx, my )
-	
 
 	if map_drag.isDragging then
 		local mx, my = love.mouse.getPosition()
@@ -210,6 +242,9 @@ end
 
 
 function Game:onDraw( params )
+
+
+
 	self.gamerules:drawWorld()
 --[[
 	-- draw highlighted tile
@@ -246,6 +281,9 @@ function Game:onDraw( params )
 	love.graphics.setFont( self.fonts[ "text" ] )
 	love.graphics.setColor( 255, 255, 255, 255 )
 	love.graphics.print( "total entities: " .. self.gamerules.entity_manager:entityCount(), 10, 4 )
+
+	love.graphics.print( ("gamestate: " .. tostring(self.state)), 10, 50 )
+
 	--love.graphics.print( "map_translate: ", 10, 50 )
 	--love.graphics.print( "x: " .. cx, 20, 70 )
 	--love.graphics.print( "y: " .. cy, 20, 90 )
@@ -271,7 +309,25 @@ function Game:onDraw( params )
 	self.cursor_sprite:onDraw( {gamerules=self.gamerules} )
 
 
-	
+	if self.state == GAME_STATE_BUILD or self.state == GAME_STATE_PRE_DEFEND then
+		love.graphics.setColor( 0, 0, 0, 128 )
+		local height = love.graphics.getHeight()/5
+		love.graphics.rectangle( "fill", 0, love.graphics.getHeight() - height, love.graphics.getWidth(), height )
+
+		love.graphics.setFont( self.fonts[ "text2" ] )
+		love.graphics.setColor( 255, 255, 255, 255 )
+
+		if self.state == GAME_STATE_BUILD then
+			love.graphics.print( "BUILD YOUR DEFENSES", 200, 490 )
+
+			local r,g,b,a = self.gamerules:colorForTimer(math.floor(self.timer))
+			love.graphics.setColor( r, g, b, a )
+			love.graphics.print( math.floor(self.timer), 380, 540 )
+		else
+			love.graphics.print( "GET READY", 330, 510 )
+		end
+		love.graphics.setColor( 255, 255, 255, 255 )
+	end
 
 --[[
 	-- bloom

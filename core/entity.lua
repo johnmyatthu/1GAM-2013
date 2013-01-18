@@ -2,7 +2,8 @@ module( ..., package.seeall )
 require "core"
 local logging = core.logging
 require "lib.luabit.bit"
-
+local GAME_STATE_BUILD = core.GAME_STATE_BUILD
+local GAME_STATE_DEFEND = core.GAME_STATE_DEFEND
 
 Entity = class( "Entity" )
 function Entity:initialize()
@@ -588,32 +589,34 @@ end
 -- params:
 --	entity: the instance of the entity being spawned
 function func_spawn:onUpdate( params )
-	local dt = params.dt
-	self.time_left = self.time_left - dt
+	if params.gamestate == GAME_STATE_DEFEND then
+		local dt = params.dt
+		self.time_left = self.time_left - dt
 
-	if self.time_left <= 0 and self.max_entities ~= 0  then
-		--logging.verbose( "spawning entity at " .. self.tile_x .. ", " .. self.tile_y )
-		self.time_left = self.spawn_time
-		local entity = self.spawn_class:new()
-		if entity then
-			--logging.verbose( "-> entity tile at " .. entity.tile_x .. ", " .. entity.tile_y )
-			--logging.verbose( "-> entity world at " .. entity.world_x .. ", " .. entity.world_y )
-			entity.world_x, entity.world_y = self.gamerules:worldCoordinatesFromTileCenter( self.tile_x, self.tile_y )
+		if self.time_left <= 0 and self.max_entities ~= 0  then
+			--logging.verbose( "spawning entity at " .. self.tile_x .. ", " .. self.tile_y )
+			self.time_left = self.spawn_time
+			local entity = self.spawn_class:new()
+			if entity then
+				--logging.verbose( "-> entity tile at " .. entity.tile_x .. ", " .. entity.tile_y )
+				--logging.verbose( "-> entity world at " .. entity.world_x .. ", " .. entity.world_y )
+				entity.world_x, entity.world_y = self.gamerules:worldCoordinatesFromTileCenter( self.tile_x, self.tile_y )
 
-			--entity.tile_x, entity.tile_y = self.tile_x, self.tile_y
+				--entity.tile_x, entity.tile_y = self.tile_x, self.tile_y
 
-			--logging.verbose( "-> entity world at " .. entity.world_x .. ", " .. entity.world_y )
+				--logging.verbose( "-> entity world at " .. entity.world_x .. ", " .. entity.world_y )
 
-			--logging.verbose( "-> now spawning entity..." )
-			entity:onSpawn( {gamerules=self.gamerules, properties=nil} )
+				--logging.verbose( "-> now spawning entity..." )
+				entity:onSpawn( {gamerules=self.gamerules, properties=nil} )
 
-			--logging.verbose( "-> entity tile at " .. entity.tile_x .. ", " .. entity.tile_y )
+				--logging.verbose( "-> entity tile at " .. entity.tile_x .. ", " .. entity.tile_y )
 
-			-- manage this entity
-			self.gamerules.entity_manager:addEntity( entity )			
+				-- manage this entity
+				self.gamerules.entity_manager:addEntity( entity )			
 
-			if self.max_entities > 0 then
-				self.max_entities = self.max_entities - 1
+				if self.max_entities > 0 then
+					self.max_entities = self.max_entities - 1
+				end
 			end
 		end
 	end

@@ -10,6 +10,12 @@
 		{
 			"path" : "fonts/Minecraftia.ttf",
 			"size" : 8
+		},
+
+		"text2" : 
+		{
+			"path" : "fonts/Minecraftia.ttf",
+			"size" : 32
 		}
 	},
 

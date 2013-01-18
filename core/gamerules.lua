@@ -245,6 +245,14 @@ function GameRules:colorForHealth( health )
 	end
 end
 
+function GameRules:colorForTimer( timeleft )
+	if timeleft >= 10 then
+		return 255, 255, 255, 255
+	else
+		return 255, 0, 0, 255
+	end
+end
+
 
 -- determine if a tile is within the map and is valid
 function GameRules:isTileWithinMap( tile_x, tile_y )
@@ -455,7 +463,8 @@ function GameRules:removeEntity(entity)
 end
 
 function GameRules:onUpdate(params)
-	self.entity_manager:eventForEachEntity( "onUpdate", {dt=params.dt, gamerules=self} )
+	params.gamerules = self
+	self.entity_manager:eventForEachEntity( "onUpdate", params )
 
 
 	self:updateCollision(params)

@@ -4,6 +4,10 @@ init_path = init_path or ({...})[1]:gsub("[%.\\/]init$", "") .. '.'
 require "lib.json4lua.trunk.json.json"
 require "lib.middleclass.middleclass"
 
+GAME_STATE_BUILD = 0
+GAME_STATE_DEFEND = 1
+GAME_STATE_PRE_DEFEND = 2
+
 return {
 	require (init_path .. "logging"),
 	require (init_path .. "gamerules"),
