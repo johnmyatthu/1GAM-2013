@@ -39,8 +39,6 @@ function Game:initialize( gamerules, config, fonts )
 
 	self.fire = false
 	self.next_attack_time = 0
-	self.attack_delay = 0.1
-
 
 	self.key_for_action = {}
 	self.key_for_action[ ACTION_MOVE_MAP_LEFT ] = "left"
@@ -57,10 +55,10 @@ function Game:initialize( gamerules, config, fonts )
 	self.actionmap[ "toggle_collision_layer" ] = self.toggleDrawCollisions
 
 	self.actions = {}
-	logging.verbose( "mapping keys to actions..." )
+	logging.verbose( "Mapping keys to actions..." )
 	for key, action in pairs(config.keys) do
 		--self.actions[ "d_togglecollisions" ] = self.toggleDrawCollisions
-		logging.verbose( key .. " -> '" .. action .. "'")
+		logging.verbose( "\t'" .. key .. "' -> '" .. action .. "'" )
 
 		if self.actionmap[ action ] then
 			self.actions[ key ] = self.actionmap[ action ]
@@ -76,6 +74,7 @@ function Game:initialize( gamerules, config, fonts )
 	self.cursor = {x=0, y=0}
 end
 
+
 function Game:keyForAction( action )
 	return self.key_for_action[ action ]
 end
@@ -83,6 +82,16 @@ end
 function Game:toggleDrawCollisions()
 	if self.gamerules.collision_layer then
 		self.gamerules.collision_layer.visible = not self.gamerules.collision_layer.visible
+	end
+end
+
+
+function Game:loadEntityAtLevel( entity, level )
+	local data = self.gamerules:dataForKeyLevel( entity.class.name, level )
+	if data then
+		entity:loadProperties( data )
+	else
+		logging.warning( "ERROR: could not find properties for class '" .. entity.class.name .. "' at level " .. level )
 	end
 end
 
@@ -110,6 +119,7 @@ function Game:onLoad( params )
 	player.world_x, player.world_y = self.gamerules:worldCoordinatesFromTileCenter( spawn.x, spawn.y )
 	player.tile_x, player.tile_y = self.gamerules:tileCoordinatesFromWorld( player.world_x, player.world_y )
 
+	self:loadEntityAtLevel( player, 1 )
 
 	player.current_frame = "east"
 	--self.gamerules:snapCameraToPlayer( player )
@@ -148,7 +158,7 @@ function Game:onUpdate( params )
 
 		if self.fire then
 			self:playerAttack( params )
-			self.next_attack_time = self.attack_delay
+			self.next_attack_time = player.attack_delay
 		end
 	end
 
@@ -290,7 +300,7 @@ function Game:playerAttack( params )
 	else
 		local bullet = self.gamerules.entity_factory:createClass( "Bullet" )
 		self.gamerules:spawnEntity( bullet, player.world_x, player.world_y, nil )
-		local bullet_speed = 200
+
 
 		-- get a vector from player to mouse cursor
 		local wx, wy = self.gamerules:worldCoordinatesFromMouse( mx, my )
@@ -300,9 +310,9 @@ function Game:playerAttack( params )
 		local magnitude = math.sqrt(dirx * dirx + diry * diry)
 		dirx = dirx / magnitude
 		diry = diry / magnitude
-		bullet.velocity.x = dirx * bullet_speed
-		bullet.velocity.y = diry * bullet_speed
-		bullet.attack_damage = 10
+		bullet.velocity.x = dirx
+		bullet.velocity.y = diry
+		bullet.attack_damage = player.attack_damage
 		self.gamerules:playSound( "fire2" )
 	end	
 end

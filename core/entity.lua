@@ -47,18 +47,24 @@ function Entity:drawHealthBar( params )
 	love.graphics.setColor( 255, 255, 255, 255 )	
 end
 
+function Entity:loadProperties( properties )
+	if properties then
+		for key, value in pairs(properties) do
+			--logging.verbose( "'" .. key .. "' to '" .. value .. "'" )
+			-- only load variables we expect
+			if self[ key ] then
+				self[ key ] = value
+				--logging.verbose( "set '" .. key .. "' to '" .. value .. "'" )
+			end
+		end	
+	end	
+end
+
 function Entity:onSpawn( params )
 	--logging.verbose( "Entity:onSpawn... " .. tostring(self) )
 
 	-- load properties into instance vars;
-	if params.properties then
-		for key, value in pairs(params.properties) do
-			-- only load variables we expect
-			if self[ key ] then
-				self[ key ] = value
-			end
-		end	
-	end
+	self:loadProperties( params.properties )
 
 	if self.tile_x < 0 or self.tile_y < 0 then
 		--logging.verbose( "Entity:onSpawn world location: " .. self.world_x .. ", " .. self.world_y )
@@ -409,6 +415,7 @@ function func_target:initialize()
 	AnimatedSprite:initialize(self)
 
 	self.health = 100
+	self.collision_mask = 10
 end
 
 function func_target:onSpawn( params )
@@ -617,12 +624,9 @@ end
 Player = class("Player", AnimatedSprite)
 function Player:initialize()
 	self.health = 100
-end
-
-Player = class("Player", AnimatedSprite)
-function Player:initialize()
-	self.health = 100
 	self.collision_mask = 1
+	self.attack_delay = 1 -- in seconds
+	self.attack_damage = 1	
 end
 
 function Player:onUpdate( params )
@@ -639,6 +643,7 @@ function Bullet:initialize()
 
 	self.collision_mask = 2
 	self.attack_damage = 0
+	self.bullet_speed = 250
 end
 
 function Bullet:onSpawn( params )
@@ -660,8 +665,8 @@ function Bullet:onHit( params )
 end
 
 function Bullet:onUpdate( params )
-	self.world_x = self.world_x + self.velocity.x * params.dt
-	self.world_y = self.world_y + self.velocity.y * params.dt
+	self.world_x = self.world_x + self.velocity.x * params.dt * self.bullet_speed
+	self.world_y = self.world_y + self.velocity.y * params.dt * self.bullet_speed
 	AnimatedSprite.onUpdate( self, params )
 
 	if not params.gamerules:isTileWalkable( self.tile_x, self.tile_y ) then

@@ -39,17 +39,17 @@ function GameRules:initialize()
 	self:loadSounds( "assets/sounds/sounds.conf" )
 
 	self.data = {}
-	self.loadData( "assets/gamerules.conf" )
+	self:loadData( "assets/gamerules.conf" )
 
 end
 
 function GameRules:loadSounds( path )
+	logging.verbose( "Loading sounds..." )
 	if love.filesystem.exists( path ) then
 		local sounds = json.decode( love.filesystem.read( path ) )
-		for k,s in pairs(sounds) do
-			logging.verbose( k .. " -> " .. s )
-
-			self.sounds[ k ] = love.audio.newSource( s, "static" )
+		for k,v in pairs(sounds) do
+			logging.verbose( "\t'" .. k .. "' -> '" .. tostring(v) .. "'" )
+			self.sounds[ k ] = love.audio.newSource( v, "static" )
 		end
 	end
 end
@@ -63,6 +63,21 @@ function GameRules:playSound( name )
 end
 
 function GameRules:loadData( path )
+	logging.verbose( "Loading entity rules..." )
+	if love.filesystem.exists( path ) then
+		self.data = json.decode( love.filesystem.read( path ) )
+		for k,v in pairs(self.data) do
+			logging.verbose( "\tloaded '" .. k .. "'" )
+		end
+	end
+end
+
+function GameRules:dataForKeyLevel( key, level )
+	if self.data[ key ] and self.data[ key ][ level ] then
+		return self.data[ key ][ level ]
+	end
+
+	return nil
 end
 
 
@@ -97,7 +112,6 @@ end
 
 
 function GameRules:loadMap( mapname )
-	print( "loading gamerules map" )
 	loader.path = "assets/maps/"
 
 	-- try and load the map...
@@ -110,11 +124,31 @@ function GameRules:loadMap( mapname )
 	-- this crashes on a retina mbp if true; perhaps something to do with the GPUs switching?
 	self.map.useSpriteBatch = false
 
+
+	-- cache collision layer and disable rendering
+	self.collision_layer = self.map.layers[ MAP_COLLISION_LAYER_NAME ]
+
+
+	self.basic_collision_tile = nil
+
+
+	-- use collision map for path finding
+	for y=1, self.map.height do
+		local row = {}
+		for x=1, self.map.width do
+			local tile = self.collision_layer( x, y )
+			if tile then
+				self.basic_collision_tile = tile
+				break
+			end
+		end
+	end	
+
 	-- scan through map properties
 	class_tiles = {}
 	for id, tile in pairs(self.map.tiles) do
 		for key, value in pairs(tile.properties) do
-			logging.verbose( key .. " -> " .. value .. "; tile: " .. tile.id )
+			--logging.verbose( key .. " -> " .. value .. "; tile: " .. tile.id )
 			if not class_tiles[ tile.id ] then
 				class_tiles[ tile.id ] = {}
 			end
@@ -125,14 +159,14 @@ function GameRules:loadMap( mapname )
 
 	-- iterate through all layers
 	for name, layer in pairs(self.map.layers) do
-		logging.verbose( "Searching in layer: " .. name )
+		--logging.verbose( "Searching in layer: " .. name )
 		for x, y, tile in layer:iterate() do
 			if tile then
 				if class_tiles[ tile.id ] then
-					logging.verbose( "Properties for tile at: " .. x .. ", " .. y )
-					for key,value in pairs( class_tiles[ tile.id ] ) do
-						logging.verbose( key .. " -> " .. value )
-					end
+					--logging.verbose( "Properties for tile at: " .. x .. ", " .. y )
+					--for key,value in pairs( class_tiles[ tile.id ] ) do
+					--	logging.verbose( key .. " -> " .. value )
+					--end
 
 					self:spawnEntityAtTileWithProperties( layer, x, y, class_tiles[ tile.id ] )
 				end
@@ -140,13 +174,10 @@ function GameRules:loadMap( mapname )
 		end
 	end
 
-
-	-- cache collision layer and disable rendering
-	self.collision_layer = self.map.layers[ MAP_COLLISION_LAYER_NAME ]
-
 	local walkable_map = {}
 	if self.collision_layer then
-		--self.collision_layer.visible = false
+		-- hide collision layer by default
+		self.collision_layer.visible = false
 
 		-- use collision map for path finding
 		for y=1, self.map.height do
@@ -176,6 +207,9 @@ function GameRules:loadMap( mapname )
 			table.insert( walkable_map, row )		
 		end
 	end
+
+
+
 
 	if #walkable_map > 0 then
 		self.pathfinder = Jumper( walkable_map, 0, true )
@@ -293,7 +327,7 @@ function GameRules:spawnEntity( entity, world_x, world_y, properties )
 	entity:onSpawn( {gamerules=self, properties=properties} )
 
 	-- this entity is now managed.
-	self.entity_manager:addEntity( entity )	
+	self.entity_manager:addEntity( entity )
 end
 
 function GameRules:spawnEntityAtTileWithProperties( layer, tile_x, tile_y, properties )
@@ -318,6 +352,12 @@ function GameRules:spawnEntityAtTileWithProperties( layer, tile_x, tile_y, prope
 
 				-- remove this tile from the layer
 				layer:set( tile_x, tile_y, nil )
+
+				-- if an entity spawns with a valid collision mask
+				-- make sure we place a collision tile at its location
+				if entity.collision_mask > 0 then
+					self.collision_layer:set( tile_x, tile_y, self.basic_collision_tile )
+				end
 			end
 		end
 	else

@@ -13,7 +13,7 @@ local config = {}
 local fonts = {}
 local gameLogic = nil
 local gamerules = nil
-local game_state = GAME_STATE_RUN
+local game_state = GAME_STATE_LOGO
 
 
 
@@ -110,8 +110,9 @@ function love.load()
 	load_config()
 
 	if config.fonts then
+		logging.verbose( "Loading fonts..." )
 		for name, data in pairs(config.fonts) do
-			logging.verbose( name .. " -> " .. data.path )
+			logging.verbose( "\t'" .. name .. "' -> '" .. data.path .. "'" )
 			fonts[ name ] = love.graphics.newFont( data.path, data.size )
 		end
 	end
