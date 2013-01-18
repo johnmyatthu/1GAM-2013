@@ -32,7 +32,6 @@ function Game:initialize( gamerules, config, fonts )
 	self.fonts = fonts
 
 	-- internal vars
-	self.state = 0 -- 0: defend, 1: build
 	love.mouse.setVisible( false )
 
 	self.preview_tile = {x=0, y=0}
@@ -40,7 +39,7 @@ function Game:initialize( gamerules, config, fonts )
 
 	self.fire = false
 	self.next_attack_time = 0
-	self.attack_delay = 0.05
+	self.attack_delay = 0.1
 
 
 	self.key_for_action = {}
@@ -71,6 +70,8 @@ function Game:initialize( gamerules, config, fonts )
 			logging.warning( "Unknown action '" .. action .. "', unable to map key: " .. key )
 		end
 	end
+	self.actions["escape"] = self.escape_hit
+	self.actions[" "] = self.escape_hit
 
 	self.cursor = {x=0, y=0}
 end
@@ -101,17 +102,12 @@ function Game:onLoad( params )
 	player = self.gamerules.entity_factory:createClass( "Player" )
 	player:loadSprite( "assets/sprites/player.conf" )
 	self.gamerules.entity_manager:addEntity( player )
-
 	self.gamerules:addCollision( player )
 	-- assuming this map has a spawn point; we'll set the player spawn
 	-- and then center the camera on the player
+
 	local spawn = self.gamerules.spawn
-	--player.tile_x, player.tile_y = spawn.x+1, spawn.y+1
-	--logging.verbose( "spawn at: " .. spawn.x .. ", " .. spawn.y )
-
 	player.world_x, player.world_y = self.gamerules:worldCoordinatesFromTileCenter( spawn.x, spawn.y )
-
-	--logging.verbose( "world coordinates: " .. player.world_x .. ", " .. player.world_y )
 	player.tile_x, player.tile_y = self.gamerules:tileCoordinatesFromWorld( player.world_x, player.world_y )
 
 
@@ -120,28 +116,7 @@ function Game:onLoad( params )
 
 	logging.verbose( "initialization complete." )
 
---[[
-	-- testing the entity spawner
-	local spawnerABC = core.entity.EntitySpawner:new()
-	spawnerABC.spawn_class = self.gamerules.entity_factory:findClass( "AnimatedSprite" )
-	self.gamerules.entity_manager:addEntity( spawnerABC )
-	spawnerABC.onSpawn = function ( params )
-		self.gamerules.entity_manager:addEntity( params.entity )
-		params.entity.world_x, params.entity.world_y = self.gamerules:worldCoordinatesFromTileCenter( math.random( 1, 20 ), math.random( 1, 20 ))		
-	end
---]]
-	--[[
-	blah = self.gamerules.entity_factory:createClass( "PathFollower" )
-	logging.verbose( blah )
-	if blah then
-		blah:loadSprite( "assets/sprites/arrow.conf" )
-		blah.current_frame = "left"
-		self.gamerules.entity_manager:addEntity( blah )
-		blah.world_x, blah.world_y = self.gamerules:worldCoordinatesFromTileCenter( spawn.x+1, spawn.y+1 )
-		blah.tile_x, blah.tile_y = self.gamerules:tileCoordinatesFromWorld( blah.world_x, blah.world_y )
-	end
-	--]]
-
+	-- setup cursor
 	self.cursor_sprite = self.gamerules.entity_factory:createClass( "AnimatedSprite" )
 	self.cursor_sprite:loadSprite( "assets/sprites/cursors.conf" )
 	self.cursor_sprite:playAnimation("one")
@@ -164,113 +139,9 @@ function Game:highlight_tile( mode, tx, ty, color )
 	)
 end
 
-function Game:onDraw( params )
-
-	self.gamerules:drawWorld()
-
-	-- draw highlighted tile
-	if self.state == 1 then
-		self:highlight_tile( "line", self.selected_tile.x, self.selected_tile.y, {r=0, g=255, b=0, a=255} )
-		
-		local color = {r=0, g=0, b=0, a=128}
-		if self.gamerules:isTilePlaceable( self.preview_tile.x, self.preview_tile.y ) then
-			color.g = 255
-		else
-			color.r = 255
-		end
-
-		self:highlight_tile( "line", self.preview_tile.x, self.preview_tile.y, color )
-	end
-
-
-	self:highlight_tile( "line", target_tile.x, target_tile.y, {r=255, g=0, b=0, a=128} )
-
---[[
-	local nt = player:currentTarget()
-	if nt.x < 0 or nt.y < 0 then
-	else
-		self:highlight_tile( "line", nt.x, nt.y, {r=0, g=255, b=255, a=128} )
-	end
---]]
-
-	-- draw entities here
-	self.gamerules:drawEntities()
-
-	-- draw overlay text
-	local cx, cy = self.gamerules:getCameraPosition()
-	love.graphics.setFont( self.fonts[ "text" ] )
-	love.graphics.setColor( 255, 255, 255, 255 )
-	love.graphics.print( "total entities: " .. self.gamerules.entity_manager:entityCount(), 10, 4 )
-	--love.graphics.print( "map_translate: ", 10, 50 )
-	--love.graphics.print( "x: " .. cx, 20, 70 )
-	--love.graphics.print( "y: " .. cy, 20, 90 )
-	--love.graphics.print( "tx: " .. mouse_tile.x, 20, 110 )
-	--love.graphics.print( "ty: " .. mouse_tile.y, 20, 130 )
-
-	--love.graphics.print( "player: ", 10, 150 )
-	--love.graphics.print( "x: " .. player.world_x, 20, 170 )
-	--love.graphics.print( "y: " .. player.world_y, 20, 190 )
-	--love.graphics.print( "tx: " .. player.tile_x, 20, 210 )
-	--love.graphics.print( "ty: " .. player.tile_y, 20, 230 )
-
-	--local mx, my = love.mouse.getPosition()
-	--love.graphics.print( "mx: " .. mx, 20, 90 )
-	--love.graphics.print( "my: " .. my, 20, 110 )
-	--local target = player:currentTarget()
-	--love.graphics.print( "targetx: " .. target.x, 20, 250 )
-	--love.graphics.print( "targety: " .. target.y, 20, 270 )
-
-	--love.graphics.print( "velocity.x: " .. player.velocity.x, 20, 290 )
-	--love.graphics.print( "velocity.y: " .. player.velocity.y, 20, 310 )
-
-	self.cursor_sprite:onDraw( {gamerules=self.gamerules} )
-
---[[
-	--be:setIntensity(2,2)
-	be:setThreshold( 0.2 )
-	be:predraw()
-	be:enabledrawtobloom()
-
-	self.gamerules:drawEntities()
-	self.cursor_sprite:onDraw( {gamerules=self.gamerules} )
-	be:postdraw()
---]]
-end
-
-function Game:playerAttack( params )
-	--player:playAnimation( "attack1" )
-	--player.is_attacking = true
-	local mx, my = love.mouse.getPosition()
-
-	if self.state == 1 then	
-		local tx, ty = self.gamerules:tileCoordinatesFromMouse( mx, my )
-		if self.gamerules:isTilePlaceable( tx, ty ) then
-			self.selected_tile.x = tx
-			self.selected_tile.y = ty
-		end
-	else
-		local bullet = self.gamerules.entity_factory:createClass( "Bullet" )
-		self.gamerules:spawnEntity( bullet, player.world_x, player.world_y, nil )
-		local bullet_speed = 250
-
-		-- get a vector from player to mouse cursor
-		local wx, wy = self.gamerules:worldCoordinatesFromMouse( mx, my )
-		local dirx = wx - player.world_x
-		local diry = wy - player.world_y
-
-		local magnitude = math.sqrt(dirx * dirx + diry * diry)
-		dirx = dirx / magnitude
-		diry = diry / magnitude
-		bullet.velocity.x = dirx * bullet_speed
-		bullet.velocity.y = diry * bullet_speed
-		bullet.attack_damage = 25
-	end	
-end
 
 function Game:onUpdate( params )
-
 	self.gamerules:onUpdate( params )
-
 
 	self.next_attack_time = self.next_attack_time - params.dt
 	if self.next_attack_time <= 0 then
@@ -280,6 +151,7 @@ function Game:onUpdate( params )
 			self.next_attack_time = self.attack_delay
 		end
 	end
+
 
 	--logging.verbose( "Game onUpdate" )
 	local mx, my = love.mouse.getPosition()
@@ -323,6 +195,118 @@ function Game:onUpdate( params )
 	self.preview_tile.x = tx
 	self.preview_tile.y = ty
 end
+
+
+
+
+function Game:onDraw( params )
+	self.gamerules:drawWorld()
+--[[
+	-- draw highlighted tile
+	if self.state == 1 then
+		self:highlight_tile( "line", self.selected_tile.x, self.selected_tile.y, {r=0, g=255, b=0, a=255} )
+		
+		local color = {r=0, g=0, b=0, a=128}
+		if self.gamerules:isTilePlaceable( self.preview_tile.x, self.preview_tile.y ) then
+			color.g = 255
+		else
+			color.r = 255
+		end
+
+		self:highlight_tile( "line", self.preview_tile.x, self.preview_tile.y, color )
+	end
+
+
+	self:highlight_tile( "line", target_tile.x, target_tile.y, {r=255, g=0, b=0, a=128} )
+--]]
+
+--[[
+	local nt = player:currentTarget()
+	if nt.x < 0 or nt.y < 0 then
+	else
+		self:highlight_tile( "line", nt.x, nt.y, {r=0, g=255, b=255, a=128} )
+	end
+--]]
+
+	-- draw entities here
+	self.gamerules:drawEntities()
+
+	-- draw overlay text
+	local cx, cy = self.gamerules:getCameraPosition()
+	love.graphics.setFont( self.fonts[ "text" ] )
+	love.graphics.setColor( 255, 255, 255, 255 )
+	love.graphics.print( "total entities: " .. self.gamerules.entity_manager:entityCount(), 10, 4 )
+	--love.graphics.print( "map_translate: ", 10, 50 )
+	--love.graphics.print( "x: " .. cx, 20, 70 )
+	--love.graphics.print( "y: " .. cy, 20, 90 )
+	--love.graphics.print( "tx: " .. mouse_tile.x, 20, 110 )
+	--love.graphics.print( "ty: " .. mouse_tile.y, 20, 130 )
+
+	--love.graphics.print( "player: ", 10, 150 )
+	--love.graphics.print( "x: " .. player.world_x, 20, 170 )
+	--love.graphics.print( "y: " .. player.world_y, 20, 190 )
+	--love.graphics.print( "tx: " .. player.tile_x, 20, 210 )
+	--love.graphics.print( "ty: " .. player.tile_y, 20, 230 )
+
+	--local mx, my = love.mouse.getPosition()
+	--love.graphics.print( "mx: " .. mx, 20, 90 )
+	--love.graphics.print( "my: " .. my, 20, 110 )
+	--local target = player:currentTarget()
+	--love.graphics.print( "targetx: " .. target.x, 20, 250 )
+	--love.graphics.print( "targety: " .. target.y, 20, 270 )
+
+	--love.graphics.print( "velocity.x: " .. player.velocity.x, 20, 290 )
+	--love.graphics.print( "velocity.y: " .. player.velocity.y, 20, 310 )
+
+	self.cursor_sprite:onDraw( {gamerules=self.gamerules} )
+
+
+	
+
+--[[
+	-- bloom
+	--be:setIntensity(2,2)
+	be:setThreshold( 0.2 )
+	be:predraw()
+	be:enabledrawtobloom()
+
+	self.gamerules:drawEntities()
+	self.cursor_sprite:onDraw( {gamerules=self.gamerules} )
+	be:postdraw()
+--]]
+end
+
+function Game:playerAttack( params )
+	--player:playAnimation( "attack1" )
+	--player.is_attacking = true
+	local mx, my = love.mouse.getPosition()
+
+	if false then	
+		local tx, ty = self.gamerules:tileCoordinatesFromMouse( mx, my )
+		if self.gamerules:isTilePlaceable( tx, ty ) then
+			self.selected_tile.x = tx
+			self.selected_tile.y = ty
+		end
+	else
+		local bullet = self.gamerules.entity_factory:createClass( "Bullet" )
+		self.gamerules:spawnEntity( bullet, player.world_x, player.world_y, nil )
+		local bullet_speed = 200
+
+		-- get a vector from player to mouse cursor
+		local wx, wy = self.gamerules:worldCoordinatesFromMouse( mx, my )
+		local dirx = wx - player.world_x
+		local diry = wy - player.world_y
+
+		local magnitude = math.sqrt(dirx * dirx + diry * diry)
+		dirx = dirx / magnitude
+		diry = diry / magnitude
+		bullet.velocity.x = dirx * bullet_speed
+		bullet.velocity.y = diry * bullet_speed
+		bullet.attack_damage = 10
+		self.gamerules:playSound( "fire2" )
+	end	
+end
+
 
 function Game:onKeyPressed( params )
 	--logging.verbose( "Game onKeyPressed" )

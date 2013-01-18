@@ -33,6 +33,36 @@ function GameRules:initialize()
 	self.entity_factory:registerClass( "func_target", core.entity.func_target )
 	self.entity_factory:registerClass( "Bullet", core.entity.Bullet )
 	self.entity_factory:registerClass( "Player", core.entity.Player )
+
+
+	self.sounds = {}
+	self:loadSounds( "assets/sounds/sounds.conf" )
+
+	self.data = {}
+	self.loadData( "assets/gamerules.conf" )
+
+end
+
+function GameRules:loadSounds( path )
+	if love.filesystem.exists( path ) then
+		local sounds = json.decode( love.filesystem.read( path ) )
+		for k,s in pairs(sounds) do
+			logging.verbose( k .. " -> " .. s )
+
+			self.sounds[ k ] = love.audio.newSource( s, "static" )
+		end
+	end
+end
+
+function GameRules:playSound( name )
+	if self.sounds then
+		local source = self.sounds[ name ]
+		love.audio.rewind( source )
+		love.audio.play( source )
+	end
+end
+
+function GameRules:loadData( path )
 end
 
 

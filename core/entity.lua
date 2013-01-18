@@ -78,7 +78,7 @@ function Entity:__tostring()
 end
 
 function Entity:onDraw( params )
-	
+	--[[
 	local color = {r=255, g=0, b=0, a=128}
 	love.graphics.setColor(color.r, color.g, color.b, color.a)
 	a,b,c,d = self:getAABB()
@@ -89,7 +89,7 @@ function Entity:onDraw( params )
 	love.graphics.rectangle( "line", sx, sy, sw-sx, d-b )
 
 	love.graphics.setColor(255, 255, 255, 255)
-	
+	--]]
 end
 
 function Entity:onCollide( params )
@@ -471,6 +471,7 @@ function Enemy:onCollide( params )
 		self.time_until_color_restore = self.hit_color_cooldown_seconds
 
 		self.health = self.health - params.other.attack_damage
+		params.gamerules:playSound( "bullet_enemy_hit" )
 	end
 
 	Entity.onCollide( self, params )
@@ -542,6 +543,7 @@ function Enemy:onUpdate( params )
 	end
 
 	if self.health <= 0 then
+		params.gamerules:playSound( "enemy_killed" )
 		params.gamerules:removeEntity( self )
 	end
 
@@ -623,6 +625,12 @@ function Player:initialize()
 	self.collision_mask = 1
 end
 
+function Player:onUpdate( params )
+	--local r,g,b,a = params.gamerules:colorForHealth(self.health)
+	--self.color = {r=r, g=g, b=b, a=a}
+	AnimatedSprite.onUpdate(self, params)
+end
+
 Bullet = class("Bullet", AnimatedSprite)
 function Bullet:initialize()
 	AnimatedSprite:initialize(self)
@@ -658,6 +666,7 @@ function Bullet:onUpdate( params )
 
 	if not params.gamerules:isTileWalkable( self.tile_x, self.tile_y ) then
 		--self:onCollide( {gamerules=params.gamerules, other=nil} )
+		params.gamerules:playSound( "bullet_wall_hit" )
 		params.gamerules:removeEntity( self )
 	end
 end
