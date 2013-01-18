@@ -24,7 +24,7 @@ function Entity:initialize()
 end
 
 -- this can be overridden in order to skip drawing, for example.
-function Entity:respondsToEvent( event_name )
+function Entity:respondsToEvent( event_name, params )
 	return true
 end
 
@@ -436,7 +436,7 @@ function func_target:onHit( params )
 	end
 
 	if self.health == 0 then
-		params.gamerules:removeEntity( self )
+		--params.gamerules:removeEntity( self )
 	end
 end
 
@@ -636,6 +636,14 @@ function Player:onUpdate( params )
 	--local r,g,b,a = params.gamerules:colorForHealth(self.health)
 	--self.color = {r=r, g=g, b=b, a=a}
 	AnimatedSprite.onUpdate(self, params)
+end
+
+function Player:respondsToEvent( event_name, params )
+	if event_name == "onDraw" and params.gamestate == GAME_STATE_BUILD then
+		return false
+	else
+		return true
+	end
 end
 
 Bullet = class("Bullet", AnimatedSprite)

@@ -26,6 +26,8 @@ local ACTION_MOVE_PLAYER_DOWN = "move_player_down"
 local GAME_STATE_BUILD = core.GAME_STATE_BUILD
 local GAME_STATE_DEFEND = core.GAME_STATE_DEFEND
 local GAME_STATE_PRE_DEFEND = core.GAME_STATE_PRE_DEFEND
+local GAME_STATE_ROUND_WIN = core.GAME_STATE_ROUND_WIN
+local GAME_STATE_ROUND_FAIL = core.GAME_STATE_ROUND_FAIL
 
 
 -- Game class
@@ -40,7 +42,7 @@ function Game:initialize( gamerules, config, fonts )
 	self.fonts = fonts
 
 	-- internal vars
-	love.mouse.setVisible( false )
+	
 
 	self.preview_tile = {x=0, y=0}
 	self.selected_tile = {x=0, y=0}
@@ -82,9 +84,16 @@ function Game:initialize( gamerules, config, fonts )
 	self.cursor = {x=0, y=0}
 
 	self.state = GAME_STATE_BUILD
-	
-	self.build_time = 3
+
+	self.build_time = 300
 	self.timer = self.build_time
+
+
+	if self.state == GAME_STATE_BUILD then
+		love.mouse.setVisible( true )
+	else
+		love.mouse.setVisible( false )
+	end
 end
 
 
@@ -92,9 +101,11 @@ function Game:nextState()
 	if self.state == GAME_STATE_BUILD then
 		self.state = GAME_STATE_PRE_DEFEND
 		self.timer = 2
+		love.mouse.setVisible( false )
 	elseif self.state == GAME_STATE_PRE_DEFEND then
 		self.state = GAME_STATE_DEFEND
 		self.timer = 0
+		love.mouse.setVisible( false )
 	end
 end
 
@@ -131,6 +142,7 @@ function Game:onLoad( params )
 	-- load the map
 	self.gamerules:loadMap( self.config.map )
 
+	self.target = self.gamerules.entity_manager:findFirstEntityByName( "func_target" )
 
 	player = self.gamerules.entity_factory:createClass( "Player" )
 	player:loadSprite( "assets/sprites/player.conf" )
@@ -160,7 +172,8 @@ function Game:onLoad( params )
 	self.gamerules:spawnEntity( self.cursor_sprite, 1, 1, nil )
 end
 
-function Game:highlight_tile( mode, tx, ty, color )
+-- arr; this be for isometric tile only, matey.
+function Game:highlight_iso_tile( mode, tx, ty, color )
 	local wx, wy = self.gamerules:worldCoordinatesFromTileCenter( tx, ty )
 	local drawX, drawY = self.gamerules:worldToScreen( wx, wy )
 
@@ -170,6 +183,22 @@ function Game:highlight_tile( mode, tx, ty, color )
 		drawX, drawY - self.gamerules.map.tileHeight/2,                       -- north
 		drawX + self.gamerules.map.tileHeight, drawY, -- west
 		drawX, drawY + self.gamerules.map.tileHeight/2 -- south
+	)
+end
+
+function Game:highlight_tile( mode, tx, ty, color )
+	local wx, wy = self.gamerules:worldCoordinatesFromTileCenter( tx, ty )
+	local drawX, drawY = self.gamerules:worldToScreen( wx, wy )
+
+	local hw = self.gamerules.map.tileWidth/2
+	local hh = self.gamerules.map.tileHeight/2
+
+	love.graphics.setColor(color.r, color.g, color.b, color.a)
+	love.graphics.quad( mode, 
+		drawX - hw, drawY - hh, -- upper left
+		drawX + hw, drawY - hh, -- upper right
+		drawX + hw, drawY + hh, -- lower right
+		drawX - hw, drawY + hh -- lower left
 	)
 end
 
@@ -236,6 +265,11 @@ function Game:onUpdate( params )
 	local tx, ty = self.gamerules:tileCoordinatesFromMouse( mx, my )
 	self.preview_tile.x = tx
 	self.preview_tile.y = ty
+
+	if self.target and self.target.health <= 0 then
+		self.timer = 8
+		self.state = GAME_STATE_ROUND_FAIL
+	end
 end
 
 
@@ -244,11 +278,10 @@ end
 function Game:onDraw( params )
 
 
-
 	self.gamerules:drawWorld()
---[[
+
 	-- draw highlighted tile
-	if self.state == 1 then
+	if self.state == GAME_STATE_BUILD then
 		self:highlight_tile( "line", self.selected_tile.x, self.selected_tile.y, {r=0, g=255, b=0, a=255} )
 		
 		local color = {r=0, g=0, b=0, a=128}
@@ -263,7 +296,6 @@ function Game:onDraw( params )
 
 
 	self:highlight_tile( "line", target_tile.x, target_tile.y, {r=255, g=0, b=0, a=128} )
---]]
 
 --[[
 	local nt = player:currentTarget()
@@ -318,15 +350,30 @@ function Game:onDraw( params )
 		love.graphics.setColor( 255, 255, 255, 255 )
 
 		if self.state == GAME_STATE_BUILD then
-			love.graphics.print( "BUILD YOUR DEFENSES", 200, 490 )
+			love.graphics.printf( "BUILD YOUR DEFENSES", 0, 490, love.graphics.getWidth(), "center" )
 
 			local r,g,b,a = self.gamerules:colorForTimer(math.floor(self.timer))
 			love.graphics.setColor( r, g, b, a )
-			love.graphics.print( math.floor(self.timer), 380, 540 )
+			love.graphics.printf( math.floor(self.timer), 0, 540, love.graphics.getWidth(), "center" )
+			--love.graphics.print( math.floor(self.timer), 380, 540 )
 		else
-			love.graphics.print( "GET READY", 330, 510 )
+			love.graphics.printf( "GET READY", 0, 510, love.graphics.getWidth(), "center" )
 		end
 		love.graphics.setColor( 255, 255, 255, 255 )
+
+
+	elseif self.state == GAME_STATE_ROUND_FAIL then
+		love.graphics.setColor( 0, 0, 0, 128 )
+		local height = love.graphics.getHeight()/5
+		love.graphics.rectangle( "fill", 0, love.graphics.getHeight() - height, love.graphics.getWidth(), height )
+
+		love.graphics.setFont( self.fonts[ "text2" ] )
+		love.graphics.setColor( 255, 0, 0, 255 )
+
+		love.graphics.printf( "YOU FAILED", 0, 510, love.graphics.getWidth(), "center" )
+
+		love.graphics.setColor( 255, 255, 255, 255 )
+
 	end
 
 --[[

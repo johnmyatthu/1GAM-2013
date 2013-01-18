@@ -231,6 +231,8 @@ function GameRules:loadMap( mapname )
 	end
 	--]]
 
+	
+
 end
 
 function GameRules:colorForHealth( health )
@@ -619,7 +621,7 @@ function EntityManager:eventForEachEntity( event_name, params )
 	--logging.verbose( "iterating through for event: " .. event_name )
 	for index, entity in pairs(self.entity_list) do
 		local fn = entity[ event_name ]
-		if fn ~= nil and entity:respondsToEvent( event_name ) then
+		if fn ~= nil and entity:respondsToEvent( event_name, params ) then
 			-- call this with the instance, then parameters table
 			fn( entity, params )
 		end

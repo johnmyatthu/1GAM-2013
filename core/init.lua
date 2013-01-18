@@ -8,6 +8,9 @@ GAME_STATE_BUILD = 0
 GAME_STATE_DEFEND = 1
 GAME_STATE_PRE_DEFEND = 2
 
+GAME_STATE_ROUND_WIN = 3
+GAME_STATE_ROUND_FAIL = 4
+
 return {
 	require (init_path .. "logging"),
 	require (init_path .. "gamerules"),
