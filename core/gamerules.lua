@@ -20,11 +20,10 @@ function GameRules:initialize()
 	self.pathfinder = nil
 
 	-- the current wave level
-	self.level = 1
+	self.level = 0
 
 	-- total number of enemies this level
 	self.wave_enemies = 0
-
 	self.enemies_destroyed = 0
 
 	-- need to register all entity classes somewhere; this is not the best spot :/
@@ -42,7 +41,6 @@ function GameRules:initialize()
 
 	self.data = {}
 	self:loadData( "assets/gamerules.conf" )
-
 end
 
 function GameRules:loadSounds( path )
@@ -71,6 +69,25 @@ function GameRules:loadData( path )
 		for k,v in pairs(self.data) do
 			logging.verbose( "\tloaded '" .. k .. "'" )
 		end
+	end
+end
+
+function GameRules:prepareForNextWave()
+	self.level = self.level + 1
+	self.enemies_destroyed = 0
+	
+	if self.data[ "waves" ] and self.data[ "waves" ][ self.level ] then
+		local wave_data = self.data[ "waves" ][ self.level ]
+		self.wave_enemies = wave_data.wave_enemies
+	else
+		logging.warning( "Unable to load data for wave '" .. self.level .. "'" )
+	end
+
+	-- update func_spawn entities
+	local fs = self.entity_manager:findFirstEntityByName( "func_spawn" )
+	if fs then
+		logging.verbose( "setting wave enemies" )
+		fs.max_entities = self.wave_enemies
 	end
 end
 

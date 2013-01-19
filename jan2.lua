@@ -133,6 +133,7 @@ function Game:onLoad( params )
 
 	-- load the map
 	self.gamerules:loadMap( self.config.map )
+	self.gamerules:prepareForNextWave()
 
 	self.target = self.gamerules.entity_manager:findFirstEntityByName( "func_target" )
 
@@ -263,9 +264,17 @@ function Game:onUpdate( params )
 	self.preview_tile.x = tx
 	self.preview_tile.y = ty
 
-	if self.target and self.target.health <= 0 then
+	if self.target and self.target.health <= 0 and self.state ~= GAME_STATE_ROUND_FAIL then
 		self.timer = 8
 		self.state = GAME_STATE_ROUND_FAIL
+		self.gamerules:playSound( "round_fail" )
+	elseif self.state == GAME_STATE_DEFEND then
+		if self.gamerules.enemies_destroyed == self.gamerules.wave_enemies then
+			self.state = GAME_STATE_ROUND_WIN
+			self.timer = 3
+			love.mouse:setVisible( false )
+			self.gamerules:playSound( "round_win" )
+		end
 	end
 end
 
@@ -274,7 +283,7 @@ end
 
 function Game:onDraw( params )
 
-
+	love.graphics.setColor( 255, 255, 255, 255 )
 	self.gamerules:drawWorld()
 
 	-- draw highlighted tile
@@ -292,7 +301,7 @@ function Game:onDraw( params )
 	end
 
 
-	self:highlight_tile( "line", target_tile.x, target_tile.y, {r=255, g=0, b=0, a=128} )
+	--self:highlight_tile( "line", target_tile.x, target_tile.y, {r=255, g=0, b=0, a=128} )
 
 --[[
 	local nt = player:currentTarget()
@@ -310,9 +319,9 @@ function Game:onDraw( params )
 	local cx, cy = self.gamerules:getCameraPosition()
 	love.graphics.setFont( self.fonts[ "text" ] )
 	love.graphics.setColor( 255, 255, 255, 255 )
-	love.graphics.print( "total entities: " .. self.gamerules.entity_manager:entityCount(), 10, 4 )
+	--love.graphics.print( "total entities: " .. self.gamerules.entity_manager:entityCount(), 10, 4 )
 
-	love.graphics.print( ("gamestate: " .. tostring(self.state)), 10, 50 )
+	--love.graphics.print( ("gamestate: " .. tostring(self.state)), 10, 50 )
 
 	--love.graphics.print( "map_translate: ", 10, 50 )
 	--love.graphics.print( "x: " .. cx, 20, 70 )
@@ -336,22 +345,26 @@ function Game:onDraw( params )
 	--love.graphics.print( "velocity.x: " .. player.velocity.x, 20, 290 )
 	--love.graphics.print( "velocity.y: " .. player.velocity.y, 20, 310 )
 
-	self.cursor_sprite:onDraw( {gamerules=self.gamerules} )
+	
 
 	if self.state == GAME_STATE_DEFEND then
+		self.cursor_sprite:onDraw( {gamerules=self.gamerules} )
+
 		love.graphics.setColor( 0, 0, 0, 64 )
 		local height = love.graphics.getHeight()/16
 		love.graphics.rectangle( "fill", 0, love.graphics.getHeight() - height, love.graphics.getWidth(), height )
+		love.graphics.setFont( self.fonts[ "text2" ] )
+		love.graphics.setColor( 255, 255, 255, 255 )
+		love.graphics.print( "Enemies Taken Out: " .. tostring(self.gamerules.enemies_destroyed), 10, 570 )
 
 	elseif self.state == GAME_STATE_BUILD or self.state == GAME_STATE_PRE_DEFEND then
 		love.graphics.setColor( 0, 0, 0, 128 )
 		local height = love.graphics.getHeight()/5
 		love.graphics.rectangle( "fill", 0, love.graphics.getHeight() - height, love.graphics.getWidth(), height )
-
-		love.graphics.setFont( self.fonts[ "text2" ] )
-		love.graphics.setColor( 255, 255, 255, 255 )
+		love.graphics.setFont( self.fonts[ "text3" ] )
 
 		if self.state == GAME_STATE_BUILD then
+			love.graphics.setColor( 255, 255, 255, 255 )
 			love.graphics.printf( "BUILD YOUR DEFENSES", 0, 490, love.graphics.getWidth(), "center" )
 
 			local r,g,b,a = self.gamerules:colorForTimer(math.floor(self.timer))
@@ -362,20 +375,35 @@ function Game:onDraw( params )
 			love.graphics.setColor( 0, 255, 255, 255 )
 			love.graphics.printf( "GET READY", 0, 510, love.graphics.getWidth(), "center" )
 		end
-		love.graphics.setColor( 255, 255, 255, 255 )
-
-
 	elseif self.state == GAME_STATE_ROUND_FAIL then
 		love.graphics.setColor( 0, 0, 0, 128 )
 		local height = love.graphics.getHeight()/5
 		love.graphics.rectangle( "fill", 0, love.graphics.getHeight() - height, love.graphics.getWidth(), height )
 
-		love.graphics.setFont( self.fonts[ "text2" ] )
+		love.graphics.setFont( self.fonts[ "text3" ] )
 		love.graphics.setColor( 255, 0, 0, 255 )
 
 		love.graphics.printf( "YOU FAILED", 0, 510, love.graphics.getWidth(), "center" )
+	elseif self.state == GAME_STATE_ROUND_WIN then
+		love.graphics.setColor( 0, 0, 0, 64 )
+		local height = love.graphics.getHeight()/16
+		love.graphics.rectangle( "fill", 0, love.graphics.getHeight() - height, love.graphics.getWidth(), height )
+
+		love.graphics.setFont( self.fonts[ "text2" ] )
+		love.graphics.setColor( 255, 255, 255, 255 )
+		love.graphics.printf( "PRESS SPACE", 0, 570, love.graphics.getWidth(), "center" )
+
+
+		-- draw background and last round scores
+		love.graphics.setColor( 0, 0, 0, 64 )
+		local height = love.graphics.getHeight()/16
+		local boxwidth = 600
+		love.graphics.rectangle( "fill", love.graphics.getWidth()/2 - boxwidth/2, 185, boxwidth, 300 )
 
 		love.graphics.setColor( 255, 255, 255, 255 )
+		love.graphics.printf( "WAVE " .. tostring(self.gamerules.level) .. " COMPLETE", 0, 195, love.graphics.getWidth(), "center" )		
+
+		love.graphics.printf( "ENEMIES: " .. tostring(self.gamerules.wave_enemies), 80, 245, 250, "center" )
 
 	end
 
