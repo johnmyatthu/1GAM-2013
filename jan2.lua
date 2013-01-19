@@ -108,6 +108,7 @@ function Game:nextState()
 		self.state = GAME_STATE_DEFEND
 		self.timer = 0
 		love.mouse.setVisible( false )
+		self.gamerules:playSound( "round_begin" )
 	elseif self.state == GAME_STATE_ROUND_WIN then
 		self.timer = 0
 		self.state = GAME_STATE_BUILD
