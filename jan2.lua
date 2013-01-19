@@ -354,6 +354,7 @@ function Game:onDraw( params )
 	
 
 	if self.state == GAME_STATE_DEFEND then
+		self:updatePlayerDirection()
 		self.cursor_sprite:onDraw( {gamerules=self.gamerules} )
 
 		love.graphics.setColor( 0, 0, 0, 64 )
@@ -442,6 +443,20 @@ function Game:onDraw( params )
 --]]
 end
 
+function Game:updatePlayerDirection()
+		-- get a vector from player to mouse cursor
+	local mx, my = love.mouse.getPosition()
+	local wx, wy = self.gamerules:worldCoordinatesFromMouse( mx, my )
+	local dirx = wx - player.world_x
+	local diry = wy - player.world_y
+
+	local magnitude = math.sqrt(dirx * dirx + diry * diry)
+	dirx = dirx / magnitude
+	diry = diry / magnitude
+	player.dir.x = dirx
+	player.dir.y = diry
+end
+
 function Game:playerAttack( params )
 	--player:playAnimation( "attack1" )
 	--player.is_attacking = true
@@ -458,16 +473,12 @@ function Game:playerAttack( params )
 		self.gamerules:spawnEntity( bullet, player.world_x, player.world_y, nil )
 
 
-		-- get a vector from player to mouse cursor
-		local wx, wy = self.gamerules:worldCoordinatesFromMouse( mx, my )
-		local dirx = wx - player.world_x
-		local diry = wy - player.world_y
+		self:updatePlayerDirection()
 
-		local magnitude = math.sqrt(dirx * dirx + diry * diry)
-		dirx = dirx / magnitude
-		diry = diry / magnitude
-		bullet.velocity.x = dirx
-		bullet.velocity.y = diry
+
+
+		bullet.velocity.x = player.dir.x
+		bullet.velocity.y = player.dir.y
 		bullet.attack_damage = player.attack_damage
 		self.gamerules:playSound( "fire2" )
 	end	
