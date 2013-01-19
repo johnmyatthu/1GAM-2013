@@ -43,7 +43,7 @@
  </tileset>
  <layer name="Ground" width="25" height="25">
   <data encoding="base64" compression="zlib">
-   eJyTY2BgkKMDliUCE6sOm76RZge5eCTaMVzinNZ2UBJvhPI8qWXBUEhXo3aM2jFqx6gdhOygNQYAj/BHPA==
+   eJyTY2BgkKMDliUCE6sOm77BZAe5eNSOUTuGuh20tGu4hdWoHaN2jNox/O2gNQYAUyxHMg==
   </data>
  </layer>
  <layer name="Game" width="25" height="25">
@@ -53,7 +53,7 @@
  </layer>
  <layer name="Collision" width="25" height="25">
   <data encoding="base64" compression="zlib">
-   eJyTYmBgkKIDJgYQqw6bvpFmB7lgJNoxXOKc1nZQEm+E8jypZQE+O2gJRu0YtWPUjlE7qGkHrTEA2FQLLQ==
+   eJyTYmBgkKIDJgYQqw6bvsFkB7lg1I5RO4a6HbS0a7iF1agdo3aM2jH87aA1BgCsEgop
   </data>
  </layer>
 </map>

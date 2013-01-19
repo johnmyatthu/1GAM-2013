@@ -426,7 +426,7 @@ function Game:onDraw( params )
 		love.graphics.printf( "WAVE " .. tostring(self.gamerules.level) .. " COMPLETE", 0, 195, love.graphics.getWidth(), "center" )		
 
 		love.graphics.printf( "ENEMIES: " .. tostring(self.gamerules.wave_enemies), 230, 265, 250, "left" )
-		love.graphics.printf( "BONUS: " .. tostring(self.gamerules.last_bonus), 230, 315, 250, "left" )
+		love.graphics.printf( "BONUS: " .. tostring(self.gamerules.last_bonus) .. " / " .. tostring(self.gamerules.target_bonus), 230, 315, 250, "left" )
 
 		love.graphics.printf( "TOTAL SCORE: " .. tostring(math.floor(self.gamerules.total_score)), 230, 365, 250, "left" )
 	end
