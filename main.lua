@@ -1,20 +1,17 @@
-
-
 require "core"
-local logging = core.logging
+
 
 local CONFIGURATION_FILE = "settings.json"
 
-
-local GAME_STATE_LOGO = 0
-local GAME_STATE_MENU = 1
-local GAME_STATE_RUN = 2
+local KERNEL_STATE_LOGO = 0
+local KERNEL_STATE_MENU = 1
+local KERNEL_STATE_RUN = 2
 
 local config = {}
 local fonts = {}
 local gameLogic = nil
 local gamerules = nil
-local game_state = GAME_STATE_RUN
+local game_state = KERNEL_STATE_RUN
 
 
 
@@ -83,7 +80,7 @@ end
 
 function escape_hit()
 	-- skip past the intro if user hits escape
-	if game_state == GAME_STATE_LOGO then
+	if game_state == KERNEL_STATE_LOGO then
 		logo_intro.finished = true
 	else
 		love.event.push( "quit" )
@@ -129,21 +126,21 @@ function love.load()
 end
 
 function love.draw()
-	if game_state == GAME_STATE_RUN then
+	if game_state == KERNEL_STATE_RUN then
 		core.util.callLogic( gameLogic, "onDraw", {} )
-	elseif game_state == GAME_STATE_LOGO then
+	elseif game_state == KERNEL_STATE_LOGO then
 		logo_intro:draw()
 	end
 end
 
 
 function love.update(dt)
-	if game_state == GAME_STATE_RUN then
+	if game_state == KERNEL_STATE_RUN then
 		core.util.callLogic( gameLogic, "onUpdate", {dt=dt} )
-	elseif game_state == GAME_STATE_LOGO then
+	elseif game_state == KERNEL_STATE_LOGO then
 		logo_intro:update(dt)
 		if logo_intro.finished then
-			game_state = GAME_STATE_RUN
+			game_state = KERNEL_STATE_RUN
 		end
 	end
 end
@@ -157,7 +154,7 @@ function love.keyreleased(key )
 	if key == "escape" then
 		escape_hit()
 		return
-	elseif key == " " and game_state == GAME_STATE_LOGO then
+	elseif key == " " and game_state == KERNEL_STATE_LOGO then
 		escape_hit()
 		return
 	elseif key == "f5" then

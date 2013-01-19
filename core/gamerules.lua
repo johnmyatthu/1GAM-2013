@@ -1,6 +1,5 @@
 module( ..., package.seeall )
 require "core"
-logging = core.logging
 Jumper = require "lib.jumper.jumper"
 loader = require "lib.AdvTiledLoader.Loader"
 require "lib.luabit.bit"
@@ -29,15 +28,14 @@ function GameRules:initialize()
 	self.enemies_destroyed = 0
 
 	-- need to register all entity classes somewhere; this is not the best spot :/
-	self.entity_factory:registerClass( "WorldEntity", core.entity.WorldEntity )
-	self.entity_factory:registerClass( "AnimatedSprite", core.entity.AnimatedSprite )
-	self.entity_factory:registerClass( "PathFollower", core.entity.PathFollower )
-	self.entity_factory:registerClass( "func_spawn", core.entity.func_spawn )
-	self.entity_factory:registerClass( "Enemy", core.entity.Enemy )
-	self.entity_factory:registerClass( "func_target", core.entity.func_target )
-	self.entity_factory:registerClass( "Bullet", core.entity.Bullet )
-	self.entity_factory:registerClass( "Player", core.entity.Player )
-
+	self.entity_factory:registerClass( "WorldEntity", core.WorldEntity )
+	self.entity_factory:registerClass( "AnimatedSprite", core.AnimatedSprite )
+	self.entity_factory:registerClass( "PathFollower", core.PathFollower )
+	self.entity_factory:registerClass( "func_spawn", core.func_spawn )
+	self.entity_factory:registerClass( "Enemy", core.Enemy )
+	self.entity_factory:registerClass( "func_target", core.func_target )
+	self.entity_factory:registerClass( "Bullet", core.Bullet )
+	self.entity_factory:registerClass( "Player", core.Player )
 
 	self.sounds = {}
 	self:loadSounds( "assets/sounds/sounds.conf" )
@@ -418,12 +416,13 @@ function GameRules:drawWorld()
 	love.graphics.pop()	
 end
 
-function GameRules:drawEntities()
+function GameRules:drawEntities( params )
 	self.entity_manager:sortForDrawing()
 
 	love.graphics.push()
 	love.graphics.setColor( 255, 255, 255, 255 )
-	self.entity_manager:eventForEachEntity( "onDraw", {gamerules=self} )
+	params.gamerules = self
+	self.entity_manager:eventForEachEntity( "onDraw", params )
 	love.graphics.pop()	
 end
 

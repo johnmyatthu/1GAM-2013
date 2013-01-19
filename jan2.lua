@@ -1,5 +1,4 @@
 require "core"
-local logging = core.logging
 
 -- bloom shader, by slime
 --require "bloom"
@@ -131,6 +130,7 @@ function Game:onLoad( params )
 
 
 
+
 	-- load the map
 	self.gamerules:loadMap( self.config.map )
 
@@ -138,8 +138,6 @@ function Game:onLoad( params )
 
 	player = self.gamerules.entity_factory:createClass( "Player" )
 	player:loadSprite( "assets/sprites/player.conf" )
-
-
 
 	--self.gamerules.entity_manager:addEntity( player )
 	--self.gamerules:addCollision( player )
@@ -153,8 +151,8 @@ function Game:onLoad( params )
 	player.world_x, player.world_y = self.gamerules:worldCoordinatesFromTileCenter( spawn.x, spawn.y )
 	player.tile_x, player.tile_y = self.gamerules:tileCoordinatesFromWorld( player.world_x, player.world_y )
 
-	self.gamerules:spawnEntity( player, nil, nil, nil )
 
+	self.gamerules:spawnEntity( player, nil, nil, nil )
 	
 	--self.gamerules:snapCameraToPlayer( player )
 
@@ -239,23 +237,24 @@ function Game:onUpdate( params )
 		self.gamerules:warpCameraTo( cx, cy )
 	end
 
-	
-	cam_x, cam_y = self.gamerules:getCameraPosition()
-	if love.keyboard.isDown( self:keyForAction(ACTION_MOVE_MAP_UP) ) then cam_y = cam_y + self.config.move_speed*params.dt end
-	if love.keyboard.isDown( self:keyForAction(ACTION_MOVE_MAP_DOWN) ) then cam_y = cam_y - self.config.move_speed*params.dt end
-	if love.keyboard.isDown( self:keyForAction(ACTION_MOVE_MAP_LEFT) ) then cam_x = cam_x + self.config.move_speed*params.dt end
-	if love.keyboard.isDown( self:keyForAction(ACTION_MOVE_MAP_RIGHT) ) then cam_x = cam_x - self.config.move_speed*params.dt end
-	self.gamerules:setCameraPosition( cam_x, cam_y )
-	
+	if self.state == GAME_STATE_DEFEND then
+		cam_x, cam_y = self.gamerules:getCameraPosition()
+		if love.keyboard.isDown( self:keyForAction(ACTION_MOVE_MAP_UP) ) then cam_y = cam_y + self.config.move_speed*params.dt end
+		if love.keyboard.isDown( self:keyForAction(ACTION_MOVE_MAP_DOWN) ) then cam_y = cam_y - self.config.move_speed*params.dt end
+		if love.keyboard.isDown( self:keyForAction(ACTION_MOVE_MAP_LEFT) ) then cam_x = cam_x + self.config.move_speed*params.dt end
+		if love.keyboard.isDown( self:keyForAction(ACTION_MOVE_MAP_RIGHT) ) then cam_x = cam_x - self.config.move_speed*params.dt end
+		self.gamerules:setCameraPosition( cam_x, cam_y )
+		
 
-	command = { 
-	up=love.keyboard.isDown( self:keyForAction(ACTION_MOVE_PLAYER_UP) ), 
-	down=love.keyboard.isDown( self:keyForAction(ACTION_MOVE_PLAYER_DOWN) ), 
-	left=love.keyboard.isDown( self:keyForAction(ACTION_MOVE_PLAYER_LEFT) ), 
-	right=love.keyboard.isDown( self:keyForAction(ACTION_MOVE_PLAYER_RIGHT) ), 
-	move_speed=self.config.move_speed, 
-	dt=params.dt }
-	self.gamerules:handleMovePlayerCommand( command, player )
+		command = { 
+		up=love.keyboard.isDown( self:keyForAction(ACTION_MOVE_PLAYER_UP) ), 
+		down=love.keyboard.isDown( self:keyForAction(ACTION_MOVE_PLAYER_DOWN) ), 
+		left=love.keyboard.isDown( self:keyForAction(ACTION_MOVE_PLAYER_LEFT) ), 
+		right=love.keyboard.isDown( self:keyForAction(ACTION_MOVE_PLAYER_RIGHT) ), 
+		move_speed=self.config.move_speed, 
+		dt=params.dt }
+		self.gamerules:handleMovePlayerCommand( command, player )
+	end
 
 	--self.gamerules:snapCameraToPlayer( player )
 
@@ -304,7 +303,8 @@ function Game:onDraw( params )
 --]]
 
 	-- draw entities here
-	self.gamerules:drawEntities()
+	params.gamestate = self.state
+	self.gamerules:drawEntities( params )
 
 	-- draw overlay text
 	local cx, cy = self.gamerules:getCameraPosition()
