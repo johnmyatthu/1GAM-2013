@@ -83,9 +83,9 @@ function Game:initialize( gamerules, config, fonts )
 
 	self.cursor = {x=0, y=0}
 
-	self.state = GAME_STATE_BUILD
+	self.state = GAME_STATE_DEFEND
 
-	self.build_time = 300
+	self.build_time = 2
 	self.timer = self.build_time
 
 
@@ -121,14 +121,6 @@ function Game:toggleDrawCollisions()
 end
 
 
-function Game:loadEntityAtLevel( entity, level )
-	local data = self.gamerules:dataForKeyLevel( entity.class.name, level )
-	if data then
-		entity:loadProperties( data )
-	else
-		logging.warning( "ERROR: could not find properties for class '" .. entity.class.name .. "' at level " .. level )
-	end
-end
 
 function Game:onLoad( params )
 	--logging.verbose( "Game onload" )
@@ -146,8 +138,14 @@ function Game:onLoad( params )
 
 	player = self.gamerules.entity_factory:createClass( "Player" )
 	player:loadSprite( "assets/sprites/player.conf" )
-	self.gamerules.entity_manager:addEntity( player )
-	self.gamerules:addCollision( player )
+
+
+
+	--self.gamerules.entity_manager:addEntity( player )
+	--self.gamerules:addCollision( player )
+
+
+
 	-- assuming this map has a spawn point; we'll set the player spawn
 	-- and then center the camera on the player
 
@@ -155,9 +153,9 @@ function Game:onLoad( params )
 	player.world_x, player.world_y = self.gamerules:worldCoordinatesFromTileCenter( spawn.x, spawn.y )
 	player.tile_x, player.tile_y = self.gamerules:tileCoordinatesFromWorld( player.world_x, player.world_y )
 
-	self:loadEntityAtLevel( player, 1 )
+	self.gamerules:spawnEntity( player, nil, nil, nil )
 
-	player.current_frame = "east"
+	
 	--self.gamerules:snapCameraToPlayer( player )
 
 	logging.verbose( "initialization complete." )
@@ -340,8 +338,12 @@ function Game:onDraw( params )
 
 	self.cursor_sprite:onDraw( {gamerules=self.gamerules} )
 
+	if self.state == GAME_STATE_DEFEND then
+		love.graphics.setColor( 0, 0, 0, 64 )
+		local height = love.graphics.getHeight()/16
+		love.graphics.rectangle( "fill", 0, love.graphics.getHeight() - height, love.graphics.getWidth(), height )
 
-	if self.state == GAME_STATE_BUILD or self.state == GAME_STATE_PRE_DEFEND then
+	elseif self.state == GAME_STATE_BUILD or self.state == GAME_STATE_PRE_DEFEND then
 		love.graphics.setColor( 0, 0, 0, 128 )
 		local height = love.graphics.getHeight()/5
 		love.graphics.rectangle( "fill", 0, love.graphics.getHeight() - height, love.graphics.getWidth(), height )
@@ -357,6 +359,7 @@ function Game:onDraw( params )
 			love.graphics.printf( math.floor(self.timer), 0, 540, love.graphics.getWidth(), "center" )
 			--love.graphics.print( math.floor(self.timer), 380, 540 )
 		else
+			love.graphics.setColor( 0, 255, 255, 255 )
 			love.graphics.printf( "GET READY", 0, 510, love.graphics.getWidth(), "center" )
 		end
 		love.graphics.setColor( 255, 255, 255, 255 )

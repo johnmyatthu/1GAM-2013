@@ -20,7 +20,13 @@ function Entity:initialize()
 
 	self.color = { r=255, g=255, b=255, a=255 }
 	self.collision_mask = 0
-	self.health = 0
+
+	self.health = 100 -- current health for this entity
+	self.max_health = 100 -- maximum health for this entity
+	self.health_regen_rate = 0 -- the rate (hit points per second) at which this entity will regenerate health
+	self.time_since_last_hit = 0 -- the amount of time in seconds since this entity was last hit
+	self.time_until_health_regen = 1 -- how much time is needed since last hit to start regenerating health
+
 end
 
 -- this can be overridden in order to skip drawing, for example.
@@ -78,6 +84,11 @@ end
 
 function Entity:onUpdate( params )
 	self.tile_x, self.tile_y = params.gamerules:tileCoordinatesFromWorld( self.world_x, self.world_y )
+
+	self.time_since_last_hit = self.time_since_last_hit + params.dt
+	if self.health < self.max_health and self.time_since_last_hit >= self.time_until_health_regen then
+		self.health = self.health + (self.health_regen_rate * params.dt)
+	end
 end
 
 function Entity:__tostring()
@@ -415,8 +426,9 @@ func_target = class( "func_target", AnimatedSprite )
 function func_target:initialize()
 	AnimatedSprite:initialize(self)
 
-	self.health = 100
 	self.collision_mask = 10
+
+	self.health = 100
 end
 
 function func_target:onSpawn( params )
@@ -430,6 +442,7 @@ function func_target:onHit( params )
 
 	if self.health > 0 then
 		self.health = self.health - params.attack_damage
+		self.time_since_last_hit = 0
 		if self.health < 0 then
 			self.health = 0
 		end
@@ -479,6 +492,7 @@ function Enemy:onCollide( params )
 		self.time_until_color_restore = self.hit_color_cooldown_seconds
 
 		self.health = self.health - params.other.attack_damage
+		self.time_since_last_hit = 0
 		params.gamerules:playSound( "bullet_enemy_hit" )
 	end
 

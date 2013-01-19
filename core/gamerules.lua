@@ -6,12 +6,8 @@ loader = require "lib.AdvTiledLoader.Loader"
 require "lib.luabit.bit"
 local SH = require( "lib.broadphase.spatialhash" )
 
---bump = require "lib.bump.bump"
-bump = {}
-
 local MAP_COLLISION_LAYER_NAME = "Collision"
 
-local global_gamerules = nil
 
 GameRules = class( "GameRules" )
 function GameRules:initialize()
@@ -23,6 +19,14 @@ function GameRules:initialize()
 	self.entity_factory = EntityFactory:new()
 	self.entity_manager = EntityManager:new()
 	self.pathfinder = nil
+
+	-- the current wave level
+	self.level = 1
+
+	-- total number of enemies this level
+	self.wave_enemies = 0
+
+	self.enemies_destroyed = 0
 
 	-- need to register all entity classes somewhere; this is not the best spot :/
 	self.entity_factory:registerClass( "WorldEntity", core.entity.WorldEntity )
@@ -330,11 +334,28 @@ function GameRules:setCameraPosition( camera_x, camera_y )
 end
 
 function GameRules:spawnEntity( entity, world_x, world_y, properties )
-	entity.world_x = world_x
-	entity.world_y = world_y
+	if world_x then
+		entity.world_x = world_x
+	end
+
+	if world_y then
+		entity.world_y = world_y
+	end
+
+	if properties == nil then
+		properties = {}
+	end
 
 	-- make sure our entity is spawned properly
 	entity:onSpawn( {gamerules=self, properties=properties} )
+
+	-- load entity properties based on the level
+	local data = self:dataForKeyLevel( entity.class.name, self.level )
+	if data then
+		entity:loadProperties( data )
+	else
+		--logging.warning( "could not find properties for class '" .. entity.class.name .. "' at level " .. self.level )
+	end
 
 	-- this entity is now managed.
 	self.entity_manager:addEntity( entity )
@@ -355,6 +376,7 @@ function GameRules:spawnEntityAtTileWithProperties( layer, tile_x, tile_y, prope
 			if entity then
 					-- set the world position for the entity from the tile coordinates
 				entity.world_x, entity.world_y = self:worldCoordinatesFromTileCenter( tile_x, tile_y )
+
 				self:spawnEntity( entity, entity.world_x, entity.world_y, properties )
 
 				--logging.verbose( "-> entity '" .. classname .. "' is at " .. entity.world_x .. ", " .. entity.world_y )
