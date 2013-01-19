@@ -42,8 +42,8 @@ function Game:initialize( gamerules, config, fonts )
 	-- internal vars
 	
 
-	self.preview_tile = {x=0, y=0}
-	self.selected_tile = {x=0, y=0}
+	self.preview_tile = {x=-1, y=-1}
+	self.selected_tile = {x=-1, y=-1}
 
 	self.fire = false
 	self.next_attack_time = 0
@@ -79,7 +79,7 @@ function Game:initialize( gamerules, config, fonts )
 
 	self.cursor = {x=0, y=0}
 
-	self.state = GAME_STATE_DEFEND
+	self.state = GAME_STATE_BUILD
 
 	self.build_time = 2
 	self.timer = self.build_time
@@ -137,44 +137,35 @@ function Game:onLoad( params )
 	-- gamepad/wiimote testing
 	-- core.util.queryJoysticks()
 
-
-
-
-
 	-- load the map
 	self.gamerules:loadMap( self.config.map )
-	self.gamerules:prepareForNextWave()
 
 	self.target = self.gamerules.entity_manager:findFirstEntityByName( "func_target" )
 
 	player = self.gamerules.entity_factory:createClass( "Player" )
 	player:loadSprite( "assets/sprites/player.conf" )
 
-	--self.gamerules.entity_manager:addEntity( player )
-	--self.gamerules:addCollision( player )
-
-
-
 	-- assuming this map has a spawn point; we'll set the player spawn
 	-- and then center the camera on the player
-
 	self:warpPlayerToSpawn( player )
-
 
 	self.gamerules:spawnEntity( player, nil, nil, nil )
 	
 	--self.gamerules:snapCameraToPlayer( player )
 
-	logging.verbose( "initialization complete." )
+	
 
 	-- setup cursor
 	self.cursor_sprite = self.gamerules.entity_factory:createClass( "AnimatedSprite" )
 	self.cursor_sprite:loadSprite( "assets/sprites/cursors.conf" )
 	self.cursor_sprite:playAnimation("one")
 	self.cursor_sprite.color = {r=0, g=255, b=255, a=255}
+
 	-- don't draw this automatically; let's draw this ourselves.
 	self.cursor_sprite.respondsToEvent = function (self, name) return (name ~= "onDraw") end
-	self.gamerules:spawnEntity( self.cursor_sprite, 1, 1, nil )
+	self.gamerules:spawnEntity( self.cursor_sprite, -1, -1, nil )
+
+	logging.verbose( "Initialization complete." )
 end
 
 -- arr; this be for isometric tile only, matey.
@@ -369,6 +360,8 @@ function Game:onDraw( params )
 		love.graphics.setFont( self.fonts[ "text2" ] )
 		love.graphics.setColor( 255, 255, 255, 255 )
 		love.graphics.print( "Enemies Taken Out: " .. tostring(self.gamerules.enemies_destroyed), 10, 570 )
+
+		love.graphics.print( "Wave: " .. tostring(self.gamerules.level), 710, 570 )
 
 	elseif self.state == GAME_STATE_BUILD or self.state == GAME_STATE_PRE_DEFEND then
 		love.graphics.setColor( 0, 0, 0, 128 )

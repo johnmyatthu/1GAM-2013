@@ -78,6 +78,8 @@ end
 function GameRules:prepareForNextWave()
 	self.level = self.level + 1
 	self.enemies_destroyed = 0
+
+	logging.verbose( "Preparing for wave: " .. self.level )
 	
 	if self.data[ "waves" ] and self.data[ "waves" ][ self.level ] then
 		local wave_data = self.data[ "waves" ][ self.level ]
@@ -401,7 +403,7 @@ function GameRules:spawnEntity( entity, world_x, world_y, properties )
 	if data then
 		entity:loadProperties( data )
 	else
-		logging.warning( "could not find properties for class '" .. entity.class.name .. "' at level " .. self.level )
+		--logging.warning( "could not find properties for class '" .. entity.class.name .. "' at level " .. self.level )
 	end
 
 	-- this entity is now managed.
