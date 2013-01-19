@@ -21,10 +21,13 @@ function GameRules:initialize()
 
 	-- the current wave level
 	self.level = 0
+	self.total_waves = 0
 
 	-- total number of enemies this level
 	self.wave_enemies = 0
 	self.enemies_destroyed = 0
+	self.last_bonus = 0
+	self.total_score = 0
 
 	-- need to register all entity classes somewhere; this is not the best spot :/
 	self.entity_factory:registerClass( "WorldEntity", core.WorldEntity )
@@ -79,6 +82,9 @@ function GameRules:prepareForNextWave()
 	if self.data[ "waves" ] and self.data[ "waves" ][ self.level ] then
 		local wave_data = self.data[ "waves" ][ self.level ]
 		self.wave_enemies = wave_data.wave_enemies
+		self.total_waves = #self.data[ "waves" ]
+		self.current_enemy_value = wave_data.enemy_value
+		self.target_bonus = wave_data.target_bonus
 	else
 		logging.warning( "Unable to load data for wave '" .. self.level .. "'" )
 	end
@@ -90,8 +96,15 @@ function GameRules:prepareForNextWave()
 	end
 end
 
+function GameRules:beatLastWave()
+	return self.level >= self.total_waves
+end
+
 function GameRules:updateScore( target )
+	local health_percent = target.health / target.max_health
 	logging.verbose( "target health is at: " .. target.health .. "/" .. target.max_health )
+	self.last_bonus = health_percent * self.target_bonus
+	self.total_score = self.total_score + self.last_bonus
 end
 
 function GameRules:dataForKeyLevel( key, level )
@@ -101,6 +114,15 @@ function GameRules:dataForKeyLevel( key, level )
 
 	return nil
 end
+
+function GameRules:onEnemyDestroyed( entity )
+	self.enemies_destroyed = self.enemies_destroyed + 1
+	self.total_score = self.total_score + self.current_enemy_value
+end
+
+
+
+
 
 
 function GameRules:initCollision()
@@ -370,10 +392,16 @@ function GameRules:spawnEntity( entity, world_x, world_y, properties )
 
 	-- load entity properties based on the level
 	local data = self:dataForKeyLevel( entity.class.name, self.level )
+
+	-- as a fail-safe, if this level doesn't explicitly exist, let's just use the first one we have.
+	if not data then
+		data = self:dataForKeyLevel( entity.class.name, 1 )
+	end
+
 	if data then
 		entity:loadProperties( data )
 	else
-		--logging.warning( "could not find properties for class '" .. entity.class.name .. "' at level " .. self.level )
+		logging.warning( "could not find properties for class '" .. entity.class.name .. "' at level " .. self.level )
 	end
 
 	-- this entity is now managed.

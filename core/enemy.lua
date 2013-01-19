@@ -103,7 +103,7 @@ function Enemy:onUpdate( params )
 
 	if self.health <= 0 then
 		params.gamerules:playSound( "enemy_killed" )
-		params.gamerules.enemies_destroyed = params.gamerules.enemies_destroyed + 1
+		params.gamerules:onEnemyDestroyed( self )
 		params.gamerules:removeEntity( self )
 	end
 

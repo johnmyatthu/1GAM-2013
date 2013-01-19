@@ -22,12 +22,11 @@ local ACTION_MOVE_PLAYER_UP = "move_player_up"
 local ACTION_MOVE_PLAYER_DOWN = "move_player_down"
 
 
-local GAME_STATE_BUILD = core.GAME_STATE_BUILD
-local GAME_STATE_DEFEND = core.GAME_STATE_DEFEND
-local GAME_STATE_PRE_DEFEND = core.GAME_STATE_PRE_DEFEND
-local GAME_STATE_ROUND_WIN = core.GAME_STATE_ROUND_WIN
-local GAME_STATE_ROUND_FAIL = core.GAME_STATE_ROUND_FAIL
+-- the amount of build time given before each wave
+local GAME_BUILD_TIME = 3
 
+-- amount of time in seconds before defend round starts after build round ends
+local GAME_BUILD_DEFEND_TRANSITION_TIME = 2
 
 -- Game class
 Game = class( "Game" )
@@ -77,8 +76,6 @@ function Game:initialize( gamerules, config, fonts )
 			logging.warning( "Unknown action '" .. action .. "', unable to map key: " .. key )
 		end
 	end
-	self.actions["escape"] = self.escape_hit
-	self.actions[" "] = self.escape_hit
 
 	self.cursor = {x=0, y=0}
 
@@ -86,7 +83,6 @@ function Game:initialize( gamerules, config, fonts )
 
 	self.build_time = 2
 	self.timer = self.build_time
-
 
 	if self.state == GAME_STATE_BUILD then
 		love.mouse.setVisible( true )
@@ -97,14 +93,24 @@ end
 
 
 function Game:nextState()
+	if self.actions[ " " ] then
+		self.actions[ " " ] = nil
+	end
+
 	if self.state == GAME_STATE_BUILD then
 		self.state = GAME_STATE_PRE_DEFEND
-		self.timer = 2
+		self.timer = GAME_BUILD_DEFEND_TRANSITION_TIME
+		self:warpPlayerToSpawn( player )
+		self.gamerules:prepareForNextWave()
 		love.mouse.setVisible( false )
 	elseif self.state == GAME_STATE_PRE_DEFEND then
 		self.state = GAME_STATE_DEFEND
 		self.timer = 0
 		love.mouse.setVisible( false )
+	elseif self.state == GAME_STATE_ROUND_WIN then
+		self.timer = 0
+		self.state = GAME_STATE_BUILD
+		self.timer = GAME_BUILD_TIME
 	end
 end
 
@@ -119,7 +125,11 @@ function Game:toggleDrawCollisions()
 	end
 end
 
-
+function Game:warpPlayerToSpawn( player )
+	local spawn = self.gamerules.spawn
+	player.world_x, player.world_y = self.gamerules:worldCoordinatesFromTileCenter( spawn.x, spawn.y )
+	player.tile_x, player.tile_y = self.gamerules:tileCoordinatesFromWorld( player.world_x, player.world_y )
+end
 
 function Game:onLoad( params )
 	--logging.verbose( "Game onload" )
@@ -148,9 +158,7 @@ function Game:onLoad( params )
 	-- assuming this map has a spawn point; we'll set the player spawn
 	-- and then center the camera on the player
 
-	local spawn = self.gamerules.spawn
-	player.world_x, player.world_y = self.gamerules:worldCoordinatesFromTileCenter( spawn.x, spawn.y )
-	player.tile_x, player.tile_y = self.gamerules:tileCoordinatesFromWorld( player.world_x, player.world_y )
+	self:warpPlayerToSpawn( player )
 
 
 	self.gamerules:spawnEntity( player, nil, nil, nil )
@@ -275,6 +283,10 @@ function Game:onUpdate( params )
 			love.mouse:setVisible( false )
 			self.gamerules:playSound( "round_win" )
 			self.gamerules:updateScore( self.target )
+			-- if they haven't won the game yet, bind the space button to advance the state
+			if not self.gamerules:beatLastWave() then
+				self.actions[" "] = self.nextState
+			end
 		end
 	end
 end
@@ -392,8 +404,19 @@ function Game:onDraw( params )
 
 		love.graphics.setFont( self.fonts[ "text2" ] )
 		love.graphics.setColor( 255, 255, 255, 255 )
-		love.graphics.printf( "PRESS SPACE", 0, 570, love.graphics.getWidth(), "center" )
+		
 
+		if self.gamerules:beatLastWave() then
+			love.graphics.setColor( 0, 0, 0, 64 )
+			local height = love.graphics.getHeight()/8
+			love.graphics.rectangle( "fill", 0, 50, love.graphics.getWidth(), height )
+
+			love.graphics.setColor( 0, 255, 255, 255 )
+			love.graphics.printf( "YOU WON THE GAME!", 0, 65, love.graphics.getWidth(), "center" )
+			love.graphics.printf( "thanks for playing", 0, 95, love.graphics.getWidth(), "center" )			
+		else
+			love.graphics.printf( "PRESS SPACE", 0, 570, love.graphics.getWidth(), "center" )
+		end
 
 		-- draw background and last round scores
 		love.graphics.setColor( 0, 0, 0, 64 )
@@ -404,8 +427,10 @@ function Game:onDraw( params )
 		love.graphics.setColor( 255, 255, 255, 255 )
 		love.graphics.printf( "WAVE " .. tostring(self.gamerules.level) .. " COMPLETE", 0, 195, love.graphics.getWidth(), "center" )		
 
-		love.graphics.printf( "ENEMIES: " .. tostring(self.gamerules.wave_enemies), 80, 245, 250, "center" )
+		love.graphics.printf( "ENEMIES: " .. tostring(self.gamerules.wave_enemies), 230, 265, 250, "left" )
+		love.graphics.printf( "BONUS: " .. tostring(self.gamerules.last_bonus), 230, 315, 250, "left" )
 
+		love.graphics.printf( "TOTAL SCORE: " .. tostring(self.gamerules.total_score), 230, 365, 250, "left" )
 	end
 
 --[[
