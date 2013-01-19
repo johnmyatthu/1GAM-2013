@@ -79,7 +79,7 @@ function GameRules:prepareForNextWave()
 	self.level = self.level + 1
 	self.enemies_destroyed = 0
 
-	logging.verbose( "Preparing for wave: " .. self.level )
+	--logging.verbose( "Preparing for wave: " .. self.level )
 	
 	if self.data[ "waves" ] and self.data[ "waves" ][ self.level ] then
 		local wave_data = self.data[ "waves" ][ self.level ]
@@ -103,8 +103,8 @@ function GameRules:beatLastWave()
 end
 
 function GameRules:updateScore( target )
+	-- this takes into account the target health and scales the bonus value based on that percentage
 	local health_percent = target.health / target.max_health
-	logging.verbose( "target health is at: " .. target.health .. "/" .. target.max_health )
 	self.last_bonus = health_percent * self.target_bonus
 	self.total_score = self.total_score + self.last_bonus
 end

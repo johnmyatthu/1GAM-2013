@@ -11,7 +11,7 @@ function Enemy:initialize()
 	self.target_tile = { x=0, y=0 }
 
 	-- time between attacks
-	self.attack_cooldown_seconds = 0.5
+	self.attack_delay = 0.5
 
 	self.next_attack_time = 0
 
@@ -78,7 +78,7 @@ function Enemy:onUpdate( params )
 
 			self.next_attack_time = self.next_attack_time - params.dt
 			if self.next_attack_time <= 0 then
-				self.next_attack_time = self.attack_cooldown_seconds
+				self.next_attack_time = self.attack_delay
 
 				-- attack the target
 				if self.target then

@@ -157,9 +157,9 @@ function love.keyreleased(key )
 	elseif key == " " and game_state == KERNEL_STATE_LOGO then
 		escape_hit()
 		return
-	elseif key == "f5" then
-		print( "refresh" )
-		load_config()
+	--elseif key == "f5" then
+	--	print( "refresh" )
+	--	load_config()
 	end
 
 	core.util.callLogic( gameLogic, "onKeyReleased", {key=key} )

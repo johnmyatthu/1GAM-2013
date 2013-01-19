@@ -23,7 +23,7 @@ local ACTION_MOVE_PLAYER_DOWN = "move_player_down"
 
 
 -- the amount of build time given before each wave
-local GAME_BUILD_TIME = 3
+local GAME_BUILD_TIME = 25
 
 -- amount of time in seconds before defend round starts after build round ends
 local GAME_BUILD_DEFEND_TRANSITION_TIME = 2
@@ -81,10 +81,11 @@ function Game:initialize( gamerules, config, fonts )
 
 	self.state = GAME_STATE_BUILD
 
-	self.build_time = 2
+	self.build_time = GAME_BUILD_TIME
 	self.timer = self.build_time
 
 	if self.state == GAME_STATE_BUILD then
+		self.actions[ " " ] = self.nextState
 		love.mouse.setVisible( true )
 	else
 		love.mouse.setVisible( false )
@@ -111,6 +112,7 @@ function Game:nextState()
 		self.timer = 0
 		self.state = GAME_STATE_BUILD
 		self.timer = GAME_BUILD_TIME
+		self.actions[ " " ] = self.nextState
 	end
 end
 
@@ -395,10 +397,9 @@ function Game:onDraw( params )
 		local height = love.graphics.getHeight()/16
 		love.graphics.rectangle( "fill", 0, love.graphics.getHeight() - height, love.graphics.getWidth(), height )
 
-		love.graphics.setFont( self.fonts[ "text2" ] )
-		love.graphics.setColor( 255, 255, 255, 255 )
-		
 
+		
+		love.graphics.setFont( self.fonts[ "text2" ] )
 		if self.gamerules:beatLastWave() then
 			love.graphics.setColor( 0, 0, 0, 64 )
 			local height = love.graphics.getHeight()/8
@@ -408,6 +409,7 @@ function Game:onDraw( params )
 			love.graphics.printf( "YOU WON THE GAME!", 0, 65, love.graphics.getWidth(), "center" )
 			love.graphics.printf( "thanks for playing", 0, 95, love.graphics.getWidth(), "center" )			
 		else
+			love.graphics.setColor( 255, 255, 255, 255 )
 			love.graphics.printf( "PRESS SPACE", 0, 570, love.graphics.getWidth(), "center" )
 		end
 
@@ -417,13 +419,14 @@ function Game:onDraw( params )
 		local boxwidth = 600
 		love.graphics.rectangle( "fill", love.graphics.getWidth()/2 - boxwidth/2, 185, boxwidth, 300 )
 
+		love.graphics.setFont( self.fonts[ "text2" ] )
 		love.graphics.setColor( 255, 255, 255, 255 )
 		love.graphics.printf( "WAVE " .. tostring(self.gamerules.level) .. " COMPLETE", 0, 195, love.graphics.getWidth(), "center" )		
 
 		love.graphics.printf( "ENEMIES: " .. tostring(self.gamerules.wave_enemies), 230, 265, 250, "left" )
 		love.graphics.printf( "BONUS: " .. tostring(self.gamerules.last_bonus), 230, 315, 250, "left" )
 
-		love.graphics.printf( "TOTAL SCORE: " .. tostring(self.gamerules.total_score), 230, 365, 250, "left" )
+		love.graphics.printf( "TOTAL SCORE: " .. tostring(math.floor(self.gamerules.total_score)), 230, 365, 250, "left" )
 	end
 
 --[[
