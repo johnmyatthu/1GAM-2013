@@ -274,6 +274,7 @@ function Game:onUpdate( params )
 			self.timer = 3
 			love.mouse:setVisible( false )
 			self.gamerules:playSound( "round_win" )
+			self.gamerules:updateScore( self.target )
 		end
 	end
 end

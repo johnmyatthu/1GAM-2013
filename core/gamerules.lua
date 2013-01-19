@@ -90,6 +90,10 @@ function GameRules:prepareForNextWave()
 	end
 end
 
+function GameRules:updateScore( target )
+	logging.verbose( "target health is at: " .. target.health .. "/" .. target.max_health )
+end
+
 function GameRules:dataForKeyLevel( key, level )
 	if self.data[ key ] and self.data[ key ][ level ] then
 		return self.data[ key ][ level ]
