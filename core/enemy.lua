@@ -19,7 +19,7 @@ function Enemy:initialize()
 	self.time_until_color_restore = 0
 
 	self.collision_mask = 2
-	self.health = 100
+	self.health = 1
 end
 
 function Enemy:onCollide( params )

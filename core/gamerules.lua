@@ -86,7 +86,6 @@ function GameRules:prepareForNextWave()
 	-- update func_spawn entities
 	local fs = self.entity_manager:findFirstEntityByName( "func_spawn" )
 	if fs then
-		logging.verbose( "setting wave enemies" )
 		fs.max_entities = self.wave_enemies
 	end
 end
@@ -254,12 +253,13 @@ function GameRules:loadMap( mapname )
 
 end
 
-function GameRules:colorForHealth( health )
-	if health > 75 then
+function GameRules:colorForHealth( health, max_health )
+	local health_percent = (health/max_health) * 100
+	if health_percent > 75 then
 		return 0, 255, 0, 255
-	elseif health > 49 then
+	elseif health_percent > 49 then
 		return 255, 255, 0, 255
-	elseif health > 29 then
+	elseif health_percent > 29 then
 		return 255, 128, 0, 255
 	else	
 		return 255, 0, 0, 255

@@ -11,7 +11,7 @@ function Player:initialize()
 end
 
 function Player:onUpdate( params )
-	--local r,g,b,a = params.gamerules:colorForHealth(self.health)
+	--local r,g,b,a = params.gamerules:colorForHealth(self.health, self.max_health)
 	--self.color = {r=r, g=g, b=b, a=a}
 
 	AnimatedSprite.onUpdate(self, params)

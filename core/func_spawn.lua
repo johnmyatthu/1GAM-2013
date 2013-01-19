@@ -37,17 +37,8 @@ function func_spawn:onUpdate( params )
 				--logging.verbose( "-> entity world at " .. entity.world_x .. ", " .. entity.world_y )
 				entity.world_x, entity.world_y = self.gamerules:worldCoordinatesFromTileCenter( self.tile_x, self.tile_y )
 
-				--entity.tile_x, entity.tile_y = self.tile_x, self.tile_y
-
-				--logging.verbose( "-> entity world at " .. entity.world_x .. ", " .. entity.world_y )
-
-				--logging.verbose( "-> now spawning entity..." )
-				entity:onSpawn( {gamerules=self.gamerules, properties=nil} )
-
-				--logging.verbose( "-> entity tile at " .. entity.tile_x .. ", " .. entity.tile_y )
-
-				-- manage this entity
-				self.gamerules.entity_manager:addEntity( entity )			
+				-- use gamerules to spawn this entity
+				params.gamerules:spawnEntity( entity, nil, nil, nil )
 
 				if self.max_entities > 0 then
 					self.max_entities = self.max_entities - 1

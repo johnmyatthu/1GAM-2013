@@ -37,15 +37,16 @@ end
 function Entity:drawHealthBar( params )
 	-- get screen coordinates for this entity
 	local sx, sy = params.gamerules:worldToScreen( self.world_x, self.world_y )
-	local r,g,b,a = params.gamerules:colorForHealth(self.health)
+	local r,g,b,a = params.gamerules:colorForHealth( self.health, self.max_health )
 	local width = 32
 	local x, y = sx-(width/2), sy-self.frame_height
 	local height = 4
+	local health_percent = (self.health / self.max_health)
 	love.graphics.setColor( 0, 0, 0, 192 )
 	love.graphics.rectangle( 'fill', x, y, width, height )
 
 	love.graphics.setColor( r, g, b, a )
-	love.graphics.rectangle( 'fill', x, y, ((self.health*.01)*width), height )
+	love.graphics.rectangle( 'fill', x, y, ((health_percent)*width), height )
 
 	love.graphics.setColor( 255, 255, 255, 255 )	
 end
