@@ -515,9 +515,7 @@ function Game:onMousePressed( params )
 			self.fire = true
 		end	
 	elseif self.state == GAME_STATE_BUILD then
-		local mx, my = love.mouse.getPosition()
-		local tile_id = 7
-		self.gamerules:placeTileAt( mx, my, tile_id )
+		self.gamerules:placeItemAtMouse( "Breakable" )
 	end
 end
 

@@ -20,7 +20,6 @@ function Enemy:initialize()
 
 	self.collision_mask = 2
 	self.health = 1
-
 end
 
 function Enemy:onCollide( params )
@@ -32,14 +31,26 @@ function Enemy:onCollide( params )
 		self.health = self.health - params.other.attack_damage
 		self.time_since_last_hit = 0
 		params.gamerules:playSound( "bullet_enemy_hit" )
-	elseif self.next_attack_time <= 0 then
-		self.next_attack_time = self.attack_delay
-		logging.verbose( "wtf, you're in my way." )
-		params.other:onHit( {attack_damage=self.attack_damage, gamerules=params.gamerules} )
-		self.follow_path = false
-		if params.other.health <= 0 then
-			self.follow_path = true
+	elseif params.other.health > 0 then
+
+		local is_fellow = (self.class.name == params.other.class.name)
+
+		-- this entity is probably in our way...
+		if self.next_attack_time <= 0 then
+			self.next_attack_time = self.attack_delay
+			params.other:onHit( {attack_damage=self.attack_damage, gamerules=params.gamerules} )
+			
+			if params.other.health > 0 and not is_fellow then
+				self.follow_path = false
+			else
+				self.follow_path = true
+			end
 		end
+
+		-- stop, we found our target
+		if params.other == self.target then
+			self.follow_path = false
+		end		
 	end
 
 	Entity.onCollide( self, params )
@@ -59,7 +70,7 @@ function Enemy:onSpawn( params )
 		--logging.verbose( "I am at " .. self.tile_x .. ", " .. self.tile_y )
 		--logging.verbose( "Target is at " .. target.tile_x .. ", " .. target.tile_y )
 
-		local path, cost = params.gamerules:getPath( self.tile_x, self.tile_y, target.tile_x+1, target.tile_y )
+		local path, cost = params.gamerules:getPath( self.tile_x, self.tile_y, target.tile_x, target.tile_y )
 		--logging.verbose( path )
 		--logging.verbose( cost )
 		self:setPath( path )

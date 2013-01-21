@@ -1,28 +1,21 @@
 require "core"
 require "core.baseentity"
 
-
-Blockade = class( "Blockade", AnimatedSprite )
-
-
-
-function Blockade:initialize()
+Breakable = class( "Breakable", AnimatedSprite )
+function Breakable:initialize()
 	AnimatedSprite:initialize(self)
-
 	self.collision_mask = 2
-	self.frame_width = 32
-	self.frame_height = 32
+	self.break_sound = "break1"
 end
 
-
-function Blockade:onDraw( params )
+function Breakable:onDraw( params )
 	if params.gamestate == GAME_STATE_DEFEND then
 		AnimatedSprite.drawHealthBar( self, params )
 	end
 	AnimatedSprite.onDraw( self, params )
 end
 
-function Blockade:onHit( params )
+function Breakable:onHit( params )
 	--logging.verbose( "Hit target for " .. tostring(params.attack_damage) .. " damage!" )
 
 	if self.health > 0 then
@@ -34,6 +27,11 @@ function Blockade:onHit( params )
 	end
 
 	if self.health == 0 then
+		params.gamerules:playSound( self.break_sound )
+		local cl = params.gamerules.collision_layer
+		if cl then
+			cl:set( self.tile_x, self.tile_y, nil )
+		end
 		params.gamerules:removeEntity( self )
 	end
 end

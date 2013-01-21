@@ -40,7 +40,7 @@ function GameRules:initialize()
 	self.entity_factory:registerClass( "func_target", core.func_target )
 	self.entity_factory:registerClass( "Bullet", core.Bullet )
 	self.entity_factory:registerClass( "Player", core.Player )
-	self.entity_factory:registerClass( "Blockade", core.Blockade )
+	self.entity_factory:registerClass( "Breakable", core.Breakable )
 
 	self.sounds = {}
 	self:loadSounds( "assets/sounds/sounds.conf" )
@@ -160,40 +160,49 @@ function GameRules:updateCollision( params )
 		end	end	)
 end
 
-function GameRules:placeTileAt()
+function GameRules:placeItemAtMouse( classname )
 	local width = nil
 	local height = nil
 	local properties = { walkable=true }
-	local t = Tile:new( 99, {}, {}, width, height, properties )
-
 	local mx, my = love.mouse.getPosition()
 	local tx, ty = self:tileCoordinatesFromMouse( mx, my )
 
-	if self.collision_layer then
-		logging.verbose( "placed tile at: " .. tx .. ", " .. ty )
-		self.collision_layer:set( tx, ty, t )
+	if self:isTileWalkable( tx, ty ) then
+
+		local t = Tile:new( 99, {}, {}, width, height, properties )
+
+		if self.collision_layer then
+			--logging.verbose( "placed tile at: " .. tx .. ", " .. ty )
+			self.collision_layer:set( tx, ty, t )
+		end
+
+		local item = self.entity_factory:createClass( classname )
+		if item then
+			logging.verbose( "placing item: " .. classname )
+			local wx, wy = self:worldCoordinatesFromTileCenter( tx, ty )
+			item:loadSprite( "assets/sprites/items.conf" )
+			item:playAnimation( classname )
+			self:spawnEntity( item, wx, wy, nil )
+
+			-- we need to make something appear
+			if false and self.map.layers[ MAP_GROUND_LAYER_NAME ] then
+				local ground = self.map.layers[ MAP_GROUND_LAYER_NAME ]
+
+				local first_set = self.map.tilesets["orthotiles"]
+
+				local gid = 30
+				-- gid = first_set.firstgid
+				local basetile = self.map.tiles[ gid ]
+				ground:set( tx, ty, basetile )
+			end
+		end
 	end
+end
 
-	local blockade = self.entity_factory:createClass( "Blockade" )
-
-	logging.verbose( "spawning blockade" )
-	local wx, wy = self:worldCoordinatesFromTileCenter( tx, ty )
-	blockade:loadSprite( "assets/sprites/items.conf" )
-	blockade:playAnimation( "Blockade" )
-	self:spawnEntity( blockade, wx, wy, nil )
-
-
-	-- we need to make something appear
-	if false and self.map.layers[ MAP_GROUND_LAYER_NAME ] then
-		local ground = self.map.layers[ MAP_GROUND_LAYER_NAME ]
-
-		local first_set = self.map.tilesets["orthotiles"]
-
-		local gid = 30
-		-- gid = first_set.firstgid
-		local basetile = self.map.tiles[ gid ]
-		ground:set( tx, ty, basetile )
-	end
+function GameRules:removeItemAtMouse()
+	local mx, my = love.mouse.getPosition()
+	local tx, ty = self:tileCoordinatesFromMouse( mx, my )
+	-- ...	
 end
 
 function GameRules:updateWalkableMap( )
@@ -478,9 +487,9 @@ function GameRules:spawnEntityAtTileWithProperties( layer, tile_x, tile_y, prope
 
 				-- if an entity spawns with a valid collision mask
 				-- make sure we place a collision tile at its location
-				if entity.collision_mask > 0 then
-					self.collision_layer:set( tile_x, tile_y, self.basic_collision_tile )
-				end
+				--if entity.collision_mask > 0 then
+				--	self.collision_layer:set( tile_x, tile_y, self.basic_collision_tile )
+				--end
 			end
 		end
 	else

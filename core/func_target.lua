@@ -4,7 +4,7 @@ func_target = class( "func_target", AnimatedSprite )
 function func_target:initialize()
 	AnimatedSprite:initialize(self)
 
-	self.collision_mask = 10
+	self.collision_mask = 3
 
 	self.health = 100
 end
@@ -24,10 +24,6 @@ function func_target:onHit( params )
 		if self.health < 0 then
 			self.health = 0
 		end
-	end
-
-	if self.health == 0 then
-		--params.gamerules:removeEntity( self )
 	end
 end
 
