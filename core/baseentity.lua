@@ -93,7 +93,7 @@ function Entity:__tostring()
 end
 
 function Entity:onDraw( params )
-	--[[
+	
 	local color = {r=255, g=0, b=0, a=128}
 	love.graphics.setColor(color.r, color.g, color.b, color.a)
 	a,b,c,d = self:getAABB()
@@ -104,7 +104,7 @@ function Entity:onDraw( params )
 	love.graphics.rectangle( "line", sx, sy, sw-sx, d-b )
 
 	love.graphics.setColor(255, 255, 255, 255)
-	--]]
+	
 end
 
 function Entity:onCollide( params )

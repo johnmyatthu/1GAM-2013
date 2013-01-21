@@ -20,6 +20,7 @@ function Enemy:initialize()
 
 	self.collision_mask = 2
 	self.health = 1
+
 end
 
 function Enemy:onCollide( params )
@@ -31,6 +32,14 @@ function Enemy:onCollide( params )
 		self.health = self.health - params.other.attack_damage
 		self.time_since_last_hit = 0
 		params.gamerules:playSound( "bullet_enemy_hit" )
+	elseif self.next_attack_time <= 0 then
+		self.next_attack_time = self.attack_delay
+		logging.verbose( "wtf, you're in my way." )
+		params.other:onHit( {attack_damage=self.attack_damage, gamerules=params.gamerules} )
+		self.follow_path = false
+		if params.other.health <= 0 then
+			self.follow_path = true
+		end
 	end
 
 	Entity.onCollide( self, params )
@@ -68,6 +77,8 @@ function Enemy:onUpdate( params )
 		self.color = { r=255, g=255, b=255, a=255 }
 	end
 
+	self.next_attack_time = self.next_attack_time - params.dt
+
 	if self.target then
 		-- calculate distance to target
 		local dx, dy = (self.target.tile_x - self.tile_x), (self.target.tile_y - self.tile_y)
@@ -76,7 +87,7 @@ function Enemy:onUpdate( params )
 			--logging.verbose( "I am at " .. self.tile_x .. ", " .. self.tile_y )
 			-- within range to attack
 
-			self.next_attack_time = self.next_attack_time - params.dt
+			
 			if self.next_attack_time <= 0 then
 				self.next_attack_time = self.attack_delay
 

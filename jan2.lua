@@ -26,7 +26,7 @@ local ACTION_MOVE_PLAYER_DOWN = "move_player_down"
 local GAME_BUILD_TIME = 25
 
 -- amount of time in seconds before defend round starts after build round ends
-local GAME_BUILD_DEFEND_TRANSITION_TIME = 2
+local GAME_BUILD_DEFEND_TRANSITION_TIME = 0.2
 
 -- Game class
 Game = class( "Game" )
@@ -103,6 +103,7 @@ function Game:nextState()
 		self.timer = GAME_BUILD_DEFEND_TRANSITION_TIME
 		self:warpPlayerToSpawn( player )
 		self.gamerules:prepareForNextWave()
+		self.gamerules:updateWalkableMap()
 		love.mouse.setVisible( false )
 	elseif self.state == GAME_STATE_PRE_DEFEND then
 		self.state = GAME_STATE_DEFEND
@@ -501,7 +502,6 @@ function Game:onMousePressed( params )
 	--logging.verbose( "Game onMousePressed" )
 
 
-
 	if params.button == "m" then
 		-- enter drag mode
 		map_drag.startX = params.x
@@ -509,9 +509,16 @@ function Game:onMousePressed( params )
 		map_drag.isDragging = true
 	end
 
-	if params.button == "l" then
-		self.fire = true
-	end	
+	if self.state == GAME_STATE_DEFEND then
+
+		if params.button == "l" then
+			self.fire = true
+		end	
+	elseif self.state == GAME_STATE_BUILD then
+		local mx, my = love.mouse.getPosition()
+		local tile_id = 7
+		self.gamerules:placeTileAt( mx, my, tile_id )
+	end
 end
 
 function Game:onMouseReleased( params )

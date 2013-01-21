@@ -2,10 +2,12 @@ module( ..., package.seeall )
 require "core"
 Jumper = require "lib.jumper.jumper"
 loader = require "lib.AdvTiledLoader.Loader"
+Tile = require "lib.AdvTiledLoader.Tile"
 require "lib.luabit.bit"
 local SH = require( "lib.broadphase.spatialhash" )
 
 local MAP_COLLISION_LAYER_NAME = "Collision"
+local MAP_GROUND_LAYER_NAME = "Ground"
 
 
 GameRules = class( "GameRules" )
@@ -38,6 +40,7 @@ function GameRules:initialize()
 	self.entity_factory:registerClass( "func_target", core.func_target )
 	self.entity_factory:registerClass( "Bullet", core.Bullet )
 	self.entity_factory:registerClass( "Player", core.Player )
+	self.entity_factory:registerClass( "Blockade", core.Blockade )
 
 	self.sounds = {}
 	self:loadSounds( "assets/sounds/sounds.conf" )
@@ -98,6 +101,8 @@ function GameRules:prepareForNextWave()
 	end
 end
 
+
+
 function GameRules:beatLastWave()
 	return self.level >= self.total_waves
 end
@@ -155,7 +160,101 @@ function GameRules:updateCollision( params )
 		end	end	)
 end
 
+function GameRules:placeTileAt()
+	local width = nil
+	local height = nil
+	local properties = { walkable=true }
+	local t = Tile:new( 99, {}, {}, width, height, properties )
 
+	local mx, my = love.mouse.getPosition()
+	local tx, ty = self:tileCoordinatesFromMouse( mx, my )
+
+	if self.collision_layer then
+		logging.verbose( "placed tile at: " .. tx .. ", " .. ty )
+		self.collision_layer:set( tx, ty, t )
+	end
+
+	local blockade = self.entity_factory:createClass( "Blockade" )
+
+	logging.verbose( "spawning blockade" )
+	local wx, wy = self:worldCoordinatesFromTileCenter( tx, ty )
+	blockade:loadSprite( "assets/sprites/items.conf" )
+	blockade:playAnimation( "Blockade" )
+	self:spawnEntity( blockade, wx, wy, nil )
+
+
+	-- we need to make something appear
+	if false and self.map.layers[ MAP_GROUND_LAYER_NAME ] then
+		local ground = self.map.layers[ MAP_GROUND_LAYER_NAME ]
+
+		local first_set = self.map.tilesets["orthotiles"]
+
+		local gid = 30
+		-- gid = first_set.firstgid
+		local basetile = self.map.tiles[ gid ]
+		ground:set( tx, ty, basetile )
+	end
+end
+
+function GameRules:updateWalkableMap( )
+	local walkable_map = {}
+	if self.collision_layer then
+		-- hide collision layer by default
+		self.collision_layer.visible = false
+
+		-- use collision map for path finding
+		for y=1, self.map.height do
+			local row = {}
+			for x=1, self.map.width do
+				local tile = self.collision_layer( x, y )
+
+
+				local is_blocked = 0
+				if tile then
+					--logging.verbose( "tile: " .. x .. ", " .. y )
+					is_blocked = 1
+
+					if tile.properties then
+						--logging.verbose( "printing tile properties: " )
+						--for key, value in pairs(tile.properties) do
+						--	logging.verbose( key .. " -> " .. tostring(value) )
+						--end
+
+						if tile.properties.walkable then
+							is_blocked = 0
+						end
+					end
+				end
+
+				-- insert the value into this row
+				table.insert( row, is_blocked )			
+			end
+			-- insert this row into the grid
+			table.insert( walkable_map, row )		
+		end
+	end
+
+
+	if #walkable_map > 0 then
+		self.pathfinder = Jumper( walkable_map, 0, true )
+		--self.pathfinder:setHeuristic( "DIAGONAL" )
+		self.pathfinder:setMode( "ORTHOGONAL" )
+	end
+	
+	--self.pathfinder:setAutoFill( true )
+
+	--[[
+	local path, cost = self.pathfinder:getPath( 1, 1, 23, 23 )
+
+	-- print out all steps in the path
+	if path and cost then
+		for a, b in pairs(path) do
+			--logging.verbose( "i: " .. a .. " -> " .. b )
+			logging.verbose( "step " .. a .. " ( " .. b.x .. ", " .. b.y .. " )" )
+		end
+	end
+	--]]
+end
 
 function GameRules:loadMap( mapname )
 	loader.path = "assets/maps/"
@@ -220,64 +319,7 @@ function GameRules:loadMap( mapname )
 		end
 	end
 
-	local walkable_map = {}
-	if self.collision_layer then
-		-- hide collision layer by default
-		self.collision_layer.visible = false
-
-		-- use collision map for path finding
-		for y=1, self.map.height do
-			local row = {}
-			for x=1, self.map.width do
-				local tile = self.collision_layer( x, y )
-
-
-				local is_blocked = 0
-				if tile then
-					is_blocked = 1
-
-					if tile.properties then
-						--for key, value in pairs(tile.properties) do
-						--	logging.verbose( key .. " -> " .. tostring(value) )
-						--end
-						if tile.properties.walkable then
-							is_blocked = 0
-						end
-					end
-				end
-
-				-- insert the value into this row
-				table.insert( row, is_blocked )			
-			end
-			-- insert this row into the grid
-			table.insert( walkable_map, row )		
-		end
-	end
-
-
-
-
-	if #walkable_map > 0 then
-		self.pathfinder = Jumper( walkable_map, 0, true )
-		--self.pathfinder:setHeuristic( "DIAGONAL" )
-		self.pathfinder:setMode( "ORTHOGONAL" )
-	end
-	
-	--self.pathfinder:setAutoFill( true )
-
-	--[[
-	local path, cost = self.pathfinder:getPath( 1, 1, 23, 23 )
-
-	-- print out all steps in the path
-	if path and cost then
-		for a, b in pairs(path) do
-			--logging.verbose( "i: " .. a .. " -> " .. b )
-			logging.verbose( "step " .. a .. " ( " .. b.x .. ", " .. b.y .. " )" )
-		end
-	end
-	--]]
-
-	
+	self:updateWalkableMap()
 
 end
 
