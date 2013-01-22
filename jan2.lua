@@ -353,7 +353,8 @@ function Game:onDraw( params )
 	--love.graphics.print( "velocity.x: " .. player.velocity.x, 20, 290 )
 	--love.graphics.print( "velocity.y: " .. player.velocity.y, 20, 310 )
 
-	
+	local mem, ters = gcinfo()
+	love.graphics.print( "mem used: " .. mem, 10, 10 )
 
 	if self.state == GAME_STATE_DEFEND then
 		self:updatePlayerDirection()
@@ -515,7 +516,11 @@ function Game:onMousePressed( params )
 			self.fire = true
 		end	
 	elseif self.state == GAME_STATE_BUILD then
-		self.gamerules:placeItemAtMouse( "Breakable" )
+		if params.button == "l" then
+			self.gamerules:placeItemAtMouse( "Breakable" )
+		elseif params.button == "r" then
+			self.gamerules:removeItemAtMouse()
+		end
 	end
 end
 

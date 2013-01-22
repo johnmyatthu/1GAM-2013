@@ -35,7 +35,6 @@
   <tile id="3">
    <properties>
     <property name="classname" value="func_spawn"/>
-    <property name="max_entities" value="-1"/>
     <property name="spawn_class" value="Enemy"/>
     <property name="spawn_time" value="0.5"/>
    </properties>
@@ -48,7 +47,7 @@
  </layer>
  <layer name="Game" width="25" height="25">
   <data encoding="base64" compression="zlib">
-   eJxjYBheQHIA7JQeADtHwSgYqkBmoB0wCkbBKBgFwwQAAGP2AFE=
+   eJxjYBheQJJMfTIU2ClNgd5RgAooiYdRMDTAaByPglEwCkYBdQAAIlQAiQ==
   </data>
  </layer>
  <layer name="Collision" width="25" height="25">

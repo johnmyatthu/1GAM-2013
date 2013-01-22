@@ -84,9 +84,13 @@ function GameRules:prepareForNextWave()
 
 	--logging.verbose( "Preparing for wave: " .. self.level )
 	
+	-- gather all spawns
+	
+	local wave_enemies = 0
 	if self.data[ "waves" ] and self.data[ "waves" ][ self.level ] then
 		local wave_data = self.data[ "waves" ][ self.level ]
-		self.wave_enemies = wave_data.wave_enemies
+		wave_enemies = wave_data.wave_enemies
+		
 		self.total_waves = #self.data[ "waves" ]
 		self.current_enemy_value = wave_data.enemy_value
 		self.target_bonus = wave_data.target_bonus
@@ -95,10 +99,13 @@ function GameRules:prepareForNextWave()
 	end
 
 	-- update func_spawn entities
-	local fs = self.entity_manager:findFirstEntityByName( "func_spawn" )
-	if fs then
-		fs.max_entities = self.wave_enemies
+	local spawns = self.entity_manager:findAllEntitiesByName( "func_spawn" )
+	for _,fs in pairs(spawns) do
+		fs.max_entities = wave_enemies
 	end
+
+	-- update the total here
+	self.wave_enemies = wave_enemies * #spawns
 end
 
 
@@ -110,7 +117,7 @@ end
 function GameRules:updateScore( target )
 	-- this takes into account the target health and scales the bonus value based on that percentage
 	local health_percent = target.health / target.max_health
-	self.last_bonus = health_percent * self.target_bonus
+	self.last_bonus = math.floor(health_percent * self.target_bonus)
 	self.total_score = self.total_score + self.last_bonus
 end
 
@@ -298,33 +305,19 @@ function GameRules:loadMap( mapname )
 		end
 	end	
 
-	-- scan through map properties
-	class_tiles = {}
-	for id, tile in pairs(self.map.tiles) do
-		for key, value in pairs(tile.properties) do
-			--logging.verbose( key .. " -> " .. value .. "; tile: " .. tile.id )
-			if not class_tiles[ tile.id ] then
-				class_tiles[ tile.id ] = {}
+
+
+	local game_layer = self.map.layers[ "Game" ]
+	if game_layer then
+		for x, y, tile in game_layer:iterate() do
+			--logging.verbose( "Properties for tile at: " .. x .. ", " .. y )
+			properties = {}
+			for key,value in pairs( tile.properties ) do
+				--logging.verbose( key .. " -> " .. value )
+				properties[ key ] = value
 			end
 
-			class_tiles[ tile.id ][ key ] = value
-		end
-	end
-
-	-- iterate through all layers
-	for name, layer in pairs(self.map.layers) do
-		--logging.verbose( "Searching in layer: " .. name )
-		for x, y, tile in layer:iterate() do
-			if tile then
-				if class_tiles[ tile.id ] then
-					--logging.verbose( "Properties for tile at: " .. x .. ", " .. y )
-					--for key,value in pairs( class_tiles[ tile.id ] ) do
-					--	logging.verbose( key .. " -> " .. value )
-					--end
-
-					self:spawnEntityAtTileWithProperties( layer, x, y, class_tiles[ tile.id ] )
-				end
-			end
+			self:spawnEntityAtTileWithProperties( game_layer, x, y, properties )
 		end
 	end
 
@@ -729,6 +722,17 @@ function EntityManager:findFirstEntityByName( name )
 	end
 
 	return nil
+end
+
+function EntityManager:findAllEntitiesByName( name )
+	local entities = {}
+	for index, entity in pairs(self.entity_list) do
+		if entity.class.name == name then
+			table.insert( entities, entity )
+		end
+	end
+
+	return entities
 end
 
 function EntityManager:allEntities()
