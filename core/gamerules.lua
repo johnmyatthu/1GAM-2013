@@ -306,7 +306,6 @@ function GameRules:loadMap( mapname )
 	end	
 
 
-
 	local game_layer = self.map.layers[ "Game" ]
 	if game_layer then
 		for x, y, tile in game_layer:iterate() do

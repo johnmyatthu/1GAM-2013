@@ -20,9 +20,12 @@ function Enemy:initialize()
 
 	self.collision_mask = 2
 	self.health = 1
+
+	self.obstruction = nil
 end
 
 function Enemy:onCollide( params )
+	--logging.verbose( "Enemy onCollide with: " .. tostring(params.other) )
 	if params.other and params.other.class.name == "Bullet" then
 		self.color = {r=255, g=0, b=0, a=255}
 		params.gamerules:removeEntity( params.other )
@@ -31,17 +34,17 @@ function Enemy:onCollide( params )
 		self.health = self.health - params.other.attack_damage
 		self.time_since_last_hit = 0
 		params.gamerules:playSound( "bullet_enemy_hit" )
-	elseif params.other.health > 0 then
-
-		local is_fellow = (self.class.name == params.other.class.name)
+	elseif params.other.health > 0 and (self.class.name ~= params.other.class.name) then
 
 		-- this entity is probably in our way...
 		if self.next_attack_time <= 0 then
 			self.next_attack_time = self.attack_delay
 			params.other:onHit( {attack_damage=self.attack_damage, gamerules=params.gamerules} )
 			
-			if params.other.health > 0 and not is_fellow then
+			if params.other.health > 0 then
+				logging.verbose( "stopping because i ran into something" )
 				self.follow_path = false
+				self.obstruction = params.other
 			else
 				self.follow_path = true
 			end
@@ -49,6 +52,7 @@ function Enemy:onCollide( params )
 
 		-- stop, we found our target
 		if params.other == self.target then
+			logging.verbose( "stopping because i ran into the TARGET" )
 			self.follow_path = false
 		end		
 	end
@@ -59,7 +63,7 @@ end
 function Enemy:onSpawn( params )
 
 	self:loadSprite( "assets/sprites/critters.conf" )
-	self:playAnimation( "two" )
+	self:playAnimation( "one" )
 	--self.class.super:onSpawn( params )
 	PathFollower.onSpawn( self, params )
 
@@ -80,6 +84,13 @@ function Enemy:onSpawn( params )
 		logging.verbose( "Unable to find target." )
 	end
 end
+
+function Enemy:calculateDistanceToTarget( target )
+	local dx, dy = (target.world_x - self.world_x), (target.world_y - self.world_y)
+	local length = math.sqrt( (dx*dx) + (dy*dy) )
+	return length
+end
+
 
 function Enemy:onUpdate( params )
 	
@@ -129,7 +140,16 @@ function Enemy:onUpdate( params )
 		params.gamerules:removeEntity( self )
 	end
 
+	if self.obstruction then
+		local dist = self:calculateDistanceToTarget( self.obstruction )
+		logging.verbose( "dist: " .. dist )
+		--if dist > 33 then
+		--	self.follow_path = true
+		--end
+	end
+
 	PathFollower.onUpdate( self, params )
+
 end
 
 
