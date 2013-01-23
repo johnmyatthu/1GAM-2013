@@ -83,17 +83,6 @@ function Enemy:onSpawn( params )
 	end
 end
 
-function Enemy:calculateDistanceToTarget( target )
-	if target then
-		local dx, dy = (target.world_x - self.world_x), (target.world_y - self.world_y)
-		local length = math.sqrt( (dx*dx) + (dy*dy) )
-		return length
-	end
-
-	return 0
-end
-
-
 function Enemy:onUpdate( params )
 	
 	if params.gamestate ~= core.GAME_STATE_DEFEND then

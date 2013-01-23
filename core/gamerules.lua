@@ -50,6 +50,7 @@ function GameRules:initialize()
 
 	self.place_points = 2
 	self.point_base = 0
+	self.target = nil
 end
 
 function GameRules:loadSounds( path )
@@ -187,9 +188,9 @@ function GameRules:placeItemAtMouse( classname )
 
 
 	if self.place_points > 0 then
-		self.place_points = self.place_points - 1
-		if self:isTileWalkable( tx, ty ) then
-
+		
+		if self:isTilePlaceable( tx, ty ) then
+			self.place_points = self.place_points - 1
 			local t = Tile:new( 99, {}, {}, width, height, properties )
 
 			if self.collision_layer then
@@ -341,7 +342,7 @@ function GameRules:loadMap( mapname )
 	end
 
 	self:updateWalkableMap()
-
+	self.target = self.entity_manager:findFirstEntityByName( "func_target" )
 end
 
 function GameRules:colorForHealth( health, max_health )
@@ -388,6 +389,10 @@ function GameRules:getCollisionTile( tx, ty )
 	return nil
 end
 
+function GameRules:calculateEntityDistanceToTarget( tile_x, tile_y )
+	return (self.target.tile_x - tile_x), (self.target.tile_y - tile_y)
+end
+
 -- these two functions are identical right now, but this may change...
 function GameRules:isTilePlaceable( tile_x, tile_y )
 	if not self:isTileWithinMap( tile_x, tile_y ) then
@@ -395,6 +400,12 @@ function GameRules:isTilePlaceable( tile_x, tile_y )
 	end
 
 	if self.place_points == 0 then
+		return false
+	end
+
+	-- don't let player place tile too close to target
+	local dx, dy = self:calculateEntityDistanceToTarget( tile_x, tile_y )
+	if math.abs(dx) < 2 and math.abs(dy) < 2 then
 		return false
 	end
 
