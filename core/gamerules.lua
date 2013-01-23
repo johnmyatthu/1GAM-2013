@@ -49,6 +49,7 @@ function GameRules:initialize()
 	self:loadData( "assets/gamerules.conf" )
 
 	self.place_points = 2
+	self.point_base = 0
 end
 
 function GameRules:loadSounds( path )
@@ -80,6 +81,14 @@ function GameRules:loadData( path )
 	end
 end
 
+function GameRules:preparePlayerForNextWave( player )
+	local pd = self:dataForKeyLevel( "Player", 1 )
+	if pd then
+		player.attack_damage = pd.attack_damage + (self.place_points / (self.point_base+1))
+		logging.verbose( "Attack damage is: " .. player.attack_damage )
+	end
+end
+
 function GameRules:prepareForNextWave()
 	self.level = self.level + 1
 	self.enemies_destroyed = 0
@@ -96,6 +105,7 @@ function GameRules:prepareForNextWave()
 		self.total_waves = #self.data[ "waves" ]
 		self.current_enemy_value = wave_data.enemy_value
 		self.target_bonus = wave_data.target_bonus
+		self.point_base = wave_data.point_base
 	else
 		logging.warning( "Unable to load data for wave '" .. self.level .. "'" )
 	end

@@ -101,7 +101,8 @@ function Game:nextState()
 	if self.state == GAME_STATE_BUILD then
 		self.state = GAME_STATE_PRE_DEFEND
 		self.timer = GAME_BUILD_DEFEND_TRANSITION_TIME
-		self:warpPlayerToSpawn( player )
+		
+		self:preparePlayerForNextWave( player )
 		self.gamerules:prepareForNextWave()
 		self.gamerules:updateWalkableMap()
 		love.mouse.setVisible( false )
@@ -118,6 +119,11 @@ function Game:nextState()
 	end
 end
 
+function Game:preparePlayerForNextWave( player )
+	self:warpPlayerToSpawn( player )
+
+	self.gamerules:preparePlayerForNextWave( player )
+end
 
 function Game:keyForAction( action )
 	return self.key_for_action[ action ]
@@ -369,7 +375,7 @@ function Game:onDraw( params )
 
 	
 
-		love.graphics.print( "Wave: " .. tostring(self.gamerules.level), 710, 570 )
+		love.graphics.printf( "Wave: " .. tostring(self.gamerules.level) .. ", Enemies: " .. tostring(self.gamerules.wave_enemies), -15, 570, love.graphics.getWidth(), "right" )
 
 	elseif self.state == GAME_STATE_BUILD or self.state == GAME_STATE_PRE_DEFEND then
 		love.graphics.setColor( 0, 0, 0, 128 )
@@ -379,15 +385,18 @@ function Game:onDraw( params )
 
 		if self.state == GAME_STATE_BUILD then
 			love.graphics.setColor( 255, 255, 255, 255 )
-			love.graphics.printf( "BUILD YOUR DEFENSES", 0, 490, love.graphics.getWidth(), "center" )
-
+			love.graphics.setFont( self.fonts[ "text2" ] )
+			love.graphics.printf( "Left Mouse: Place Barricade", 0, 490, love.graphics.getWidth(), "center" )
+			love.graphics.printf( "Unspent points contribute to your attack damage and fire rate", 0, 520, love.graphics.getWidth(), "center" )
 			local r,g,b,a = self.gamerules:colorForTimer(math.floor(self.timer))
+			love.graphics.setFont( self.fonts[ "text3" ] )
 			love.graphics.setColor( r, g, b, a )
 			love.graphics.printf( math.floor(self.timer), 0, 540, love.graphics.getWidth(), "center" )
 			--love.graphics.print( math.floor(self.timer), 380, 540 )
 
+			love.graphics.setColor( 255, 255, 255, 255 )
 			love.graphics.setFont( self.fonts[ "text2" ] )
-			love.graphics.print( "Points: " .. tostring(self.gamerules.place_points), 10, 570 )
+			love.graphics.print( "ItemPoints: " .. tostring(self.gamerules.place_points), 10, 570 )
 		else
 			love.graphics.setColor( 0, 255, 255, 255 )
 			love.graphics.printf( "GET READY", 0, 510, love.graphics.getWidth(), "center" )

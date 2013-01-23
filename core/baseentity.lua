@@ -39,8 +39,11 @@ function Entity:drawHealthBar( params )
 	local sx, sy = params.gamerules:worldToScreen( self.world_x, self.world_y )
 	local r,g,b,a = params.gamerules:colorForHealth( self.health, self.max_health )
 
-	local x, y = sx-(HEALTH_BAR_WIDTH/2), sy-self.frame_height
+	local x, y = sx-(HEALTH_BAR_WIDTH/2), sy+(self.frame_height/2)
 	local height = 4
+	if self.health < 0 then
+		self.health = 0
+	end
 	local health_percent = (self.health / self.max_health)
 	love.graphics.setColor( 0, 0, 0, 192 )
 	love.graphics.rectangle( 'fill', x, y, HEALTH_BAR_WIDTH, height )
@@ -93,7 +96,9 @@ function Entity:__tostring()
 end
 
 function Entity:onDraw( params )
-	
+
+	-- uncomment this to draw collision bounds
+	--[[
 	local color = {r=255, g=0, b=0, a=128}
 	love.graphics.setColor(color.r, color.g, color.b, color.a)
 	a,b,c,d = self:getAABB()
@@ -104,7 +109,7 @@ function Entity:onDraw( params )
 	love.graphics.rectangle( "line", sx, sy, sw-sx, d-b )
 
 	love.graphics.setColor(255, 255, 255, 255)
-	
+	--]]
 end
 
 function Entity:onCollide( params )
