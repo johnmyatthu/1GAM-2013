@@ -367,6 +367,8 @@ function Game:onDraw( params )
 		love.graphics.setColor( 255, 255, 255, 255 )
 		love.graphics.print( "Enemies Taken Out: " .. tostring(self.gamerules.enemies_destroyed), 10, 570 )
 
+	
+
 		love.graphics.print( "Wave: " .. tostring(self.gamerules.level), 710, 570 )
 
 	elseif self.state == GAME_STATE_BUILD or self.state == GAME_STATE_PRE_DEFEND then
@@ -383,6 +385,9 @@ function Game:onDraw( params )
 			love.graphics.setColor( r, g, b, a )
 			love.graphics.printf( math.floor(self.timer), 0, 540, love.graphics.getWidth(), "center" )
 			--love.graphics.print( math.floor(self.timer), 380, 540 )
+
+			love.graphics.setFont( self.fonts[ "text2" ] )
+			love.graphics.print( "Points: " .. tostring(self.gamerules.place_points), 10, 570 )
 		else
 			love.graphics.setColor( 0, 255, 255, 255 )
 			love.graphics.printf( "GET READY", 0, 510, love.graphics.getWidth(), "center" )
@@ -517,7 +522,9 @@ function Game:onMousePressed( params )
 		end	
 	elseif self.state == GAME_STATE_BUILD then
 		if params.button == "l" then
-			self.gamerules:placeItemAtMouse( "Breakable" )
+			if self.gamerules:placeItemAtMouse( "Breakable" ) then
+				self.gamerules:playSound("place_item")
+			end
 		elseif params.button == "r" then
 			self.gamerules:removeItemAtMouse()
 		end

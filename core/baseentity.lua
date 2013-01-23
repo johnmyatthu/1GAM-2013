@@ -23,7 +23,6 @@ function Entity:initialize()
 	self.health_regen_rate = 0 -- the rate (hit points per second) at which this entity will regenerate health
 	self.time_since_last_hit = 0 -- the amount of time in seconds since this entity was last hit
 	self.time_until_health_regen = 1 -- how much time is needed since last hit to start regenerating health
-
 end
 
 -- this can be overridden in order to skip drawing, for example.

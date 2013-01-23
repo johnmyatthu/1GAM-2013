@@ -1,6 +1,6 @@
 module( ..., package.seeall )
 require "core"
-Jumper = require "lib.jumper.jumper"
+local Pathfinder = require "lib.jumper.jumper.pathfinder"
 loader = require "lib.AdvTiledLoader.Loader"
 Tile = require "lib.AdvTiledLoader.Tile"
 require "lib.luabit.bit"
@@ -47,6 +47,8 @@ function GameRules:initialize()
 
 	self.data = {}
 	self:loadData( "assets/gamerules.conf" )
+
+	self.place_points = 2
 end
 
 function GameRules:loadSounds( path )
@@ -119,6 +121,7 @@ function GameRules:updateScore( target )
 	local health_percent = target.health / target.max_health
 	self.last_bonus = math.floor(health_percent * self.target_bonus)
 	self.total_score = self.total_score + self.last_bonus
+	self.place_points = self.place_points + self.wave_enemies
 end
 
 function GameRules:dataForKeyLevel( key, level )
@@ -133,8 +136,6 @@ function GameRules:onEnemyDestroyed( entity )
 	self.enemies_destroyed = self.enemies_destroyed + 1
 	self.total_score = self.total_score + self.current_enemy_value
 end
-
-
 
 
 
@@ -174,36 +175,44 @@ function GameRules:placeItemAtMouse( classname )
 	local mx, my = love.mouse.getPosition()
 	local tx, ty = self:tileCoordinatesFromMouse( mx, my )
 
-	if self:isTileWalkable( tx, ty ) then
 
-		local t = Tile:new( 99, {}, {}, width, height, properties )
+	if self.place_points > 0 then
+		self.place_points = self.place_points - 1
+		if self:isTileWalkable( tx, ty ) then
 
-		if self.collision_layer then
-			--logging.verbose( "placed tile at: " .. tx .. ", " .. ty )
-			self.collision_layer:set( tx, ty, t )
-		end
+			local t = Tile:new( 99, {}, {}, width, height, properties )
 
-		local item = self.entity_factory:createClass( classname )
-		if item then
-			logging.verbose( "placing item: " .. classname )
-			local wx, wy = self:worldCoordinatesFromTileCenter( tx, ty )
-			item:loadSprite( "assets/sprites/items.conf" )
-			item:playAnimation( classname )
-			self:spawnEntity( item, wx, wy, nil )
+			if self.collision_layer then
+				--logging.verbose( "placed tile at: " .. tx .. ", " .. ty )
+				self.collision_layer:set( tx, ty, t )
+			end
 
-			-- we need to make something appear
-			if false and self.map.layers[ MAP_GROUND_LAYER_NAME ] then
-				local ground = self.map.layers[ MAP_GROUND_LAYER_NAME ]
+			local item = self.entity_factory:createClass( classname )
+			if item then
+				--logging.verbose( "placing item: " .. classname )
+				local wx, wy = self:worldCoordinatesFromTileCenter( tx, ty )
+				item:loadSprite( "assets/sprites/items.conf" )
+				item:playAnimation( classname )
+				self:spawnEntity( item, wx, wy, nil )
 
-				local first_set = self.map.tilesets["orthotiles"]
+				-- we need to make something appear
+				if false and self.map.layers[ MAP_GROUND_LAYER_NAME ] then
+					local ground = self.map.layers[ MAP_GROUND_LAYER_NAME ]
 
-				local gid = 30
-				-- gid = first_set.firstgid
-				local basetile = self.map.tiles[ gid ]
-				ground:set( tx, ty, basetile )
+					local first_set = self.map.tilesets["orthotiles"]
+
+					local gid = 30
+					-- gid = first_set.firstgid
+					local basetile = self.map.tiles[ gid ]
+					ground:set( tx, ty, basetile )
+				end
+
+				return true
 			end
 		end
 	end
+
+	return false
 end
 
 function GameRules:removeItemAtMouse()
@@ -224,13 +233,13 @@ function GameRules:updateWalkableMap( )
 			for x=1, self.map.width do
 				local tile = self.collision_layer( x, y )
 
-
 				local is_blocked = 0
 				if tile then
 					--logging.verbose( "tile: " .. x .. ", " .. y )
 					is_blocked = 1
 
 					if tile.properties then
+
 						--logging.verbose( "printing tile properties: " )
 						--for key, value in pairs(tile.properties) do
 						--	logging.verbose( key .. " -> " .. tostring(value) )
@@ -243,18 +252,19 @@ function GameRules:updateWalkableMap( )
 				end
 
 				-- insert the value into this row
-				table.insert( row, is_blocked )			
+				table.insert( row, is_blocked )
+				
 			end
 			-- insert this row into the grid
 			table.insert( walkable_map, row )		
 		end
 	end
 
-
 	if #walkable_map > 0 then
-		self.pathfinder = Jumper( walkable_map, 0, true )
+		self.pathfinder = Pathfinder( walkable_map, 0, true )
 		--self.pathfinder:setHeuristic( "DIAGONAL" )
 		self.pathfinder:setMode( "ORTHOGONAL" )
+
 	end
 	
 	--self.pathfinder:setAutoFill( true )
@@ -371,6 +381,10 @@ end
 -- these two functions are identical right now, but this may change...
 function GameRules:isTilePlaceable( tile_x, tile_y )
 	if not self:isTileWithinMap( tile_x, tile_y ) then
+		return false
+	end
+
+	if self.place_points == 0 then
 		return false
 	end
 

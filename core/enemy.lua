@@ -42,7 +42,6 @@ function Enemy:onCollide( params )
 			params.other:onHit( {attack_damage=self.attack_damage, gamerules=params.gamerules} )
 			
 			if params.other.health > 0 then
-				logging.verbose( "stopping because i ran into something" )
 				self.follow_path = false
 				self.obstruction = params.other
 			else
@@ -52,7 +51,6 @@ function Enemy:onCollide( params )
 
 		-- stop, we found our target
 		if params.other == self.target then
-			logging.verbose( "stopping because i ran into the TARGET" )
 			self.follow_path = false
 		end		
 	end
@@ -86,14 +84,21 @@ function Enemy:onSpawn( params )
 end
 
 function Enemy:calculateDistanceToTarget( target )
-	local dx, dy = (target.world_x - self.world_x), (target.world_y - self.world_y)
-	local length = math.sqrt( (dx*dx) + (dy*dy) )
-	return length
+	if target then
+		local dx, dy = (target.world_x - self.world_x), (target.world_y - self.world_y)
+		local length = math.sqrt( (dx*dx) + (dy*dy) )
+		return length
+	end
+
+	return 0
 end
 
 
 function Enemy:onUpdate( params )
 	
+	if params.gamestate ~= core.GAME_STATE_DEFEND then
+		return
+	end
 	self.time_until_color_restore = self.time_until_color_restore - params.dt
 	if self.time_until_color_restore <= 0 then
 		self.color = { r=255, g=255, b=255, a=255 }
@@ -141,11 +146,10 @@ function Enemy:onUpdate( params )
 	end
 
 	if self.obstruction then
-		local dist = self:calculateDistanceToTarget( self.obstruction )
-		logging.verbose( "dist: " .. dist )
-		--if dist > 33 then
-		--	self.follow_path = true
-		--end
+		if self.obstruction.health <= 0 then
+			self.follow_path = true
+			self.obstruction = nil
+		end
 	end
 
 	PathFollower.onUpdate( self, params )
