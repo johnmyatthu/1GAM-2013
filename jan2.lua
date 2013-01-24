@@ -377,7 +377,7 @@ function Game:onDraw( params )
 		love.graphics.rectangle( "fill", 0, love.graphics.getHeight() - height, love.graphics.getWidth(), height )
 		love.graphics.setFont( self.fonts[ "text2" ] )
 		love.graphics.setColor( 255, 255, 255, 255 )
-		love.graphics.printf( "Wave: " .. tostring(self.gamerules.level) .. ", Enemies: " .. tostring(self.gamerules.wave_enemies), -15, 5, love.graphics.getWidth(), "right" )
+		love.graphics.printf( "Wave: " .. tostring(self.gamerules.level) .. ", Intruders: " .. tostring(self.gamerules.wave_enemies), -20, 5, love.graphics.getWidth(), "right" )
 
 		love.graphics.setFont( self.fonts[ "text3" ] )
 
@@ -397,7 +397,8 @@ function Game:onDraw( params )
 			love.graphics.printf( math.floor(self.timer), 0, 540, love.graphics.getWidth(), "center" )
 		else
 			love.graphics.setColor( 0, 255, 255, 255 )
-			love.graphics.printf( "GET READY", 0, 510, love.graphics.getWidth(), "center" )
+			love.graphics.printf( "GET READY", 0, 500, love.graphics.getWidth(), "center" )
+			love.graphics.printf( math.floor(self.timer), 0, 540, love.graphics.getWidth(), "center" )
 		end
 	elseif self.state == GAME_STATE_ROUND_FAIL then
 		love.graphics.setColor( 0, 0, 0, 128 )
@@ -426,9 +427,6 @@ function Game:onDraw( params )
 			love.graphics.setColor( 0, 255, 255, 255 )
 			love.graphics.printf( "YOU WON THE GAME!", 0, 65, love.graphics.getWidth(), "center" )
 			love.graphics.printf( "thanks for playing", 0, 95, love.graphics.getWidth(), "center" )			
-		else
-			love.graphics.setColor( 255, 255, 255, 255 )
-			love.graphics.printf( "PRESS SPACE", 0, 570, love.graphics.getWidth(), "center" )
 		end
 
 		-- draw background and last round scores
@@ -436,6 +434,11 @@ function Game:onDraw( params )
 		local height = love.graphics.getHeight()/16
 		local boxwidth = 600
 		love.graphics.rectangle( "fill", love.graphics.getWidth()/2 - boxwidth/2, 185, boxwidth, 300 )
+
+		if not self.gamerules:beatLastWave() then
+			love.graphics.setColor( 255, 255, 255, 255 )
+			love.graphics.printf( "PRESS SPACE", 0, 420, love.graphics.getWidth(), "center" )
+		end
 
 		love.graphics.setFont( self.fonts[ "text2" ] )
 		love.graphics.setColor( 255, 255, 255, 255 )
