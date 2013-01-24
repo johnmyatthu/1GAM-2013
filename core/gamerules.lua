@@ -89,8 +89,8 @@ function GameRules:preparePlayerForNextWave( player )
 	if pd then
 		player.attack_damage = pd.attack_damage + (self.place_points / (self.point_base+1))
 		player.attack_delay = pd.attack_delay - ((self.place_points / 2000) * (self.level/5))
-		logging.verbose( "Attack damage is: " .. player.attack_damage )
-		logging.verbose( "attack_delay: " .. player.attack_delay )
+		--logging.verbose( "Attack damage is: " .. player.attack_damage )
+		--logging.verbose( "attack_delay: " .. player.attack_delay )
 	end
 end
 

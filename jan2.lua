@@ -26,7 +26,7 @@ local ACTION_MOVE_PLAYER_DOWN = "move_player_down"
 local GAME_BUILD_TIME = 25
 
 -- amount of time in seconds before defend round starts after build round ends
-local GAME_BUILD_DEFEND_TRANSITION_TIME = 0.2
+local GAME_BUILD_DEFEND_TRANSITION_TIME = 2
 
 -- Game class
 Game = class( "Game" )
@@ -87,6 +87,7 @@ function Game:initialize( gamerules, config, fonts )
 	else
 		love.mouse.setVisible( false )
 	end
+
 end
 
 
@@ -99,7 +100,7 @@ function Game:nextState()
 		self.state = GAME_STATE_PRE_DEFEND
 		self.timer = GAME_BUILD_DEFEND_TRANSITION_TIME
 		self:preparePlayerForNextWave( player )
-		self.gamerules:prepareForNextWave()
+		
 		self.gamerules:updateWalkableMap()
 		love.mouse.setVisible( false )
 	elseif self.state == GAME_STATE_PRE_DEFEND then
@@ -111,6 +112,7 @@ function Game:nextState()
 		self.state = GAME_STATE_BUILD
 		self.timer = GAME_BUILD_TIME
 		self.actions[ " " ] = self.nextState
+		self.gamerules:prepareForNextWave()
 	end
 end
 
@@ -144,7 +146,7 @@ function Game:onLoad( params )
 
 	-- load the map
 	self.gamerules:loadMap( self.config.map )
-
+	self.gamerules:prepareForNextWave()	
 	self.target = self.gamerules.entity_manager:findFirstEntityByName( "func_target" )
 
 	player = self.gamerules.entity_factory:createClass( "Player" )
@@ -355,27 +357,28 @@ function Game:onDraw( params )
 	--love.graphics.print( "velocity.y: " .. player.velocity.y, 20, 310 )
 
 	local mem, ters = gcinfo()
-	love.graphics.print( "mem used: " .. mem, 10, 10 )
+	--love.graphics.print( "mem used: " .. mem, 10, 10 )
 
 	if self.state == GAME_STATE_DEFEND then
 		self:updatePlayerDirection()
 		self.cursor_sprite:onDraw( {gamerules=self.gamerules} )
 
 		love.graphics.setColor( 0, 0, 0, 64 )
-		local height = love.graphics.getHeight()/16
-		love.graphics.rectangle( "fill", 0, love.graphics.getHeight() - height, love.graphics.getWidth(), height )
+		local height = 32
+		love.graphics.rectangle( "fill", 0, 0, love.graphics.getWidth(), height )
 		love.graphics.setFont( self.fonts[ "text2" ] )
 		love.graphics.setColor( 255, 255, 255, 255 )
-		love.graphics.print( "Enemies Taken Out: " .. tostring(self.gamerules.enemies_destroyed), 10, 570 )
-
-	
-
-		love.graphics.printf( "Wave: " .. tostring(self.gamerules.level) .. ", Enemies: " .. tostring(self.gamerules.wave_enemies), -15, 570, love.graphics.getWidth(), "right" )
+		love.graphics.print( "Intruders Averted: " .. tostring(self.gamerules.enemies_destroyed), 10, 5 )
+		love.graphics.printf( "Wave: " .. tostring(self.gamerules.level) .. ", Enemies: " .. tostring(self.gamerules.wave_enemies), -15, 5, love.graphics.getWidth(), "right" )
 
 	elseif self.state == GAME_STATE_BUILD or self.state == GAME_STATE_PRE_DEFEND then
 		love.graphics.setColor( 0, 0, 0, 128 )
 		local height = love.graphics.getHeight()/5
 		love.graphics.rectangle( "fill", 0, love.graphics.getHeight() - height, love.graphics.getWidth(), height )
+		love.graphics.setFont( self.fonts[ "text2" ] )
+		love.graphics.setColor( 255, 255, 255, 255 )
+		love.graphics.printf( "Wave: " .. tostring(self.gamerules.level) .. ", Enemies: " .. tostring(self.gamerules.wave_enemies), -15, 5, love.graphics.getWidth(), "right" )
+
 		love.graphics.setFont( self.fonts[ "text3" ] )
 
 		if self.state == GAME_STATE_BUILD then
