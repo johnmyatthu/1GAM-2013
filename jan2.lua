@@ -392,7 +392,7 @@ function Game:onDraw( params )
 			love.graphics.setFont( self.fonts[ "text2" ] )
 			local info = "Item Points: " .. tostring(self.gamerules.place_points) .. "\n" ..
 				"Left Mouse: Place Barricade\n" ..
-				--"Right Mouse: Redeem Barricade\n" ..
+				"Right Mouse: Redeem Barricade\n" ..
 				"Space: Skip Build Phase"
 			love.graphics.printf( info, 360, 50, 400, "right" )
 

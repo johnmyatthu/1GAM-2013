@@ -239,7 +239,15 @@ function GameRules:removeItemAtMouse()
 	local mx, my = love.mouse.getPosition()
 	local tx, ty = self:tileCoordinatesFromMouse( mx, my )
 
-
+	-- allow the user to 'redeem' this item
+	for _,e in pairs(self.entity_manager:allEntities()) do
+		if e.class.name ~= "func_target" and e.tile_x == tx and e.tile_y == ty then
+			self:removeEntity( e )
+			self.collision_layer:set( tx, ty, nil )
+			self.place_points = self.place_points + 1
+			self:playSound( "remove_item" )
+		end
+	end
 	-- ...	
 end
 
