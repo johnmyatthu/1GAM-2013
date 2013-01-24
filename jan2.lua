@@ -362,22 +362,28 @@ function Game:onDraw( params )
 	if self.state == GAME_STATE_DEFEND then
 		self:updatePlayerDirection()
 		self.cursor_sprite:onDraw( {gamerules=self.gamerules} )
+	end
 
-		love.graphics.setColor( 0, 0, 0, 64 )
-		local height = 32
-		love.graphics.rectangle( "fill", 0, 0, love.graphics.getWidth(), height )
-		love.graphics.setFont( self.fonts[ "text2" ] )
-		love.graphics.setColor( 255, 255, 255, 255 )
+
+	love.graphics.setColor( 0, 0, 0, 64 )
+	local height = 32
+	love.graphics.rectangle( "fill", 0, 0, love.graphics.getWidth(), height )
+	love.graphics.setFont( self.fonts[ "text2" ] )
+	love.graphics.setColor( 255, 255, 255, 255 )
+	if self.state ~= GAME_STATE_BUILD then
 		love.graphics.print( "Intruders Averted: " .. tostring(self.gamerules.enemies_destroyed), 10, 5 )
-		love.graphics.printf( "Wave: " .. tostring(self.gamerules.level) .. ", Enemies: " .. tostring(self.gamerules.wave_enemies), -15, 5, love.graphics.getWidth(), "right" )
+	end
 
-	elseif self.state == GAME_STATE_BUILD or self.state == GAME_STATE_PRE_DEFEND then
+	love.graphics.printf( "Wave: " .. tostring(self.gamerules.level) .. ", Intruders: " .. tostring(self.gamerules.wave_enemies), -20, 5, love.graphics.getWidth(), "right" )
+
+
+	if self.state == GAME_STATE_BUILD or self.state == GAME_STATE_PRE_DEFEND then
 		love.graphics.setColor( 0, 0, 0, 128 )
 		local height = love.graphics.getHeight()/5
 		love.graphics.rectangle( "fill", 0, love.graphics.getHeight() - height, love.graphics.getWidth(), height )
 		love.graphics.setFont( self.fonts[ "text2" ] )
 		love.graphics.setColor( 255, 255, 255, 255 )
-		love.graphics.printf( "Wave: " .. tostring(self.gamerules.level) .. ", Intruders: " .. tostring(self.gamerules.wave_enemies), -20, 5, love.graphics.getWidth(), "right" )
+
 
 		love.graphics.setFont( self.fonts[ "text3" ] )
 
