@@ -526,12 +526,14 @@ function Game:onMousePressed( params )
 	--logging.verbose( "Game onMousePressed" )
 
 
+--[[
 	if params.button == "m" then
 		-- enter drag mode
 		map_drag.startX = params.x
 		map_drag.startY = params.y
 		map_drag.isDragging = true
 	end
+--]]
 
 	if self.state == GAME_STATE_DEFEND then
 
@@ -551,11 +553,11 @@ end
 
 function Game:onMouseReleased( params )
 	--logging.verbose( "Game onMouseReleased" )
-
+--[[
 	if params.button == "m" then
 		map_drag.isDragging = false
 	end
-
+--]]
 	--[[
 	if params.button == "r" then
 		logging.verbose( "right click" )
