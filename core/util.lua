@@ -60,3 +60,21 @@ function shallowcopy(orig)
     end
     return copy
 end
+
+-- http://snippets.luacode.org/snippets/Deep_copy_of_a_Lua_Table_2
+function deepcopy(t)
+	if type(t) ~= 'table' then 
+		return t
+	end
+
+	local mt = getmetatable(t)
+	local res = {}
+	for k,v in pairs(t) do
+		if type(v) == 'table' then
+			v = deepcopy(v)
+		end
+		res[k] = v
+	end
+	setmetatable(res,mt)
+	return res
+end

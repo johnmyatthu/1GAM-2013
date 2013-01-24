@@ -78,11 +78,8 @@ function Game:initialize( gamerules, config, fonts )
 	end
 
 	self.cursor = {x=0, y=0}
-
 	self.state = GAME_STATE_BUILD
-
-	self.build_time = GAME_BUILD_TIME
-	self.timer = self.build_time
+	self.timer = GAME_BUILD_TIME
 
 	if self.state == GAME_STATE_BUILD then
 		self.actions[ " " ] = self.nextState
@@ -101,7 +98,6 @@ function Game:nextState()
 	if self.state == GAME_STATE_BUILD then
 		self.state = GAME_STATE_PRE_DEFEND
 		self.timer = GAME_BUILD_DEFEND_TRANSITION_TIME
-		
 		self:preparePlayerForNextWave( player )
 		self.gamerules:prepareForNextWave()
 		self.gamerules:updateWalkableMap()
@@ -112,7 +108,6 @@ function Game:nextState()
 		love.mouse.setVisible( false )
 		self.gamerules:playSound( "round_begin" )
 	elseif self.state == GAME_STATE_ROUND_WIN then
-		self.timer = 0
 		self.state = GAME_STATE_BUILD
 		self.timer = GAME_BUILD_TIME
 		self.actions[ " " ] = self.nextState
@@ -386,17 +381,17 @@ function Game:onDraw( params )
 		if self.state == GAME_STATE_BUILD then
 			love.graphics.setColor( 255, 255, 255, 255 )
 			love.graphics.setFont( self.fonts[ "text2" ] )
-			love.graphics.printf( "Left Mouse: Place Barricade", 0, 490, love.graphics.getWidth(), "center" )
-			love.graphics.printf( "Unspent points contribute to your attack damage and fire rate", 0, 520, love.graphics.getWidth(), "center" )
+			local info = "Item Points: " .. tostring(self.gamerules.place_points) .. "\n" ..
+				"Left Mouse: Place Barricade\n" ..
+				--"Right Mouse: Redeem Barricade\n" ..
+				"Space: Skip Build Phase"
+			love.graphics.printf( info, 360, 50, 400, "right" )
+
+			love.graphics.printf( "Build your defenses\nUnspent points contribute to your attack damage and fire rate", 0, 490, love.graphics.getWidth(), "center" )
 			local r,g,b,a = self.gamerules:colorForTimer(math.floor(self.timer))
 			love.graphics.setFont( self.fonts[ "text3" ] )
 			love.graphics.setColor( r, g, b, a )
 			love.graphics.printf( math.floor(self.timer), 0, 540, love.graphics.getWidth(), "center" )
-			--love.graphics.print( math.floor(self.timer), 380, 540 )
-
-			love.graphics.setColor( 255, 255, 255, 255 )
-			love.graphics.setFont( self.fonts[ "text2" ] )
-			love.graphics.print( "ItemPoints: " .. tostring(self.gamerules.place_points), 10, 570 )
 		else
 			love.graphics.setColor( 0, 255, 255, 255 )
 			love.graphics.printf( "GET READY", 0, 510, love.graphics.getWidth(), "center" )
@@ -409,14 +404,16 @@ function Game:onDraw( params )
 		love.graphics.setFont( self.fonts[ "text3" ] )
 		love.graphics.setColor( 255, 0, 0, 255 )
 
-		love.graphics.printf( "YOU FAILED", 0, 510, love.graphics.getWidth(), "center" )
+		love.graphics.printf( "YOU FAILED", 0, 500, love.graphics.getWidth(), "center" )
+
+		love.graphics.setFont( self.fonts[ "text2" ] )
+		love.graphics.printf( "Press escape to go back to your social games", 0, 560, love.graphics.getWidth(), "center" )
+
 	elseif self.state == GAME_STATE_ROUND_WIN then
 		love.graphics.setColor( 0, 0, 0, 64 )
 		local height = love.graphics.getHeight()/16
 		love.graphics.rectangle( "fill", 0, love.graphics.getHeight() - height, love.graphics.getWidth(), height )
 
-
-		
 		love.graphics.setFont( self.fonts[ "text2" ] )
 		if self.gamerules:beatLastWave() then
 			love.graphics.setColor( 0, 0, 0, 64 )

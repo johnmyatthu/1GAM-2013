@@ -51,6 +51,8 @@ function GameRules:initialize()
 	self.place_points = 2
 	self.point_base = 0
 	self.target = nil
+
+	self.last_level = {}
 end
 
 function GameRules:loadSounds( path )
@@ -83,12 +85,15 @@ function GameRules:loadData( path )
 end
 
 function GameRules:preparePlayerForNextWave( player )
-	local pd = self:dataForKeyLevel( "Player", 1 )
+	local pd = self:dataForKeyLevel( "Player", self.level+1 )
 	if pd then
 		player.attack_damage = pd.attack_damage + (self.place_points / (self.point_base+1))
+		player.attack_delay = pd.attack_delay - ((self.place_points / 2000) * (self.level/5))
 		logging.verbose( "Attack damage is: " .. player.attack_damage )
+		logging.verbose( "attack_delay: " .. player.attack_delay )
 	end
 end
+
 
 function GameRules:prepareForNextWave()
 	self.level = self.level + 1
@@ -136,8 +141,12 @@ function GameRules:updateScore( target )
 end
 
 function GameRules:dataForKeyLevel( key, level )
+	--logging.verbose( "request: " .. key .. " level: " .. level )
 	if self.data[ key ] and self.data[ key ][ level ] then
 		return self.data[ key ][ level ]
+	elseif self.data[ key ] then
+		local level = #self.data[ key ]
+		return self.data[ key ][ level ]		
 	end
 
 	return nil
@@ -229,6 +238,8 @@ end
 function GameRules:removeItemAtMouse()
 	local mx, my = love.mouse.getPosition()
 	local tx, ty = self:tileCoordinatesFromMouse( mx, my )
+
+
 	-- ...	
 end
 
@@ -409,6 +420,16 @@ function GameRules:isTilePlaceable( tile_x, tile_y )
 		return false
 	end
 
+	-- don't let them play past the crappy ui graphics; really bad hack here.
+	if tile_y > 14 then
+		return false
+	end
+
+	-- don't let them place on the spawn point
+	if tile_x == self.spawn.x and tile_y == self.spawn.y then
+		return false
+	end
+
 	return self:getCollisionTile( tile_x, tile_y ) == nil
 end
 
@@ -472,11 +493,6 @@ function GameRules:spawnEntity( entity, world_x, world_y, properties )
 
 	-- load entity properties based on the level
 	local data = self:dataForKeyLevel( entity.class.name, self.level )
-
-	-- as a fail-safe, if this level doesn't explicitly exist, let's just use the first one we have.
-	if not data then
-		data = self:dataForKeyLevel( entity.class.name, 1 )
-	end
 
 	if data then
 		entity:loadProperties( data )
