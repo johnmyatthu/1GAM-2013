@@ -57,26 +57,20 @@ end
 function Entity:loadProperties( properties )
 	if properties then
 		for key, value in pairs(properties) do
-			--logging.verbose( "'" .. key .. "' to '" .. value .. "'" )
-			-- only load variables we expect
+			-- only load variables we expect or have previously declared in our initializer
 			if self[ key ] then
 				self[ key ] = value
-				--logging.verbose( "set '" .. key .. "' to '" .. value .. "'" )
 			end
 		end	
 	end	
 end
 
 function Entity:onSpawn( params )
-	--logging.verbose( "Entity:onSpawn... " .. tostring(self) )
-
 	-- load properties into instance vars;
 	self:loadProperties( params.properties )
 
 	if self.tile_x < 0 or self.tile_y < 0 then
-		--logging.verbose( "Entity:onSpawn world location: " .. self.world_x .. ", " .. self.world_y )
 		self.tile_x, self.tile_y = params.gamerules:tileCoordinatesFromWorld( self.world_x, self.world_y )
-		--logging.verbose( "Entity:onSpawn tile location: " .. self.tile_x .. ", " .. self.tile_y )
 	end
 
 	params.gamerules:addCollision(self)
@@ -86,8 +80,11 @@ function Entity:onUpdate( params )
 	self.tile_x, self.tile_y = params.gamerules:tileCoordinatesFromWorld( self.world_x, self.world_y )
 
 	self.time_since_last_hit = self.time_since_last_hit + params.dt
-	if self.health < self.max_health and self.time_since_last_hit >= self.time_until_health_regen then
-		self.health = self.health + (self.health_regen_rate * params.dt)
+	if params.gamestate == core.GAME_STATE_DEFEND then
+		-- don't allow health regen if in win/fail conditions
+		if self.health < self.max_health and self.time_since_last_hit >= self.time_until_health_regen then
+			self.health = self.health + (self.health_regen_rate * params.dt)
+		end
 	end
 end
 
@@ -96,7 +93,6 @@ function Entity:__tostring()
 end
 
 function Entity:onDraw( params )
-
 	-- uncomment this to draw collision bounds
 	--[[
 	local color = {r=255, g=0, b=0, a=128}
@@ -113,18 +109,10 @@ function Entity:onDraw( params )
 end
 
 function Entity:onCollide( params )
-	if params.other then
-		--logging.verbose( tostring(self) .. " COLLIDES WITH " .. tostring(params.other) )
-		--logging.verbose( self.collision_mask .. " vs " .. params.other.collision_mask )
-	end
 end
 
--- params:
---	attacker: The attacking entity
---	damage: Base damage for the hit
 function Entity:onHit( params )
 end
-
 
 -- for compatibility with spatialhash
 function Entity:getAABB()

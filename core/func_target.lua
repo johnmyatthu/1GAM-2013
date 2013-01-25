@@ -3,9 +3,7 @@ require "core"
 func_target = class( "func_target", AnimatedSprite )
 function func_target:initialize()
 	AnimatedSprite:initialize(self)
-
 	self.collision_mask = 3
-
 	self.health = 100
 end
 
@@ -16,8 +14,6 @@ function func_target:onSpawn( params )
 end
 
 function func_target:onHit( params )
-	--logging.verbose( "Hit target for " .. tostring(params.attack_damage) .. " damage!" )
-
 	if self.health > 0 then
 		self.health = self.health - params.attack_damage
 		self.time_since_last_hit = 0
@@ -33,6 +29,5 @@ end
 
 function func_target:onDraw( params )
 	AnimatedSprite.onDraw( self, params )
-
 	self:drawHealthBar( params )
 end

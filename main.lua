@@ -1,6 +1,5 @@
 require "core"
 
-
 local CONFIGURATION_FILE = "settings.json"
 
 local KERNEL_STATE_LOGO = 0
@@ -11,9 +10,7 @@ local config = {}
 local fonts = {}
 local gameLogic = nil
 local gamerules = nil
-local game_state = KERNEL_STATE_RUN
-
-
+local game_state = KERNEL_STATE_LOGO
 
 local logo_intro = {
 	icon = love.graphics.newImage( "assets/logos/icon.png" ),
@@ -77,7 +74,6 @@ function logo_intro:update( timedelta )
 	end
 end
 
-
 function escape_hit()
 	-- skip past the intro if user hits escape
 	if game_state == KERNEL_STATE_LOGO then
@@ -87,15 +83,12 @@ function escape_hit()
 	end
 end
 
-
-
 function load_config()
 	if love.filesystem.exists( CONFIGURATION_FILE ) then
 		config = json.decode( love.filesystem.read( CONFIGURATION_FILE ) )
 
 		-- initialize GameRules
 		gamerules = core.gamerules.GameRules:new()
-
 		gamerules:warpCameraTo( config.spawn[1], config.spawn[2] )
 	end
 end
@@ -120,10 +113,8 @@ function love.load()
 	require ( config.game )
 	gameLogic = Game:new( gamerules, config, fonts )
 
-
 	-- pass control to the logic
 	core.util.callLogic( gameLogic, "onLoad", {} )
-
 	gamerules:playSound( "menu_intro" )
 end
 
@@ -135,7 +126,6 @@ function love.draw()
 	end
 end
 
-
 function love.update(dt)
 	if game_state == KERNEL_STATE_RUN then
 		core.util.callLogic( gameLogic, "onUpdate", {dt=dt} )
@@ -146,7 +136,6 @@ function love.update(dt)
 		end
 	end
 end
-
 
 function love.keypressed( key, unicode )
 	if game_state == KERNEL_STATE_RUN then
@@ -161,11 +150,7 @@ function love.keyreleased(key )
 	elseif key == " " and game_state == KERNEL_STATE_LOGO then
 		escape_hit()
 		return
-	--elseif key == "f5" then
-	--	print( "refresh" )
-	--	load_config()
 	end
-
 
 	core.util.callLogic( gameLogic, "onKeyReleased", {key=key} )
 end
@@ -180,11 +165,9 @@ end
 
 
 function love.joystickpressed( joystick, button )
-	--print( "joystick: " .. joystick .. ", button: " .. button )
 	core.util.callLogic( gameLogic, "onJoystickPressed", {joystick=joystick, button=button} )
 end
 
 function love.joystickreleased( joystick, button )
-	--print( "joystick: " .. joystick .. ", button: " .. button )	
 	core.util.callLogic( gameLogic, "onJoystickReleased", {joystick=joystick, button=button} )
 end

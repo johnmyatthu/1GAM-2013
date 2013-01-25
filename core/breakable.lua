@@ -16,8 +16,6 @@ function Breakable:onDraw( params )
 end
 
 function Breakable:onHit( params )
-	--logging.verbose( "Hit target for " .. tostring(params.attack_damage) .. " damage!" )
-
 	if self.health > 0 then
 		self.health = self.health - params.attack_damage
 		self.time_since_last_hit = 0

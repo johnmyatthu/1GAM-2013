@@ -5,6 +5,8 @@ loader = require "lib.AdvTiledLoader.Loader"
 Tile = require "lib.AdvTiledLoader.Tile"
 require "lib.luabit.bit"
 local SH = require( "lib.broadphase.spatialhash" )
+require "core.entityfactory"
+require "core.entitymanager"
 
 local MAP_COLLISION_LAYER_NAME = "Collision"
 local MAP_GROUND_LAYER_NAME = "Ground"
@@ -91,8 +93,6 @@ function GameRules:preparePlayerForNextWave( player )
 	if pd then
 		player.attack_damage = pd.attack_damage + (self.place_points / (self.point_base+1))
 		player.attack_delay = pd.attack_delay - ((self.place_points / 2000) * (self.level/5))
-		--logging.verbose( "Attack damage is: " .. player.attack_damage )
-		--logging.verbose( "attack_delay: " .. player.attack_delay )
 	end
 end
 
@@ -101,10 +101,7 @@ function GameRules:prepareForNextWave()
 	self.level = self.level + 1
 	self.enemies_destroyed = 0
 
-	--logging.verbose( "Preparing for wave: " .. self.level )
-	
-	-- gather all spawns
-	
+	-- load wave data
 	local wave_enemies = 0
 	if self.data[ "waves" ] and self.data[ "waves" ][ self.level ] then
 		local wave_data = self.data[ "waves" ][ self.level ]
@@ -159,9 +156,6 @@ function GameRules:onEnemyDestroyed( entity )
 	self.total_score = self.total_score + self.current_enemy_value
 end
 
-
-
-
 function GameRules:initCollision()
 	local grid_width = self.map.width
 	local grid_height = self.map.height
@@ -178,13 +172,10 @@ end
 
 function GameRules:updateCollision( params )
 	local colliding = self.grid:getCollidingPairs( self.entity_manager:allEntities() )
-	--logging.verbose( "colliders: " .. #colliding)
 
 	table.foreach( colliding,
 	function(_, v) 
 		if (v[1].collision_mask > 0) and (v[2].collision_mask > 0) and (bit.band(v[1].collision_mask,v[2].collision_mask) > 0) then 
-			
-			--logging.verbose( self.collision_mask .. " vs " .. params.other.collision_mask )
 			v[1]:onCollide( {gamerules=self, other=v[2]} )	
 			v[2]:onCollide( {gamerules=self, other=v[1]} )
 		end	end	)
@@ -205,7 +196,6 @@ function GameRules:placeItemAtMouse( classname )
 			local t = Tile:new( 99, {}, {}, width, height, properties )
 
 			if self.collision_layer then
-				--logging.verbose( "placed tile at: " .. tx .. ", " .. ty )
 				self.collision_layer:set( tx, ty, t )
 			end
 
@@ -217,14 +207,13 @@ function GameRules:placeItemAtMouse( classname )
 				item:playAnimation( classname )
 				self:spawnEntity( item, wx, wy, nil )
 
-				-- we need to make something appear
+				-- we need to make something appear: this is HACKED with the GID and tileset name
 				if false and self.map.layers[ MAP_GROUND_LAYER_NAME ] then
 					local ground = self.map.layers[ MAP_GROUND_LAYER_NAME ]
 
 					local first_set = self.map.tilesets["orthotiles"]
 
 					local gid = 30
-					-- gid = first_set.firstgid
 					local basetile = self.map.tiles[ gid ]
 					ground:set( tx, ty, basetile )
 				end
@@ -267,16 +256,9 @@ function GameRules:updateWalkableMap( )
 
 				local is_blocked = 0
 				if tile then
-					--logging.verbose( "tile: " .. x .. ", " .. y )
 					is_blocked = 1
 
 					if tile.properties then
-
-						--logging.verbose( "printing tile properties: " )
-						--for key, value in pairs(tile.properties) do
-						--	logging.verbose( key .. " -> " .. tostring(value) )
-						--end
-
 						if tile.properties.walkable then
 							is_blocked = 0
 						end
@@ -294,24 +276,8 @@ function GameRules:updateWalkableMap( )
 
 	if #walkable_map > 0 then
 		self.pathfinder = Pathfinder( walkable_map, 0, true )
-		--self.pathfinder:setHeuristic( "DIAGONAL" )
 		self.pathfinder:setMode( "ORTHOGONAL" )
-
 	end
-	
-	--self.pathfinder:setAutoFill( true )
-
-	--[[
-	local path, cost = self.pathfinder:getPath( 1, 1, 23, 23 )
-
-	-- print out all steps in the path
-	if path and cost then
-		for a, b in pairs(path) do
-			--logging.verbose( "i: " .. a .. " -> " .. b )
-			logging.verbose( "step " .. a .. " ( " .. b.x .. ", " .. b.y .. " )" )
-		end
-	end
-	--]]
 end
 
 function GameRules:loadMap( mapname )
@@ -327,13 +293,9 @@ function GameRules:loadMap( mapname )
 	-- this crashes on a retina mbp if true; perhaps something to do with the GPUs switching?
 	self.map.useSpriteBatch = false
 
-
 	-- cache collision layer and disable rendering
 	self.collision_layer = self.map.layers[ MAP_COLLISION_LAYER_NAME ]
-
-
 	self.basic_collision_tile = nil
-
 
 	-- use collision map for path finding
 	for y=1, self.map.height do
@@ -518,8 +480,6 @@ function GameRules:spawnEntityAtTileWithProperties( layer, tile_x, tile_y, prope
 	local classname = properties[ "classname" ]
 	if classname then
 		properties[ "classname" ] = nil
-		--logging.verbose( "GameRules: spawning entity '" .. classname .. "' at " .. tile_x .. ", " .. tile_y )
-
 		if classname == "info_player_spawn" then
 			-- yadda, yadda, yadda; make this not a HACK
 			self.spawn = { x = tile_x, y = tile_y }
@@ -529,20 +489,10 @@ function GameRules:spawnEntityAtTileWithProperties( layer, tile_x, tile_y, prope
 			if entity then
 					-- set the world position for the entity from the tile coordinates
 				entity.world_x, entity.world_y = self:worldCoordinatesFromTileCenter( tile_x, tile_y )
-
 				self:spawnEntity( entity, entity.world_x, entity.world_y, properties )
-
-				--logging.verbose( "-> entity '" .. classname .. "' is at " .. entity.world_x .. ", " .. entity.world_y )
-				--logging.verbose( "-> entity tile at " .. entity.tile_x .. ", " .. entity.tile_y )
 
 				-- remove this tile from the layer
 				layer:set( tile_x, tile_y, nil )
-
-				-- if an entity spawns with a valid collision mask
-				-- make sure we place a collision tile at its location
-				--if entity.collision_mask > 0 then
-				--	self.collision_layer:set( tile_x, tile_y, self.basic_collision_tile )
-				--end
 			end
 		end
 	else
@@ -589,19 +539,6 @@ end
 
 -- coordinate system functions
 function GameRules:worldCoordinatesFromTileCenter( tile_x, tile_y )
-
-	--[[
-	-- ISOMETRIC
-	-- input tile coordinates are 1-based, so decrement these
-	local tx, ty = tile_x, tile_y
-
-	-- we need to further offset the returned value by half the entire map's width to get the correct value
-	local drawX = ((self.map.width * self.map.tileWidth) / 2) + math.floor(self.map.tileWidth/2 * (tx - ty))
-	local drawY = math.floor(self.map.tileHeight/2 * (tx + ty)) + (self.map.tileHeight/2)
-	return drawX, drawY
-	--]]
-
-
 	return (self.map.tileWidth * tile_x) + self.map.tileWidth/2, (self.map.tileHeight * tile_y) + self.map.tileHeight/2
 end
 
@@ -634,7 +571,6 @@ function GameRules:worldCoordinatesFromMouse( mouse_x, mouse_y )
 	return self:screenToWorld( mouse_x, mouse_y )
 end
 
-
 function GameRules:removeEntity(entity)
 	self.entity_manager:removeEntity( entity )
 	self:removeCollision(entity)
@@ -643,7 +579,6 @@ end
 function GameRules:onUpdate(params)
 	params.gamerules = self
 	self.entity_manager:eventForEachEntity( "onUpdate", params )
-
 
 	self:updateCollision(params)
 end
@@ -656,68 +591,13 @@ function GameRules:findMinimumDisplacementVector( a, b )
 end
 
 function GameRules:handleMovePlayerCommand( command, player )
-	-- determine if the sprite is moving diagonally
-	-- if so, tweak their speed so it doesn't look strange
-	--[[
-	--> ISOMETRIC ONLY
-	local is_diagonal = false
-	local is_ns = command.up or command.down
-	local is_ew = command.left or command.right
-
-	is_diagonal = is_ns and is_ew
-	local move_speed = command.move_speed
-	if is_diagonal then
-		move_speed = command.move_speed * 0.5
-	end
-	--]]
-	local move_speed = command.move_speed
-
-	-- see what other shapes are in the way...
-
-	local colliding = {}
-	--local colliding = self.grid:getCollidingPairs( {player} )
-	--table.foreach(colliding,
-	--function(_,v) print(( "Shape(%d) collides with Shape(%d)"):format(v[1].id, v[2].id)) end)
-
-	local closest_shape = nil
-	local min_dist = 10000
-	local dirx, diry
-	local minx = move_speed
-	local miny = move_speed
-
-
-	for _, v in pairs(colliding) do
-		local other = v[2]
-
-		-- get direction from this entity to the other
-		local dx = other.world_x - player.world_x
-		local dy = other.world_y - player.world_y
-		local len = math.sqrt( dx*dx + dy*dy )
-		if len < min_dist then
-			min_dist = len
-			closest_shape = other
-			dirx = dx / len
-			diry = dy / len
-			minx = dx
-			miny = dy
-			--minx, miny = self:findMinimumDisplacementVector(player, other)
-		end
-	end
-
-
-
 	-- get the next world position of the entity
 	local nwx, nwy = player.world_x, player.world_y
 
-	if command.up then nwy = player.world_y - (miny * command.dt) end
-	if command.down then nwy = player.world_y + (miny * command.dt) end
-	if command.left then nwx = player.world_x - (minx * command.dt) end
-	if command.right then nwx = player.world_x + (minx * command.dt) end
-
-	if closest_shape then
-		logging.verbose( "Closest shape is: " .. tostring(closest_shape))
-		logging.verbose( "Dir: " .. tostring(dirx) .. ", " .. tostring(diry) )
-	end
+	if command.up then nwy = player.world_y - (command.move_speed * command.dt) end
+	if command.down then nwy = player.world_y + (command.move_speed * command.dt) end
+	if command.left then nwx = player.world_x - (command.move_speed * command.dt) end
+	if command.right then nwx = player.world_x + (command.move_speed * command.dt) end
 
 	-- could offset by sprite's half bounds to ensure they don't intersect with tiles
 	local tx, ty = self:tileCoordinatesFromWorld( nwx, nwy )
@@ -725,128 +605,13 @@ function GameRules:handleMovePlayerCommand( command, player )
 
 	-- for now, just collide with tiles that exist on the collision layer.
 	if not tile then
-
 		player.world_x, player.world_y = nwx, nwy
 	end
 	
 	if command.up or command.down or command.left or command.right then
 		player:setDirectionFromMoveCommand( command )
-		--player:playAnimation( "run" )
-		player.is_attacking = false
-	elseif not player.is_attacking then
-		--player:playAnimation( "idle" )
 	end
 
-	
 	player.tile_x, player.tile_y = self:tileCoordinatesFromWorld( player.world_x, player.world_y )
 end
-
--- -------------------------------------------------------------
--- EntityManager
--- Encapsulate common functions with entities; manage a list of them, call events, etc.
-EntityManager = class( "EntityManager" )
-
-function EntityManager:initialize()
-	self.entity_list = {}
-end
-
-function EntityManager:addEntity( e )
-	table.insert( self.entity_list, e )
-	e.id = #self.entity_list
-end
-
-function sortDescendingDepth(a,b)
-	return a.world_y < b.world_y
-end
-
-function EntityManager:entityCount()
-	return # self.entity_list
-end
-
-function EntityManager:removeEntity( e )
-	-- when sorting normal tables in lua, we can't maintain the association of keys to values
-	-- instead, we'll just do a linear search
-	for index=1, #self.entity_list do
-		if self.entity_list[ index ] == e then
-			table.remove( self.entity_list, index )
-			break
-		end
-	end
-end
-
-function EntityManager:findFirstEntityByName( name )
-	for index, entity in pairs(self.entity_list) do
-		if entity.class.name == name then
-			return entity
-		end
-	end
-
-	return nil
-end
-
-function EntityManager:findAllEntitiesByName( name )
-	local entities = {}
-	for index, entity in pairs(self.entity_list) do
-		if entity.class.name == name then
-			table.insert( entities, entity )
-		end
-	end
-
-	return entities
-end
-
-function EntityManager:allEntities()
-	return self.entity_list
-end
-
--- sort the entities in descending depth order such that lower objects in the screen are drawn in front
-function EntityManager:sortForDrawing()
-	table.sort( self.entity_list, sortDescendingDepth )
-end
-
-function EntityManager:eventForEachEntity( event_name, params )
-	--logging.verbose( "iterating through for event: " .. event_name )
-	for index, entity in pairs(self.entity_list) do
-		local fn = entity[ event_name ]
-		if fn ~= nil and entity:respondsToEvent( event_name, params ) then
-			-- call this with the instance, then parameters table
-			fn( entity, params )
-		end
-	end
-end
-
--- -------------------------------------------------------------
--- EntityFactory
--- Factory pattern for registering and creating game entities
-EntityFactory = class( "EntityFactory" )
-function EntityFactory:initialize()
-	self.class_by_name = {}
-end
-
-function EntityFactory:registerClass( class_name, creator )
-	self.class_by_name[ class_name ] = creator
-end
-
-function EntityFactory:findClass( class_name )
-	if self.class_by_name[ class_name ] then 
-		return self.class_by_name[ class_name ]
-	end
-
-	
-	return nil
-end
-
-function EntityFactory:createClass( class_name )
-	local instance = nil
-
-	if self.class_by_name[ class_name ] then
-		local create_class = self.class_by_name[ class_name ]
-		instance = create_class:new()
-	else
-		logging.warning( "Unable to find class named '" .. class_name .. "'!" )
-	end
-
-	return instance
-end
-
 

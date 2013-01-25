@@ -25,7 +25,6 @@ function Enemy:initialize()
 end
 
 function Enemy:onCollide( params )
-	--logging.verbose( "Enemy onCollide with: " .. tostring(params.other) )
 	if params.other and params.other.class.name == "Bullet" then
 		self.color = {r=255, g=0, b=0, a=255}
 		params.gamerules:removeEntity( params.other )
@@ -59,22 +58,13 @@ function Enemy:onCollide( params )
 end
 
 function Enemy:onSpawn( params )
-
 	self:loadSprite( "assets/sprites/critters.conf" )
 	self:playAnimation( "one" )
-	--self.class.super:onSpawn( params )
 	PathFollower.onSpawn( self, params )
 
-	--logging.verbose( "Enemy: Searching for target..." )
 	local target = params.gamerules.entity_manager:findFirstEntityByName( "func_target" )
 	if target then
-		--logging.verbose( "I am setting a course to attack the target!" )
-		--logging.verbose( "I am at " .. self.tile_x .. ", " .. self.tile_y )
-		--logging.verbose( "Target is at " .. target.tile_x .. ", " .. target.tile_y )
-
 		local path, cost = params.gamerules:getPath( self.tile_x, self.tile_y, target.tile_x, target.tile_y )
-		--logging.verbose( path )
-		--logging.verbose( cost )
 		self:setPath( path )
 		self.target = target
 		self.target_tile = {x=target.tile_x, y=target.tile_y}
@@ -99,11 +89,7 @@ function Enemy:onUpdate( params )
 		-- calculate distance to target
 		local dx, dy = (self.target.tile_x - self.tile_x), (self.target.tile_y - self.tile_y)
 		local min_range = 1
-		if math.abs(dx) <= min_range and math.abs(dy) <= min_range then
-			--logging.verbose( "I am at " .. self.tile_x .. ", " .. self.tile_y )
-			-- within range to attack
-
-			
+		if math.abs(dx) <= min_range and math.abs(dy) <= min_range then		
 			if self.next_attack_time <= 0 then
 				self.next_attack_time = self.attack_delay
 
@@ -114,17 +100,6 @@ function Enemy:onUpdate( params )
 					end
 				end
 			end
-		end
-	end
-
-	if self.target and false then
-		if self.target_tile.x ~= self.target.tile_x or self.target_tile.y ~= self.target.tile_y then
-			logging.verbose( "plotting a new course: " .. self.target_tile.x .. ", " .. self.target_tile.y )
-			logging.verbose( "course: " .. self.target.tile_x .. ", " .. self.target.tile_y )
-			-- plot a new course
-			local path, cost = params.gamerules:getPath( self.tile_x, self.tile_y, self.target.tile_x+1, self.target.tile_y )
-			self:setPath( path )
-			self.target_tile = {x=self.target.tile_x, y=self.target.tile_y}
 		end
 	end
 
@@ -142,7 +117,6 @@ function Enemy:onUpdate( params )
 	end
 
 	PathFollower.onUpdate( self, params )
-
 end
 
 

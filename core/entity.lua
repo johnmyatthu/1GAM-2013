@@ -8,9 +8,3 @@ require "core.func_spawn"
 require "core.bullet"
 require "core.player"
 require "core.breakable"
-
-
-
-
-
-

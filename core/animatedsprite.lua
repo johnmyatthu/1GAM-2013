@@ -15,7 +15,7 @@ function AnimatedSprite:initialize()
 end
 
 
--- I hate the way this works; it's so hacky. So, until I come up with a better way...
+-- I hate the way this works; it's so hacky. But - until I come up with a better way...
 function AnimatedSprite:setDirectionFromMoveCommand( command )
 	self.current_direction = ""
 
@@ -28,9 +28,6 @@ function AnimatedSprite:setDirectionFromMoveCommand( command )
 	elseif command.right then
 		self.current_direction = "west"
 	end
-
-	-- for isometric animations, split north/south and east/west into two separate ifs instead of if elseif.
-	-- then concat the directions to form: "northeast" or "southwest"
 end
 
 function AnimatedSprite:loadSprite( config_file )
@@ -61,11 +58,6 @@ function AnimatedSprite:loadSprite( config_file )
 
 			local total_rows = self.image:getWidth() / self.frame_width
 			local total_cols = self.image:getHeight() / self.frame_height
-			--logging.verbose( "total_rows: " .. total_rows )
-			--logging.verbose( "total_cols: " .. total_cols )
-
-			-- isometric
-			--local directions = { "east", "northeast", "north", "northwest", "west", "southwest", "south", "southeast" }
 			local directions = { "east", "north", "west", "south" }
 
 			self.total_directions = #directions
@@ -90,9 +82,6 @@ function AnimatedSprite:loadSprite( config_file )
 					local direction = directions[ row ]
 					local animation = self.spritesheet:createAnimation()
 
-					--logging.verbose( "-> row: " .. row )
-					--logging.verbose( "-> direction: " .. direction )
-
 					-- if specified, update the animation delay.
 					if animdata.delay_seconds then
 						animation:setDelay( animdata.delay_seconds )
@@ -109,8 +98,6 @@ function AnimatedSprite:loadSprite( config_file )
 					animation.currentFrame = 1
 				end
 			end
-
-			--logging.verbose( "loadSprite: animations loaded: " .. (#self.animations) )
 		else
 			logging.warning( "loadSprite: Could not load image: '" .. sprite_config.image .. "'" )
 		end
