@@ -149,7 +149,9 @@ end
 
 
 function love.keypressed( key, unicode )
-	core.util.callLogic( gameLogic, "onKeyPressed", {key=key, unicode=unicode} )
+	if game_state == KERNEL_STATE_RUN then
+		core.util.callLogic( gameLogic, "onKeyPressed", {key=key, unicode=unicode} )
+	end
 end
 
 function love.keyreleased(key )
@@ -163,6 +165,7 @@ function love.keyreleased(key )
 	--	print( "refresh" )
 	--	load_config()
 	end
+
 
 	core.util.callLogic( gameLogic, "onKeyReleased", {key=key} )
 end

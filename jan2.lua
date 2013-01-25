@@ -512,7 +512,6 @@ end
 
 
 function Game:onKeyPressed( params )
-	--logging.verbose( "Game onKeyPressed" )
 	if self.actions[ params.key ] then
 		self.actions[ params.key ]( self )
 	end
