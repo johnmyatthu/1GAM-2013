@@ -376,6 +376,7 @@ function Game:onDraw( params )
 
 	love.graphics.printf( "Wave: " .. tostring(self.gamerules.level) .. ", Intruders: " .. tostring(self.gamerules.wave_enemies), -20, 5, love.graphics.getWidth(), "right" )
 
+	love.graphics.printf( "Score: " .. tostring(self.gamerules.total_score), 0, 5, love.graphics.getWidth(), "center" )
 
 	if self.state == GAME_STATE_BUILD or self.state == GAME_STATE_PRE_DEFEND then
 		love.graphics.setColor( 0, 0, 0, 128 )
@@ -384,6 +385,7 @@ function Game:onDraw( params )
 		love.graphics.setFont( self.fonts[ "text2" ] )
 		love.graphics.setColor( 255, 255, 255, 255 )
 
+		love.graphics.print( "<- Defend this!", 105, 68 )
 
 		love.graphics.setFont( self.fonts[ "text3" ] )
 
