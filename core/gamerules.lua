@@ -53,6 +53,8 @@ function GameRules:initialize()
 	self.target = nil
 
 	self.last_level = {}
+
+	love.audio.setVolume( 1.0 )
 end
 
 function GameRules:loadSounds( path )

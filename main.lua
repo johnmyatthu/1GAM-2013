@@ -11,7 +11,7 @@ local config = {}
 local fonts = {}
 local gameLogic = nil
 local gamerules = nil
-local game_state = KERNEL_STATE_RUN
+local game_state = KERNEL_STATE_LOGO
 
 
 
@@ -21,7 +21,7 @@ local logo_intro = {
 
 	fade_states = {
 		{ time=2, alpha=255 }, -- fade in seconds
-		{ time=1, alpha=255 }, -- fade transition seconds		
+		{ time=0.5, alpha=255 }, -- fade transition seconds		
 		{ time=2, alpha=0 }, -- fade out seconds
 	},
 
@@ -123,6 +123,8 @@ function love.load()
 
 	-- pass control to the logic
 	core.util.callLogic( gameLogic, "onLoad", {} )
+
+	gamerules:playSound( "menu_intro" )
 end
 
 function love.draw()
