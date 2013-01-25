@@ -417,7 +417,7 @@ function Game:onDraw( params )
 		love.graphics.printf( "YOU FAILED", 0, 500, love.graphics.getWidth(), "center" )
 
 		love.graphics.setFont( self.fonts[ "text2" ] )
-		love.graphics.printf( "Press escape to go back to your social games", 0, 560, love.graphics.getWidth(), "center" )
+		love.graphics.printf( "Press escape and go back to your safe little desktop", 0, 560, love.graphics.getWidth(), "center" )
 
 	elseif self.state == GAME_STATE_ROUND_WIN then
 		love.graphics.setColor( 0, 0, 0, 64 )
