@@ -156,18 +156,26 @@ function love.keyreleased(key )
 end
 
 function love.mousepressed( x, y, button )
-	core.util.callLogic( gameLogic, "onMousePressed", {x=x, y=y, button=button} )
+	if game_state == KERNEL_STATE_RUN then	
+		core.util.callLogic( gameLogic, "onMousePressed", {x=x, y=y, button=button} )
+	end		
 end
 
 function love.mousereleased( x, y, button )
-	core.util.callLogic( gameLogic, "onMouseReleased", {x=x, y=y, button=button} )	
+	if game_state == KERNEL_STATE_RUN then	
+		core.util.callLogic( gameLogic, "onMouseReleased", {x=x, y=y, button=button} )	
+	end		
 end
 
 
 function love.joystickpressed( joystick, button )
-	core.util.callLogic( gameLogic, "onJoystickPressed", {joystick=joystick, button=button} )
+	if game_state == KERNEL_STATE_RUN then	
+		core.util.callLogic( gameLogic, "onJoystickPressed", {joystick=joystick, button=button} )
+	end		
 end
 
 function love.joystickreleased( joystick, button )
-	core.util.callLogic( gameLogic, "onJoystickReleased", {joystick=joystick, button=button} )
+	if game_state == KERNEL_STATE_RUN then	
+		core.util.callLogic( gameLogic, "onJoystickReleased", {joystick=joystick, button=button} )
+	end		
 end
