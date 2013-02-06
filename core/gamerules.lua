@@ -75,7 +75,10 @@ function GameRules:playSound( name )
 		local source = self.sounds[ name ]
 		love.audio.rewind( source )
 		love.audio.play( source )
+		return source
 	end
+
+	return nil
 end
 
 function GameRules:loadData( path )
