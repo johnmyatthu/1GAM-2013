@@ -12,13 +12,14 @@ function Player:initialize()
 	self.aim_magnitude = 10
 
 	self.last_interaction_object = nil
+	self.is_using = false
+	self.was_using_lastframe = false
 end
 
 function Player:onUpdate( params )
 	AnimatedSprite.onUpdate(self, params)
 
 	if self.last_interaction_object ~= nil then
-
 		local distance = params.gamerules:calculateEntityDistance( self, self.last_interaction_object )
 
 		if distance > 22 then
@@ -28,6 +29,16 @@ function Player:onUpdate( params )
 			self.last_interaction_object = nil
 		end
 	end
+
+	if self.last_interaction_object then
+		if not self.was_using_lastframe and self.is_using then
+			self.last_interaction_object:startInteraction( {} )
+		elseif self.was_using_lastframe and not self.is_using then
+			self.last_interaction_object:endInteraction( {} )
+		end	
+	end
+	
+	self.was_using_lastframe = self.is_using
 end
 
 function Player:respondsToEvent( event_name, params )

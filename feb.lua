@@ -12,6 +12,7 @@ local ACTION_MOVE_PLAYER_LEFT = "move_player_left"
 local ACTION_MOVE_PLAYER_RIGHT = "move_player_right"
 local ACTION_MOVE_PLAYER_UP = "move_player_up"
 local ACTION_MOVE_PLAYER_DOWN = "move_player_down"
+local ACTION_USE = "use"
 
 -- the amount of build time given before each wave
 local GAME_BUILD_TIME = 30
@@ -40,6 +41,8 @@ function Game:initialize( gamerules, config, fonts )
 	self.key_for_action[ ACTION_MOVE_PLAYER_RIGHT ] = "d"
 	self.key_for_action[ ACTION_MOVE_PLAYER_UP ] = "w"
 	self.key_for_action[ ACTION_MOVE_PLAYER_DOWN ] = "s"
+
+	self.key_for_action[ ACTION_USE ] = "e"
 
 	self.actionmap = {}
 	self.actionmap[ "toggle_collision_layer" ] = self.toggleDrawCollisions
@@ -142,7 +145,7 @@ function Game:onLoad( params )
 	--]]
 
 	logging.verbose( "Initialization complete." )
-	--self.source = self.gamerules:playSound( "pulse" )
+	self.source = self.gamerules:playSound( "pulse" )
 end
 
 
@@ -155,22 +158,23 @@ function Game:onUpdate( params )
 	self:updatePlayerDirection()
 
 
-		local cam_x, cam_y = self.gamerules:getCameraPosition()
-		if love.keyboard.isDown( self:keyForAction(ACTION_MOVE_MAP_UP) ) then cam_y = cam_y + self.config.move_speed*params.dt end
-		if love.keyboard.isDown( self:keyForAction(ACTION_MOVE_MAP_DOWN) ) then cam_y = cam_y - self.config.move_speed*params.dt end
-		if love.keyboard.isDown( self:keyForAction(ACTION_MOVE_MAP_LEFT) ) then cam_x = cam_x + self.config.move_speed*params.dt end
-		if love.keyboard.isDown( self:keyForAction(ACTION_MOVE_MAP_RIGHT) ) then cam_x = cam_x - self.config.move_speed*params.dt end
-		self.gamerules:setCameraPosition( cam_x, cam_y )
+	local cam_x, cam_y = self.gamerules:getCameraPosition()
+	if love.keyboard.isDown( self:keyForAction(ACTION_MOVE_MAP_UP) ) then cam_y = cam_y + self.config.move_speed*params.dt end
+	if love.keyboard.isDown( self:keyForAction(ACTION_MOVE_MAP_DOWN) ) then cam_y = cam_y - self.config.move_speed*params.dt end
+	if love.keyboard.isDown( self:keyForAction(ACTION_MOVE_MAP_LEFT) ) then cam_x = cam_x + self.config.move_speed*params.dt end
+	if love.keyboard.isDown( self:keyForAction(ACTION_MOVE_MAP_RIGHT) ) then cam_x = cam_x - self.config.move_speed*params.dt end
+	self.gamerules:setCameraPosition( cam_x, cam_y )
 
-		local command = { 
-		up=love.keyboard.isDown( self:keyForAction(ACTION_MOVE_PLAYER_UP) ), 
-		down=love.keyboard.isDown( self:keyForAction(ACTION_MOVE_PLAYER_DOWN) ), 
-		left=love.keyboard.isDown( self:keyForAction(ACTION_MOVE_PLAYER_LEFT) ), 
-		right=love.keyboard.isDown( self:keyForAction(ACTION_MOVE_PLAYER_RIGHT) ), 
-		move_speed=self.config.move_speed, 
-		dt=params.dt }
-		self.gamerules:handleMovePlayerCommand( command, player )
+	local command = { 
+	up=love.keyboard.isDown( self:keyForAction(ACTION_MOVE_PLAYER_UP) ), 
+	down=love.keyboard.isDown( self:keyForAction(ACTION_MOVE_PLAYER_DOWN) ), 
+	left=love.keyboard.isDown( self:keyForAction(ACTION_MOVE_PLAYER_LEFT) ), 
+	right=love.keyboard.isDown( self:keyForAction(ACTION_MOVE_PLAYER_RIGHT) ), 
+	move_speed=self.config.move_speed, 
+	dt=params.dt }
+	self.gamerules:handleMovePlayerCommand( command, player )
 
+	player.is_using = love.keyboard.isDown( self:keyForAction(ACTION_USE) )
 
 
 	local mx, my = love.mouse.getPosition()
@@ -221,7 +225,7 @@ function Game:onDraw( params )
 
 	love.graphics.setFont( self.fonts[ "text2" ] )
 	love.graphics.setColor( 255, 255, 255, 255 )
-	love.graphics.print( "Depth: " .. tostring(0) .. " meters", 10, 5 )
+	love.graphics.print( "Depth: " .. tostring(player.world_y/64) .. " meters", 10, 5 )
 
 
 

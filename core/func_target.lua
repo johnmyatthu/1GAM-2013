@@ -4,7 +4,11 @@ func_target = class( "func_target", AnimatedSprite )
 function func_target:initialize()
 	AnimatedSprite:initialize(self)
 	self.collision_mask = 3
-	self.health = 100
+	self.health = 0
+
+	self.total_unlock_time = 1.5
+	self.unlock_time_left = self.total_unlock_time
+	self.is_locked = true
 end
 
 function func_target:onSpawn( params )
@@ -33,5 +37,36 @@ end
 
 function func_target:onDraw( params )
 	AnimatedSprite.onDraw( self, params )
+	
+	if self.is_locked then
+		self.health = 100*(1.0 - (self.unlock_time_left / self.total_unlock_time))
+
+		if self.health >= 100 then
+			self.is_locked = false
+			self.health = 100
+		end
+	else
+		self.health = 100
+	end
+
 	self:drawHealthBar( params )
+end
+
+function func_target:onUpdate( params )
+	AnimatedSprite.onUpdate( self, params )
+
+	if self.is_locked and self.is_unlocking then
+		self.unlock_time_left = self.unlock_time_left - params.dt
+	end
+end
+
+function func_target:startInteraction( params )
+	self.is_unlocking = true
+end
+
+function func_target:endInteraction( params )
+	if self.is_locked then
+		self.is_unlocking = false
+		self.unlock_time_left = self.total_unlock_time
+	end
 end
