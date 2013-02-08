@@ -8,8 +8,8 @@ function func_target:initialize()
 end
 
 function func_target:onSpawn( params )
-	self:loadSprite( "assets/sprites/target.conf" )
-	self:playAnimation( "one" )
+	self:loadSprite( "assets/sprites/items.conf" )
+	self:playAnimation( "chest" )
 	AnimatedSprite.onSpawn( self, params )
 end
 
@@ -25,6 +25,10 @@ end
 
 function func_target:__tostring()
 	return AnimatedSprite.__tostring(self) .. ", Health: " .. self.health
+end
+
+function func_target:useActionString()
+	return "unlock chest"
 end
 
 function func_target:onDraw( params )

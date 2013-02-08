@@ -114,6 +114,16 @@ end
 function Entity:onHit( params )
 end
 
+function Entity:startInteraction( params )
+end
+
+function Entity:endInteraction( params )
+end
+
+function Entity:useActionString()
+	return "do nothing"
+end
+
 -- for compatibility with spatialhash
 function Entity:getAABB()
 	local w,h = self:size()

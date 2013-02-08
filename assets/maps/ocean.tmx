@@ -2,6 +2,11 @@
 <map version="1.0" orientation="orthogonal" width="100" height="250" tilewidth="32" tileheight="32">
  <tileset firstgid="1" name="orthotiles" tilewidth="32" tileheight="32">
   <image source="orthotiles.png" width="128" height="128"/>
+  <tile id="0">
+   <properties>
+    <property name="classname" value="func_target"/>
+   </properties>
+  </tile>
   <tile id="2">
    <properties>
     <property name="classname" value="info_player_spawn"/>
@@ -10,17 +15,17 @@
  </tileset>
  <layer name="Ground" width="100" height="250">
   <data encoding="base64" compression="zlib">
-   eJztwzENAAAMBKHb3r/j2ugACaumqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqvnzWkau3
+   eJzt1rENADAIA0GUhv03zgp0ccQV11t8Q1dVAwAAAF85Q693bjG5tR56bKVHFj2y6JHFfwUAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAECyC/WmqyE=
   </data>
  </layer>
  <layer name="Collision" width="100" height="250">
   <data encoding="base64" compression="zlib">
-   eJztwTEBAAAAwqD1T20ND6AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACAVwOGrwAB
+   eJzt0cEJAAAIxLDD/Yd2AN8iQjJBoQkAAADsqesABk8AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAOCXBmSBAAU=
   </data>
  </layer>
  <layer name="Game" width="100" height="250">
   <data encoding="base64" compression="zlib">
-   eJztzjENAAAIA7Al+PeMhl0ctAqaAACfzHUAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAKgsAuYABA==
+   eJzt07ENADAIBDEQ+++cPgs8EvYE11wVAHDJpAMAACCg0wGw0P+FTwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAD2ele2AAc=
   </data>
  </layer>
 </map>

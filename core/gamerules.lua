@@ -175,74 +175,13 @@ end
 
 function GameRules:updateCollision( params )
 	local colliding = self.grid:getCollidingPairs( self.entity_manager:allEntities() )
-
 	table.foreach( colliding,
 	function(_, v) 
 		if (v[1].collision_mask > 0) and (v[2].collision_mask > 0) and (bit.band(v[1].collision_mask,v[2].collision_mask) > 0) then 
 			v[1]:onCollide( {gamerules=self, other=v[2]} )	
 			v[2]:onCollide( {gamerules=self, other=v[1]} )
+
 		end	end	)
-end
-
-function GameRules:placeItemAtMouse( classname )
-	local width = nil
-	local height = nil
-	local properties = { walkable=true }
-	local mx, my = love.mouse.getPosition()
-	local tx, ty = self:tileCoordinatesFromMouse( mx, my )
-
-
-	if self.place_points > 0 then
-		
-		if self:isTilePlaceable( tx, ty ) then
-			self.place_points = self.place_points - 1
-			local t = Tile:new( 99, {}, {}, width, height, properties )
-
-			if self.collision_layer then
-				self.collision_layer:set( tx, ty, t )
-			end
-
-			local item = self.entity_factory:createClass( classname )
-			if item then
-				--logging.verbose( "placing item: " .. classname )
-				local wx, wy = self:worldCoordinatesFromTileCenter( tx, ty )
-				item:loadSprite( "assets/sprites/items.conf" )
-				item:playAnimation( classname )
-				self:spawnEntity( item, wx, wy, nil )
-
-				-- we need to make something appear: this is HACKED with the GID and tileset name
-				if false and self.map.layers[ MAP_GROUND_LAYER_NAME ] then
-					local ground = self.map.layers[ MAP_GROUND_LAYER_NAME ]
-
-					local first_set = self.map.tilesets["orthotiles"]
-
-					local gid = 30
-					local basetile = self.map.tiles[ gid ]
-					ground:set( tx, ty, basetile )
-				end
-
-				return true
-			end
-		end
-	end
-
-	return false
-end
-
-function GameRules:removeItemAtMouse()
-	local mx, my = love.mouse.getPosition()
-	local tx, ty = self:tileCoordinatesFromMouse( mx, my )
-
-	-- allow the user to 'redeem' this item
-	for _,e in pairs(self.entity_manager:allEntities()) do
-		if e.class.name ~= "func_target" and e.tile_x == tx and e.tile_y == ty then
-			self:removeEntity( e )
-			self.collision_layer:set( tx, ty, nil )
-			self.place_points = self.place_points + 1
-			self:playSound( "remove_item" )
-		end
-	end
-	-- ...	
 end
 
 function GameRules:updateWalkableMap( )
@@ -324,6 +263,7 @@ function GameRules:loadMap( mapname )
 			end
 
 			self:spawnEntityAtTileWithProperties( game_layer, x, y, properties )
+
 		end
 	end
 
@@ -377,6 +317,11 @@ end
 
 function GameRules:calculateEntityDistanceToTarget( tile_x, tile_y )
 	return (self.target.tile_x - tile_x), (self.target.tile_y - tile_y)
+end
+
+function GameRules:calculateEntityDistance( e1, e2 )
+	local dx, dy = (e2.world_x - e1.world_x), (e2.world_y - e1.world_y)
+	return math.sqrt(dx*dx + dy*dy)
 end
 
 -- these two functions are identical right now, but this may change...
@@ -496,6 +441,11 @@ function GameRules:spawnEntityAtTileWithProperties( layer, tile_x, tile_y, prope
 
 				-- remove this tile from the layer
 				layer:set( tile_x, tile_y, nil )
+
+
+				if entity.collision_mask > 0 then
+					self.collision_layer:set( tile_x, tile_y, self.basic_collision_tile )
+				end
 			end
 		end
 	else

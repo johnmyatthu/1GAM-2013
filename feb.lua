@@ -209,6 +209,33 @@ function Game:onDraw( params )
 	params.gamestate = self.state
 	self.gamerules:drawEntities( params )
 
+	--
+	-- HUD rendering
+
+	-- draw the top overlay bar
+	love.graphics.setColor( 0, 0, 0, 64 )
+	local height = 32
+	love.graphics.rectangle( "fill", 0, 0, love.graphics.getWidth(), height )
+
+
+
+	love.graphics.setFont( self.fonts[ "text2" ] )
+	love.graphics.setColor( 255, 255, 255, 255 )
+	love.graphics.print( "Depth: " .. tostring(0) .. " meters", 10, 5 )
+
+
+
+
+
+
+	if player.last_interaction_object ~= nil then
+		local action = player.last_interaction_object:useActionString()
+		if action then
+			love.graphics.printf( "press <key> to " .. action, 0, 500, love.graphics.getWidth(), "center" )
+		end
+	end
+
+
 end
 
 function Game:updatePlayerDirection()

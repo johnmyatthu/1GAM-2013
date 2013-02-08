@@ -10,15 +10,35 @@ function Player:initialize()
 
 	self.dir = {x=0, y=0}
 	self.aim_magnitude = 10
+
+	self.last_interaction_object = nil
 end
 
 function Player:onUpdate( params )
 	AnimatedSprite.onUpdate(self, params)
+
+	if self.last_interaction_object ~= nil then
+
+		local distance = params.gamerules:calculateEntityDistance( self, self.last_interaction_object )
+
+		if distance > 22 then
+			-- get tile distance from me and my interaction object
+			-- if I'm too far away, cancel interaction
+			self.last_interaction_object:endInteraction( {} )
+			self.last_interaction_object = nil
+		end
+	end
 end
 
 function Player:respondsToEvent( event_name, params )
-	if event_name == "onDraw" then
-		return true
+	return true
+end
+
+function Player:onCollide( params )
+	AnimatedSprite.onCollide( self, params )
+
+	if params.other and self.last_interaction_object ~= params.other then
+		self.last_interaction_object = params.other
 	end
 end
 
