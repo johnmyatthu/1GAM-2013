@@ -5,7 +5,7 @@ require "core.baseentity"
 AnimatedSprite = class( "AnimatedSprite", Entity )
 
 function AnimatedSprite:initialize()
-	Entity:initialize(self)
+	Entity.initialize(self)
 	self.is_attacking = false
 	self.current_animation = 1
 	self.current_direction = "east"
@@ -32,6 +32,7 @@ end
 
 function AnimatedSprite:loadSprite( config_file )
 	if love.filesystem.exists( config_file ) then
+		--logging.verbose( "loadSprite: " .. config_file )
 		local sprite_config = json.decode( love.filesystem.read( config_file ) )
 		--logging.verbose( "loadSprite: image '" .. sprite_config.image .. "'" )
 

@@ -2,7 +2,7 @@ require "core"
 
 func_target = class( "func_target", AnimatedSprite )
 function func_target:initialize()
-	AnimatedSprite:initialize(self)
+	AnimatedSprite.initialize(self)
 	self.collision_mask = 3
 	self.health = 0
 
@@ -12,9 +12,10 @@ function func_target:initialize()
 end
 
 function func_target:onSpawn( params )
-	self:loadSprite( "assets/sprites/items.conf" )
-	self:playAnimation( "chest" )
 	AnimatedSprite.onSpawn( self, params )
+
+	self:loadSprite( "assets/sprites/items.conf" )
+	self:playAnimation( "chest" )	
 end
 
 function func_target:onHit( params )
@@ -32,7 +33,11 @@ function func_target:__tostring()
 end
 
 function func_target:useActionString()
-	return "unlock chest"
+	if self.is_locked then
+		return "unlock chest"
+	else
+		return nil
+	end
 end
 
 function func_target:onDraw( params )
@@ -44,6 +49,7 @@ function func_target:onDraw( params )
 		if self.health >= 100 then
 			self.is_locked = false
 			self.health = 100
+			self:playAnimation("open")
 		end
 	else
 		self.health = 100

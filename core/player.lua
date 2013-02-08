@@ -2,7 +2,7 @@ require "core"
 
 Player = class("Player", AnimatedSprite)
 function Player:initialize()
-	AnimatedSprite:initialize(self)
+	AnimatedSprite.initialize(self)
 	self.health = 100
 	self.collision_mask = 1
 	self.attack_delay = 1 -- in seconds
@@ -16,13 +16,17 @@ function Player:initialize()
 	self.was_using_lastframe = false
 end
 
+function Player:onSpawn( params )
+	self:loadSprite( "assets/sprites/player.conf" )
+	self:playAnimation( "idle" )
+	AnimatedSprite.onSpawn( self, params )
+end
+
 function Player:onUpdate( params )
 	AnimatedSprite.onUpdate(self, params)
 
 	if self.last_interaction_object ~= nil then
-		local distance = params.gamerules:calculateEntityDistance( self, self.last_interaction_object )
-
-		if distance > 22 then
+		if not self:canInteractWith( {gamerules=params.gamerules, other=self.last_interaction_object} ) then
 			-- get tile distance from me and my interaction object
 			-- if I'm too far away, cancel interaction
 			self.last_interaction_object:endInteraction( {} )
@@ -37,7 +41,7 @@ function Player:onUpdate( params )
 			self.last_interaction_object:endInteraction( {} )
 		end	
 	end
-	
+
 	self.was_using_lastframe = self.is_using
 end
 

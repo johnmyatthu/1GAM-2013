@@ -124,7 +124,6 @@ function Game:onLoad( params )
 	self.gamerules:loadMap( self.config.map )
 
 	player = self.gamerules.entity_factory:createClass( "Player" )
-	player:loadSprite( "assets/sprites/player.conf" )
 
 	-- assuming this map has a spawn point; we'll set the player spawn
 	-- and then center the camera on the player
@@ -145,7 +144,7 @@ function Game:onLoad( params )
 	--]]
 
 	logging.verbose( "Initialization complete." )
-	self.source = self.gamerules:playSound( "pulse" )
+	--self.source = self.gamerules:playSound( "pulse" )
 end
 
 
@@ -232,7 +231,7 @@ function Game:onDraw( params )
 
 
 
-	if player.last_interaction_object ~= nil then
+	if player.last_interaction_object ~= nil and player:canInteractWith({gamerules=self.gamerules, other=player.last_interaction_object} ) then
 		local action = player.last_interaction_object:useActionString()
 		if action then
 			love.graphics.printf( "press <key> to " .. action, 0, 500, love.graphics.getWidth(), "center" )

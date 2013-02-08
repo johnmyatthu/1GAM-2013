@@ -114,6 +114,15 @@ end
 function Entity:onHit( params )
 end
 
+function Entity:canInteractWith( params )
+	local distance = params.gamerules:calculateEntityDistance( self, params.other )
+	if distance > 25 then
+		return false
+	end
+
+	return true
+end
+
 function Entity:startInteraction( params )
 end
 

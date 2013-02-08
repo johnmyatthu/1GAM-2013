@@ -268,7 +268,7 @@ function GameRules:loadMap( mapname )
 	end
 
 	self:updateWalkableMap()
-	self.target = self.entity_manager:findFirstEntityByName( "func_target" )
+	--self.target = self.entity_manager:findFirstEntityByName( "func_target" )
 end
 
 function GameRules:colorForHealth( health, max_health )
@@ -315,9 +315,7 @@ function GameRules:getCollisionTile( tx, ty )
 	return nil
 end
 
-function GameRules:calculateEntityDistanceToTarget( tile_x, tile_y )
-	return (self.target.tile_x - tile_x), (self.target.tile_y - tile_y)
-end
+
 
 function GameRules:calculateEntityDistance( e1, e2 )
 	local dx, dy = (e2.world_x - e1.world_x), (e2.world_y - e1.world_y)
