@@ -1,5 +1,5 @@
 {
-	"map" : "ortho.tmx",
+	"map" : "ocean.tmx",
 	"move_speed" : 170,
 	"spawn" : [0, 0],
 	"game" : "feb",

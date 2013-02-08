@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<map version="1.0" orientation="orthogonal" width="100" height="250" tilewidth="32" tileheight="32">
+ <tileset firstgid="1" name="orthotiles" tilewidth="32" tileheight="32">
+  <image source="orthotiles.png" width="128" height="128"/>
+  <tile id="2">
+   <properties>
+    <property name="classname" value="info_player_spawn"/>
+   </properties>
+  </tile>
+ </tileset>
+ <layer name="Ground" width="100" height="250">
+  <data encoding="base64" compression="zlib">
+   eJztwzENAAAMBKHb3r/j2ugACaumqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqvnzWkau3
+  </data>
+ </layer>
+ <layer name="Collision" width="100" height="250">
+  <data encoding="base64" compression="zlib">
+   eJztwTEBAAAAwqD1T20ND6AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACAVwOGrwAB
+  </data>
+ </layer>
+ <layer name="Game" width="100" height="250">
+  <data encoding="base64" compression="zlib">
+   eJztzjENAAAIA7Al+PeMhl0ctAqaAACfzHUAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAKgsAuYABA==
+  </data>
+ </layer>
+</map>

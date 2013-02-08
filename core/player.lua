@@ -17,9 +17,7 @@ function Player:onUpdate( params )
 end
 
 function Player:respondsToEvent( event_name, params )
-	if event_name == "onDraw" and params.gamestate == GAME_STATE_BUILD then
-		return false
-	else
+	if event_name == "onDraw" then
 		return true
 	end
 end

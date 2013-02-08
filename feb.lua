@@ -142,13 +142,36 @@ function Game:onLoad( params )
 	--]]
 
 	logging.verbose( "Initialization complete." )
-	self.source = self.gamerules:playSound( "pulse" )
+	--self.source = self.gamerules:playSound( "pulse" )
 end
 
 
 function Game:onUpdate( params )
 	params.gamestate = self.state
 	self.gamerules:onUpdate( params )
+
+	self.gamerules:snapCameraToPlayer( player )
+
+	self:updatePlayerDirection()
+
+
+		local cam_x, cam_y = self.gamerules:getCameraPosition()
+		if love.keyboard.isDown( self:keyForAction(ACTION_MOVE_MAP_UP) ) then cam_y = cam_y + self.config.move_speed*params.dt end
+		if love.keyboard.isDown( self:keyForAction(ACTION_MOVE_MAP_DOWN) ) then cam_y = cam_y - self.config.move_speed*params.dt end
+		if love.keyboard.isDown( self:keyForAction(ACTION_MOVE_MAP_LEFT) ) then cam_x = cam_x + self.config.move_speed*params.dt end
+		if love.keyboard.isDown( self:keyForAction(ACTION_MOVE_MAP_RIGHT) ) then cam_x = cam_x - self.config.move_speed*params.dt end
+		self.gamerules:setCameraPosition( cam_x, cam_y )
+
+		local command = { 
+		up=love.keyboard.isDown( self:keyForAction(ACTION_MOVE_PLAYER_UP) ), 
+		down=love.keyboard.isDown( self:keyForAction(ACTION_MOVE_PLAYER_DOWN) ), 
+		left=love.keyboard.isDown( self:keyForAction(ACTION_MOVE_PLAYER_LEFT) ), 
+		right=love.keyboard.isDown( self:keyForAction(ACTION_MOVE_PLAYER_RIGHT) ), 
+		move_speed=self.config.move_speed, 
+		dt=params.dt }
+		self.gamerules:handleMovePlayerCommand( command, player )
+
+
 
 	local mx, my = love.mouse.getPosition()
 --[[
@@ -169,8 +192,8 @@ function Game:onUpdate( params )
 --]]
 
 	if self.source then
-		self.source:setVolume( (mx)/800 )
-		self.source:setPitch( (300+my)/600 )
+		--self.source:setVolume( (mx)/800 )
+		--self.source:setPitch( (300+my)/600 )
 	end
 end
 
@@ -178,7 +201,8 @@ end
 
 
 function Game:onDraw( params )
-	love.graphics.setColor( 255, 255, 255, 255 )
+	love.graphics.setBackgroundColor( 39, 82, 93, 255 )
+	love.graphics.clear()
 	self.gamerules:drawWorld()
 
 	-- draw entities here
