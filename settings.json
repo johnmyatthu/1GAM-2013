@@ -1,6 +1,6 @@
 {
 	"map" : "ocean.tmx",
-	"move_speed" : 170,
+	"move_speed" : 200,
 	"spawn" : [0, 0],
 	"game" : "feb",
 

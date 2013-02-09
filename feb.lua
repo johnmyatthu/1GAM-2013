@@ -215,22 +215,14 @@ function Game:onDraw( params )
 	--
 	-- HUD rendering
 
-	-- draw the top overlay bar
-	love.graphics.setColor( 0, 0, 0, 64 )
-	local height = 32
-	love.graphics.rectangle( "fill", 0, 0, love.graphics.getWidth(), height )
+
+
+
 
 
 
 	love.graphics.setFont( self.fonts[ "text2" ] )
 	love.graphics.setColor( 255, 255, 255, 255 )
-	love.graphics.print( "Depth: " .. tostring(player.world_y/64) .. " meters", 10, 5 )
-
-
-
-
-
-
 	if player.last_interaction_object ~= nil and player:canInteractWith({gamerules=self.gamerules, other=player.last_interaction_object} ) then
 		local action = player.last_interaction_object:useActionString()
 		if action then
@@ -238,7 +230,21 @@ function Game:onDraw( params )
 		end
 	end
 
+	local depth = 255 * ((player.world_y/64) / 100)
+	if depth > 255 then
+		depth = 255
+	end
+	love.graphics.setColor( 0, 0, 0, depth )
+	love.graphics.rectangle( "fill", 0, 0, love.graphics.getWidth(), love.graphics.getHeight() )
 
+
+	-- draw the top overlay bar
+	love.graphics.setColor( 0, 0, 0, 64 )
+	local height = 32
+	love.graphics.rectangle( "fill", 0, 0, love.graphics.getWidth(), height )
+	love.graphics.setFont( self.fonts[ "text2" ] )
+	love.graphics.setColor( 255, 255, 255, 255 )
+	love.graphics.print( "Depth: " .. tostring(player.world_y/64) .. " meters", 10, 5 )	
 end
 
 function Game:updatePlayerDirection()
