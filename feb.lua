@@ -31,6 +31,15 @@ function Game:initialize( gamerules, config, fonts )
 	self.fire = false
 	self.next_attack_time = 0
 
+	self.fish_spawn = {
+		0.5
+	}
+
+	self.next_spawn = {
+		0
+	}
+
+
 	self.key_for_action = {}
 	self.key_for_action[ ACTION_MOVE_MAP_LEFT ] = "left"
 	self.key_for_action[ ACTION_MOVE_MAP_RIGHT ] = "right"
@@ -72,7 +81,8 @@ function Game:initialize( gamerules, config, fonts )
 		love.mouse.setVisible( false )
 	end
 
-	self.source = nil
+	self.source = self.gamerules:createSource( "sawmill" )
+	self.source:play()
 end
 
 
@@ -128,7 +138,7 @@ function Game:onLoad( params )
 	-- assuming this map has a spawn point; we'll set the player spawn
 	-- and then center the camera on the player
 	self:warpPlayerToSpawn( player )
-
+	self.gamerules:setPlayer( player )
 	self.gamerules:spawnEntity( player, nil, nil, nil )
 
 	-- setup cursor
@@ -148,7 +158,40 @@ function Game:onLoad( params )
 end
 
 
+function Game:spawnFish()
+	if self.gamerules.entity_manager:entityCount() >= 300 then
+		return
+	end
+	for i=1, 5 do
+		local thing = self.gamerules.entity_factory:createClass( "func_thing" )
+		thing.tile_x = 0
+		thing.tile_y = 0
+		local direction = math.random(100)
+		if direction > 50 then
+			direction = 1
+		else
+			direction = -1
+		end
+
+		target_world_x = player.world_x + (400*direction)
+		target_world_y = player.world_y + (300*direction)
+		thing.pv = {x=direction*math.random(100), y=math.random(25)}
+		
+		self.gamerules:spawnEntity( thing, target_world_x, target_world_y, nil )
+	end
+end
+
 function Game:onUpdate( params )
+
+	for i,v in ipairs(self.next_spawn) do
+		self.next_spawn[i] = self.next_spawn[i] - params.dt
+		if v <= 0 then
+			self.next_spawn[i] = self.fish_spawn[i]
+			self:spawnFish()
+		end
+	end
+
+
 	params.gamestate = self.state
 	self.gamerules:onUpdate( params )
 
@@ -171,7 +214,28 @@ function Game:onUpdate( params )
 	right=love.keyboard.isDown( self:keyForAction(ACTION_MOVE_PLAYER_RIGHT) ), 
 	move_speed=self.config.move_speed, 
 	dt=params.dt }
-	self.gamerules:handleMovePlayerCommand( command, player )
+	--self.gamerules:handleMovePlayerCommand( command, player )
+
+	player.damping.x = 0.975
+	player.damping.y = 0.975
+
+	local move_speed = 10
+
+	if command.right then
+		player.velocity.x = player.velocity.x + move_speed
+	elseif command.left then
+		player.velocity.x = player.velocity.x - move_speed
+	end
+
+	if command.up then
+		player.velocity.y = player.velocity.y - move_speed
+	elseif command.down then
+		player.velocity.y = player.velocity.y + move_speed
+	end	
+
+	if player.world_y < 0.2 then
+		player.world_y = 0.2
+	end
 
 	player.is_using = love.keyboard.isDown( self:keyForAction(ACTION_USE) )
 
@@ -226,7 +290,7 @@ function Game:onDraw( params )
 	if player.last_interaction_object ~= nil and player:canInteractWith({gamerules=self.gamerules, other=player.last_interaction_object} ) then
 		local action = player.last_interaction_object:useActionString()
 		if action then
-			love.graphics.printf( "press <key> to " .. action, 0, 500, love.graphics.getWidth(), "center" )
+			love.graphics.printf( "press E to " .. action, 0, 500, love.graphics.getWidth(), "center" )
 		end
 	end
 
@@ -245,6 +309,9 @@ function Game:onDraw( params )
 	love.graphics.setFont( self.fonts[ "text2" ] )
 	love.graphics.setColor( 255, 255, 255, 255 )
 	love.graphics.print( "Depth: " .. tostring(player.world_y/64) .. " meters", 10, 5 )	
+
+
+	love.graphics.print( "Total Entities: " .. self.gamerules.entity_manager:entityCount(), 10, 50 )	
 end
 
 function Game:updatePlayerDirection()
@@ -272,11 +339,9 @@ function Game:onKeyReleased( params )
 end
 
 function Game:onMousePressed( params )
-	if self.state == GAME_STATE_DEFEND then
-
-		if params.button == "l" then
-			self.fire = true
-		end
+	if params.button == "l" then
+		local mx, my = love.mouse.getPosition()
+		self:spawnFish()
 	end
 end
 

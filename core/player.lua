@@ -23,6 +23,12 @@ function Player:onSpawn( params )
 end
 
 function Player:onUpdate( params )
+	-- pretend there is some buoyancy
+	--if self.world_y > 10 then
+	--	self.velocity.y = self.velocity.y - (0.25 * (self.world_y/500))
+	--end
+
+
 	AnimatedSprite.onUpdate(self, params)
 
 	if self.last_interaction_object ~= nil then

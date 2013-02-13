@@ -55,7 +55,8 @@ function GameRules:initialize()
 	self.place_points = 2
 	self.point_base = 0
 	self.target = nil
-
+	self.player = nil
+	
 	self.last_level = {}
 
 	love.audio.setVolume( 1.0 )
@@ -72,8 +73,9 @@ function GameRules:loadSounds( path )
 				sd[ key ] = value
 			end
 
-
-			self.sounds[ k ] = love.audio.newSource( sd["path"], sd["type"] )
+			if sd["type"] == "static" then
+				self.sounds[ k ] = love.audio.newSource( sd["path"], sd["type"] )
+			end
 		end
 	end
 end
@@ -336,6 +338,13 @@ function GameRules:getCollisionTile( tx, ty )
 end
 
 
+function GameRules:setPlayer( player )
+	self.player = player
+end
+
+function GameRules:getPlayer()
+	return self.player
+end
 
 function GameRules:calculateEntityDistance( e1, e2 )
 	local dx, dy = (e2.world_x - e1.world_x), (e2.world_y - e1.world_y)

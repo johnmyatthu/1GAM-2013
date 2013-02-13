@@ -25,6 +25,8 @@ function Entity:initialize()
 	self.time_until_health_regen = 1 -- how much time is needed since last hit to start regenerating health
 
 	self.velocity = { x=0, y=0 }
+	self.damping = { x=0, y=0 }
+	self.scale = { x=1, y=1 }
 end
 
 -- this can be overridden in order to skip drawing, for example.
@@ -79,9 +81,10 @@ function Entity:onSpawn( params )
 end
 
 function Entity:onUpdate( params )
-
 	self.world_x = self.world_x + self.velocity.x * params.dt
 	self.world_y = self.world_y + self.velocity.y * params.dt
+	self.velocity.x = self.velocity.x * self.damping.x
+	self.velocity.y = self.velocity.y * self.damping.y
 
 	if params.gamerules.map then
 		self.tile_x, self.tile_y = params.gamerules:tileCoordinatesFromWorld( self.world_x, self.world_y )
