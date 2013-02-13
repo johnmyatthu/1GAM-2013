@@ -43,8 +43,10 @@ function GameRules:initialize()
 	self.entity_factory:registerClass( "Bullet", core.Bullet )
 	self.entity_factory:registerClass( "Player", core.Player )
 	self.entity_factory:registerClass( "Breakable", core.Breakable )
+	self.entity_factory:registerClass( "func_thing", core.func_thing )
 
 	self.sounds = {}
+	self.sound_data = {}
 	self:loadSounds( "assets/sounds/sounds.conf" )
 
 	self.data = {}
@@ -62,12 +64,24 @@ end
 function GameRules:loadSounds( path )
 	logging.verbose( "Loading sounds..." )
 	if love.filesystem.exists( path ) then
-		local sounds = json.decode( love.filesystem.read( path ) )
-		for k,v in pairs(sounds) do
-			logging.verbose( "\t'" .. k .. "' -> '" .. tostring(v) .. "'" )
-			self.sounds[ k ] = love.audio.newSource( v, "static" )
+		self.sound_data = json.decode( love.filesystem.read( path ) )
+		for k,sound_data in pairs(self.sound_data) do
+			sd = {}
+			for key, value in pairs(sound_data) do
+				logging.verbose( "\t'" .. key .. "' -> '" .. tostring(value) .. "'" )
+				sd[ key ] = value
+			end
+
+
+			self.sounds[ k ] = love.audio.newSource( sd["path"], sd["type"] )
 		end
 	end
+end
+
+function GameRules:createSource( name )
+	local sound_data = self.sound_data[ name ]
+	logging.verbose( "Creating source for: " .. sound_data["path"] )
+	return love.audio.newSource( sound_data["path"], sound_data["type"] )
 end
 
 function GameRules:playSound( name )

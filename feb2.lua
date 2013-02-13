@@ -280,11 +280,22 @@ function Game:onKeyReleased( params )
 end
 
 function Game:onMousePressed( params )
-	if self.state == GAME_STATE_DEFEND then
+	if params.button == "l" then
+		local mx, my = love.mouse.getPosition()
+		local thing = self.gamerules.entity_factory:createClass( "func_thing" )
+		thing.tile_x = 0
+		thing.tile_y = 0
+		self.gamerules:spawnEntity( thing, mx, my, nil )
 
-		if params.button == "l" then
-			self.fire = true
-		end
+		--thing.source = self.gamerules:createSource( "bs0" )
+		--thing.source:setLooping( false )
+		--thing.source:play()
+--		self:updatePlayerDirection()
+
+		--thing.velocity.x = player.dir.x*50
+		--thing.velocity.y = player.dir.y*50
+--		bullet.attack_damage = player.attack_damage
+--		self.gamerules:playSound( "fire2" )
 	end
 end
 
