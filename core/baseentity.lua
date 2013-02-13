@@ -77,7 +77,9 @@ function Entity:onSpawn( params )
 end
 
 function Entity:onUpdate( params )
-	self.tile_x, self.tile_y = params.gamerules:tileCoordinatesFromWorld( self.world_x, self.world_y )
+	if params.gamerules.map then
+		self.tile_x, self.tile_y = params.gamerules:tileCoordinatesFromWorld( self.world_x, self.world_y )
+	end
 
 	self.time_since_last_hit = self.time_since_last_hit + params.dt
 	if params.gamestate == core.GAME_STATE_DEFEND then

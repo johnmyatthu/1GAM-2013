@@ -2,7 +2,7 @@
 	"map" : "ocean.tmx",
 	"move_speed" : 200,
 	"spawn" : [0, 0],
-	"game" : "feb",
+	"game" : "feb2",
 
 	"fonts" :
 	{

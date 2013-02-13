@@ -166,22 +166,28 @@ function GameRules:initCollision()
 end
 
 function GameRules:addCollision( entity )
-	self.grid:addShape( entity )
+	if self.grid then
+		self.grid:addShape( entity )
+	end
 end
 
 function GameRules:removeCollision( entity )
-	self.grid:removeShape( entity )
+	if self.grid then
+		self.grid:removeShape( entity )
+	end
 end
 
 function GameRules:updateCollision( params )
-	local colliding = self.grid:getCollidingPairs( self.entity_manager:allEntities() )
-	table.foreach( colliding,
-	function(_, v) 
-		if (v[1].collision_mask > 0) and (v[2].collision_mask > 0) and (bit.band(v[1].collision_mask,v[2].collision_mask) > 0) then 
-			v[1]:onCollide( {gamerules=self, other=v[2]} )	
-			v[2]:onCollide( {gamerules=self, other=v[1]} )
+	if self.grid then
+		local colliding = self.grid:getCollidingPairs( self.entity_manager:allEntities() )
+		table.foreach( colliding,
+		function(_, v) 
+			if (v[1].collision_mask > 0) and (v[2].collision_mask > 0) and (bit.band(v[1].collision_mask,v[2].collision_mask) > 0) then 
+				v[1]:onCollide( {gamerules=self, other=v[2]} )	
+				v[2]:onCollide( {gamerules=self, other=v[1]} )
 
-		end	end	)
+			end	end	)
+	end
 end
 
 function GameRules:updateWalkableMap( )
@@ -550,9 +556,13 @@ function GameRules:handleMovePlayerCommand( command, player )
 	if command.left then nwx = player.world_x - (command.move_speed * command.dt) end
 	if command.right then nwx = player.world_x + (command.move_speed * command.dt) end
 
+
 	-- could offset by sprite's half bounds to ensure they don't intersect with tiles
-	local tx, ty = self:tileCoordinatesFromWorld( nwx, nwy )
-	local tile = self:getCollisionTile( tx, ty )
+	local tile = nil
+	if self.map then
+		local tx, ty = self:tileCoordinatesFromWorld( nwx, nwy )
+		tile = self:getCollisionTile( tx, ty )
+	end
 
 	-- for now, just collide with tiles that exist on the collision layer.
 	if not tile then
@@ -563,6 +573,8 @@ function GameRules:handleMovePlayerCommand( command, player )
 		player:setDirectionFromMoveCommand( command )
 	end
 
-	player.tile_x, player.tile_y = self:tileCoordinatesFromWorld( player.world_x, player.world_y )
+	if self.map then
+		player.tile_x, player.tile_y = self:tileCoordinatesFromWorld( player.world_x, player.world_y )
+	end
 end
 
