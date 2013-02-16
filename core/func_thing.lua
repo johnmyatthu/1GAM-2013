@@ -7,6 +7,9 @@ function func_thing:initialize()
 	self.health = 0
 
 	self.pv = { x=0, y=0 }
+
+	self.fadetime = 0.5 + math.random(2.0)
+	self.fade_in_time = self.fadetime
 end
 
 function func_thing:onSpawn( params )
@@ -35,10 +38,20 @@ function func_thing:useActionString()
 end
 
 function func_thing:onDraw( params )
+	self.color.a = (1 - (self.fade_in_time / self.fadetime)) * 255
 	AnimatedSprite.onDraw( self, params )
 end
 
 function func_thing:onUpdate( params )
+
+	if self.fade_in_time > 0 then
+		self.fade_in_time = self.fade_in_time - params.dt
+		if self.fade_in_time <= 0 then
+			self.fade_in_time = 0
+		end
+	end
+
+
 	self.velocity.x = self.pv.x
 	self.velocity.y = self.pv.y
 

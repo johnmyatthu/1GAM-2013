@@ -14,6 +14,9 @@ local ACTION_MOVE_PLAYER_UP = "move_player_up"
 local ACTION_MOVE_PLAYER_DOWN = "move_player_down"
 local ACTION_USE = "use"
 
+-- maximum number of fish alive at once
+local MAX_FISH = 250
+
 -- the amount of build time given before each wave
 local GAME_BUILD_TIME = 30
 
@@ -32,7 +35,7 @@ function Game:initialize( gamerules, config, fonts )
 	self.next_attack_time = 0
 
 	self.fish_spawn = {
-		0.5
+		0.25
 	}
 
 	self.next_spawn = {
@@ -159,7 +162,7 @@ end
 
 
 function Game:spawnFish()
-	if self.gamerules.entity_manager:entityCount() >= 300 then
+	if self.gamerules.entity_manager:entityCount() >= MAX_FISH then
 		return
 	end
 	for i=1, 5 do
@@ -173,8 +176,8 @@ function Game:spawnFish()
 			direction = -1
 		end
 
-		target_world_x = player.world_x + (400*direction)
-		target_world_y = player.world_y + (300*direction)
+		target_world_x = player.world_x + (200*math.random()*direction)
+		target_world_y = player.world_y + (150*math.random()*direction)
 		thing.pv = {x=direction*math.random(100), y=math.random(25)}
 		
 		self.gamerules:spawnEntity( thing, target_world_x, target_world_y, nil )
