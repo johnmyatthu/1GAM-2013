@@ -85,6 +85,7 @@ function Game:initialize( gamerules, config, fonts )
 	end
 
 	self.source = self.gamerules:createSource( "sawmill" )
+	self.source:setVolume( 0.75 )
 	self.source:play()
 end
 
@@ -165,7 +166,7 @@ function Game:spawnFish()
 	if self.gamerules.entity_manager:entityCount() >= MAX_FISH then
 		return
 	end
-	for i=1, 5 do
+	for i=1, 10 do
 		local thing = self.gamerules.entity_factory:createClass( "func_thing" )
 		thing.tile_x = 0
 		thing.tile_y = 0
@@ -176,8 +177,8 @@ function Game:spawnFish()
 			direction = -1
 		end
 
-		target_world_x = player.world_x + (200*math.random()*direction)
-		target_world_y = player.world_y + (150*math.random()*direction)
+		target_world_x = player.world_x + (370*math.random()*direction)
+		target_world_y = player.world_y + (275*math.random()*direction)
 		thing.pv = {x=direction*math.random(100), y=math.random(25)}
 		
 		self.gamerules:spawnEntity( thing, target_world_x, target_world_y, nil )
