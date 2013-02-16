@@ -15,7 +15,7 @@ local ACTION_MOVE_PLAYER_DOWN = "move_player_down"
 local ACTION_USE = "use"
 
 -- maximum number of fish alive at once
-local MAX_FISH = 250
+local MAX_FISH = 125
 
 -- the amount of build time given before each wave
 local GAME_BUILD_TIME = 30
