@@ -44,7 +44,8 @@ function GameRules:initialize()
 	self.entity_factory:registerClass( "Player", core.Player )
 	self.entity_factory:registerClass( "Breakable", core.Breakable )
 	self.entity_factory:registerClass( "func_thing", core.func_thing )
-
+	self.entity_factory:registerClass( "func_shark", core.func_shark )
+	
 	self.sounds = {}
 	self.sound_data = {}
 	self:loadSounds( "assets/sounds/sounds.conf" )

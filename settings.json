@@ -26,6 +26,7 @@
 
 	"keys" :
 	{
-		"c" : "toggle_collision_layer"
+		"c" : "toggle_collision_layer",
+		"g" : "spawn_shark"
 	}
 }

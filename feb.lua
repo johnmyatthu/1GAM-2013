@@ -58,6 +58,7 @@ function Game:initialize( gamerules, config, fonts )
 
 	self.actionmap = {}
 	self.actionmap[ "toggle_collision_layer" ] = self.toggleDrawCollisions
+	self.actionmap[ "spawn_shark"] = self.spawnShark
 
 	self.actions = {}
 	logging.verbose( "Mapping keys to actions..." )
@@ -161,6 +162,10 @@ function Game:onLoad( params )
 	--self.source = self.gamerules:playSound( "pulse" )
 end
 
+function Game:spawnShark()
+	local shark = self.gamerules.entity_factory:createClass("func_shark")
+	self.gamerules:spawnEntity( shark, player.world_x, player.world_y, nil )	
+end
 
 function Game:spawnFish()
 	if self.gamerules.entity_manager:entityCount() >= MAX_FISH then
@@ -191,10 +196,9 @@ function Game:onUpdate( params )
 		self.next_spawn[i] = self.next_spawn[i] - params.dt
 		if v <= 0 then
 			self.next_spawn[i] = self.fish_spawn[i]
-			self:spawnFish()
+			--self:spawnFish()
 		end
 	end
-
 
 	params.gamestate = self.state
 	self.gamerules:onUpdate( params )
