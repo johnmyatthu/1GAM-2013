@@ -37,6 +37,15 @@ end
 
 function func_shark:onUpdate( params )
 
+	local player = params.gamerules:getPlayer()
+
+	-- calculate velocity in the direction of the player
+	local dx = (player.world_x - self.world_x)
+	local dy = (player.world_y - self.world_y)
+	self.velocity.x = dx
+	self.velocity.y = dy
+
+
 	if self.fade_in_time > 0 then
 		self.fade_in_time = self.fade_in_time - params.dt
 		if self.fade_in_time <= 0 then
