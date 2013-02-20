@@ -75,6 +75,8 @@ function Game:initialize( gamerules, config, fonts )
 		end
 	end
 
+
+
 	self.state = GAME_STATE_BUILD
 	self.timer = GAME_BUILD_TIME
 
@@ -92,6 +94,7 @@ end
 
 
 function Game:nextState()
+
 	--[[
 	if self.actions[ " " ] then
 		self.actions[ " " ] = nil
@@ -137,7 +140,7 @@ end
 function Game:onLoad( params )
 	-- load the map
 	self.gamerules:loadMap( self.config.map )
-
+	self.gamerules:prepareForGame()
 	player = self.gamerules.entity_factory:createClass( "Player" )
 
 	-- assuming this map has a spawn point; we'll set the player spawn
@@ -172,7 +175,7 @@ function Game:spawnFish()
 		return
 	end
 	for i=1, 10 do
-		local thing = self.gamerules.entity_factory:createClass( "func_thing" )
+		local thing = self.gamerules.entity_factory:createClass( "func_fish" )
 		thing.tile_x = 0
 		thing.tile_y = 0
 		local direction = math.random(100)
@@ -196,7 +199,7 @@ function Game:onUpdate( params )
 		self.next_spawn[i] = self.next_spawn[i] - params.dt
 		if v <= 0 then
 			self.next_spawn[i] = self.fish_spawn[i]
-			--self:spawnFish()
+			self:spawnFish()
 		end
 	end
 
@@ -302,7 +305,7 @@ function Game:onDraw( params )
 		end
 	end
 
-	local depth = 255 * ((player.world_y/64) / 100)
+	local depth = 255 * ((player.world_y/32) / 250)
 	if depth > 255 then
 		depth = 255
 	end

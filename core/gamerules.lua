@@ -43,7 +43,7 @@ function GameRules:initialize()
 	self.entity_factory:registerClass( "Bullet", core.Bullet )
 	self.entity_factory:registerClass( "Player", core.Player )
 	self.entity_factory:registerClass( "Breakable", core.Breakable )
-	self.entity_factory:registerClass( "func_thing", core.func_thing )
+	self.entity_factory:registerClass( "func_fish", core.func_fish )
 	self.entity_factory:registerClass( "func_shark", core.func_shark )
 	
 	self.sounds = {}
@@ -117,7 +117,8 @@ function GameRules:preparePlayerForNextWave( player )
 end
 
 
-function GameRules:prepareForNextWave()
+function GameRules:prepareForGame()
+	--[[
 	self.level = self.level + 1
 	self.enemies_destroyed = 0
 
@@ -143,6 +144,52 @@ function GameRules:prepareForNextWave()
 
 	-- update the total here
 	self.wave_enemies = wave_enemies * #spawns
+	--]]
+
+
+	logging.verbose( "setting up chests" )
+
+
+
+
+	local chests = self.entity_manager:findAllEntitiesByName( "func_target" )
+	logging.verbose( #chests )
+
+	local num_chests = 3
+	local num_to_remove = #chests - num_chests
+
+	local items_to_remove = {}
+
+	logging.verbose( "need to remove: " .. num_to_remove )
+
+	if num_to_remove > 0 then
+		for i=1, #chests do
+			local r = math.random()
+			if r > 0.5 then
+				logging.verbose( "removing at index " .. i )
+				table.insert( items_to_remove, chests[i] )
+				num_to_remove = num_to_remove - 1
+
+				if num_to_remove == 0 then
+					logging.verbose( "removed all chests." )
+					break
+				end
+			end
+		end
+	end
+
+	if num_to_remove > 0 then
+		for i=1, num_to_remove do
+			table.insert( items_to_remove, chests[i] )
+		end
+	end
+
+
+	for _,v in pairs(items_to_remove) do
+		logging.verbose( v )
+		self:removeEntity( v )
+	end
+
 end
 
 

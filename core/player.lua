@@ -14,6 +14,8 @@ function Player:initialize()
 	self.last_interaction_object = nil
 	self.is_using = false
 	self.was_using_lastframe = false
+
+	self.visible = true
 end
 
 function Player:onSpawn( params )
@@ -64,9 +66,11 @@ function Player:onCollide( params )
 end
 
 function Player:onDraw( params )
-	local ox, oy = params.gamerules:worldToScreen( self.world_x, self.world_y )
-	love.graphics.setColor( 255, 0, 0, 255 )
-	love.graphics.line( ox, oy, ox+self.dir.x*self.aim_magnitude, oy+self.dir.y*self.aim_magnitude )
+	if self.visible then	
+		local ox, oy = params.gamerules:worldToScreen( self.world_x, self.world_y )
+		love.graphics.setColor( 255, 0, 0, 255 )
+		love.graphics.line( ox, oy, ox+self.dir.x*self.aim_magnitude, oy+self.dir.y*self.aim_magnitude )
 		
-	AnimatedSprite.onDraw( self, params )
+		AnimatedSprite.onDraw( self, params )
+	end
 end

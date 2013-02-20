@@ -1,7 +1,7 @@
 require "core"
 
-func_thing = class( "func_thing", AnimatedSprite )
-function func_thing:initialize()
+func_fish = class( "func_fish", AnimatedSprite )
+function func_fish:initialize()
 	AnimatedSprite.initialize(self)
 	self.collision_mask = 3
 	self.health = 0
@@ -18,12 +18,12 @@ function func_thing:initialize()
 	self.color.b = math.random(255)
 end
 
-function func_thing:onSpawn( params )
+function func_fish:onSpawn( params )
 	AnimatedSprite.onSpawn( self, params )
 	self:loadSprite( "assets/sprites/critters.conf" )
 end
 
-function func_thing:onHit( params )
+function func_fish:onHit( params )
 	if self.health > 0 then
 		self.health = self.health - params.attack_damage
 		self.time_since_last_hit = 0
@@ -33,21 +33,21 @@ function func_thing:onHit( params )
 	end
 end
 
-function func_thing:__tostring()
+function func_fish:__tostring()
 	return AnimatedSprite.__tostring(self) .. ", Health: " .. self.health
 end
 
-function func_thing:useActionString()
+function func_fish:useActionString()
 	return nil
 end
 
-function func_thing:onDraw( params )
+function func_fish:onDraw( params )
 	self.color.a = (1 - (self.fade_in_time / self.fadetime)) * 255
 	AnimatedSprite.onDraw( self, params )
 end
 
 
-function func_thing:updateDirection()
+function func_fish:updateDirection()
 	local direction = math.random(100)
 	if direction < 50 then
 		direction = 1
@@ -57,7 +57,7 @@ function func_thing:updateDirection()
 	self.pv = {x=direction*math.random(100), y=math.random(25)}
 end
 
-function func_thing:onUpdate( params )
+function func_fish:onUpdate( params )
 
 	if self.fade_in_time > 0 then
 		self.fade_in_time = self.fade_in_time - params.dt
@@ -96,8 +96,8 @@ function func_thing:onUpdate( params )
 	AnimatedSprite.onUpdate( self, params )
 end
 
-function func_thing:startInteraction( params )
+function func_fish:startInteraction( params )
 end
 
-function func_thing:endInteraction( params )
+function func_fish:endInteraction( params )
 end

@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<map version="1.0" orientation="orthogonal" width="100" height="250" tilewidth="32" tileheight="32">
+<map version="1.0" orientation="orthogonal" width="100" height="200" tilewidth="32" tileheight="32">
  <tileset firstgid="1" name="orthotiles" tilewidth="32" tileheight="32">
   <image source="orthotiles.png" width="128" height="128"/>
   <tile id="0">
@@ -13,19 +13,19 @@
    </properties>
   </tile>
  </tileset>
- <layer name="Ground" width="100" height="250">
+ <layer name="Ground" width="100" height="200">
   <data encoding="base64" compression="zlib">
-   eJzt1rENADAIA0GUhv03zgp0ccQV11t8Q1dVAwAAAF85Q693bjG5tR56bKVHFj2y6JHFfwUAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAECyC/WmqyE=
+   eJzt1jFuwzAMQNGgS3r/E3fpFLhpLJEULb/hDQUaR+K3hDwfj8cTAAAAuJSvX69/v1q9zrv4ZNZ66HFXevSiRy969PLX7ym/rwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA9vV9YPWa7uqohSb9WmjSp4EePVvo0auFJj17aKLFzmZ7aKLJ7iJ66KLHriJ7aNKvhy49e2iiyU4ym2jTs8dokzu+B1U9zs7ozmfz7P6yZ9ThbF6px+zM9Ijd/+zcKnqsnumKHqOzy+6xep7VTUY+l/l+vPuOq/apOB9ZPf57xurZdu3xbjYRZ2K01+x9l3Ffzsw08l2ObDGz19m5VTVZ2TL7XIzMNPKcjayzQ4/Recx8T/Y5i2pRebYqW6zqEbm+zLvjTIuoHu/2HD23yLOReSZXnY2Mdymqb0aXK5yNyDMyupeqJtnrr9ivHv32O/vMiPVFNMnqEX1XfbLXDj1m24w+u2OPke/J7DHTJapj9H0ysq9uPaqaZN2Ls/s5+9zsFl27VK6/csY7turQvrPV89RDj53p0N/I3I7+X4O1DTOf/wONxyn9
   </data>
  </layer>
- <layer name="Collision" width="100" height="250">
+ <layer name="Collision" width="100" height="200">
   <data encoding="base64" compression="zlib">
-   eJzt0cEJAAAIxLDD/Yd2AN8iQjJBoQkAAADsqesABk8AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAOCXBmSBAAU=
+   eJzt1EuOwjAQQEE09z/0rJFQwO6PO1AlZQex2w/zeAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAwG/5e/FwxqsWmpxx1UKTHp800KPHags96uy00KROpIcmubSYJdpDk3yazJLRQ5c8esyS2UOTuOweusRU9dBknybzVDbRZl1Hj90mv/g76Oqxeka/fDdX56s+owl386Sd2fSoszvf5B53Fpl1Yo9vUN2jai/v1rhrn477UbGXqw53vi9d/1cZ66/uZXW9VRX/l5EzzfwtZ7aIzPqprKaZ++xqWX0vds40857t7DPy3awen34/utY7mfdsZ58Ve5va4lSPzP1dvS+69kqLrB5XM2ef2+p7s0XPpqNF9m8pq29Flzvcjcw7sjtLV5Pq/XfMq8e8eaPvzNhfRpOqHpF1dmed0CPaZvfdE3vsrJO5v8wuq1bX7pxrWo+uJis651l9b3WLqV069995xt/YKtvps9Xq2enz0+PZ6fOb9pxyeu47PTvn9urzGpxtWPn+f8fCDxU=
   </data>
  </layer>
- <layer name="Game" width="100" height="250">
+ <layer name="Game" width="100" height="200">
   <data encoding="base64" compression="zlib">
-   eJzt07ENADAIBDEQ+++cPgs8EvYE11wVAHDJpAMAACCg0wGw0P+FTwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAD2ele2AAc=
+   eJzt2EEKACAIBECj//+5Y9A5VGrmBXsQcY0AAH4yqwMAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA0MqoDgAAAAAAwLP8oAEAADYdCQCgF/cZGcwZcLIXAAAA8uhgcN8CnpsACw==
   </data>
  </layer>
 </map>
