@@ -38,7 +38,7 @@ function Player:onUpdate( params )
 	tile = params.gamerules:getCollisionTile( tx, ty )
 
 	-- for now, just collide with tiles that exist on the collision layer.
-	if tile then
+	if tile or not params.gamerules:isTileWithinMap(tx, ty) then
 		self.velocity.x = 0
 		self.velocity.y = 0
 	end
