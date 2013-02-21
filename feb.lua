@@ -320,8 +320,10 @@ function Game:onDraw( params )
 	love.graphics.rectangle( "fill", 0, 0, love.graphics.getWidth(), height )
 	love.graphics.setFont( self.fonts[ "text2" ] )
 	love.graphics.setColor( 255, 255, 255, 255 )
-	love.graphics.print( "Depth: " .. tostring(player.world_y/64) .. " meters", 10, 5 )	
+	love.graphics.print( "Depth: " .. tostring(player.world_y/64) .. " meters", 10, 5 )
 
+
+	love.graphics.print( "Rum Saved: " .. tostring(0) .. " / " .. tostring(0), 610, 5 )	
 
 	love.graphics.print( "Total Entities: " .. self.gamerules.entity_manager:entityCount(), 10, 50 )	
 end

@@ -83,7 +83,6 @@ end
 
 function GameRules:createSource( name )
 	local sound_data = self.sound_data[ name ]
-	logging.verbose( "Creating source for: " .. sound_data["path"] )
 	return love.audio.newSource( sound_data["path"], sound_data["type"] )
 end
 
@@ -119,11 +118,8 @@ end
 
 function GameRules:prepareForGame()
 	local chests = self.entity_manager:findAllEntitiesByName( "func_target" )
-	logging.verbose( #chests )
-
 	local num_chests = 3
 	local num_to_remove = #chests - num_chests
-
 	local items_to_remove = {}
 
 	if num_to_remove > 0 then
