@@ -25,11 +25,23 @@ function Player:onSpawn( params )
 end
 
 function Player:onUpdate( params )
-	-- pretend there is some buoyancy
-	--if self.world_y > 10 then
-	--	self.velocity.y = self.velocity.y - (0.25 * (self.world_y/500))
-	--end
+	local nwx = self.world_x + self.velocity.x * params.dt
+	local nwy = self.world_y + self.velocity.y * params.dt
 
+	-- could offset by sprite's half bounds to ensure they don't intersect with tiles
+	local tx, ty = params.gamerules:tileCoordinatesFromWorld( nwx, nwy )
+	local tile = params.gamerules:getCollisionTile( tx, ty )
+	
+	-- could offset by sprite's half bounds to ensure they don't intersect with tiles
+	local tile = nil
+	local tx, ty = params.gamerules:tileCoordinatesFromWorld( nwx, nwy )
+	tile = params.gamerules:getCollisionTile( tx, ty )
+
+	-- for now, just collide with tiles that exist on the collision layer.
+	if tile then
+		self.velocity.x = 0
+		self.velocity.y = 0
+	end
 
 	AnimatedSprite.onUpdate(self, params)
 

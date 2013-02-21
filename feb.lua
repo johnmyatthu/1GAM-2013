@@ -225,6 +225,7 @@ function Game:onUpdate( params )
 	right=love.keyboard.isDown( self:keyForAction(ACTION_MOVE_PLAYER_RIGHT) ), 
 	move_speed=self.config.move_speed, 
 	dt=params.dt }
+	
 	--self.gamerules:handleMovePlayerCommand( command, player )
 
 	player.damping.x = 0.975

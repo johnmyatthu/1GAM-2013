@@ -627,7 +627,10 @@ function GameRules:handleMovePlayerCommand( command, player )
 	if command.left then nwx = player.world_x - (command.move_speed * command.dt) end
 	if command.right then nwx = player.world_x + (command.move_speed * command.dt) end
 
-
+	-- could offset by sprite's half bounds to ensure they don't intersect with tiles
+	local tx, ty = self:tileCoordinatesFromWorld( nwx, nwy )
+	local tile = self:getCollisionTile( tx, ty )
+	
 	-- could offset by sprite's half bounds to ensure they don't intersect with tiles
 	local tile = nil
 	if self.map then
