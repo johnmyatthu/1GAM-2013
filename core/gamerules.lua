@@ -118,40 +118,6 @@ end
 
 
 function GameRules:prepareForGame()
-	--[[
-	self.level = self.level + 1
-	self.enemies_destroyed = 0
-
-	-- load wave data
-	local wave_enemies = 0
-	if self.data[ "waves" ] and self.data[ "waves" ][ self.level ] then
-		local wave_data = self.data[ "waves" ][ self.level ]
-		wave_enemies = wave_data.wave_enemies
-		
-		self.total_waves = #self.data[ "waves" ]
-		self.current_enemy_value = wave_data.enemy_value
-		self.target_bonus = wave_data.target_bonus
-		self.point_base = wave_data.point_base
-	else
-		logging.warning( "Unable to load data for wave '" .. self.level .. "'" )
-	end
-
-	-- update func_spawn entities
-	local spawns = self.entity_manager:findAllEntitiesByName( "func_spawn" )
-	for _,fs in pairs(spawns) do
-		fs.max_entities = wave_enemies
-	end
-
-	-- update the total here
-	self.wave_enemies = wave_enemies * #spawns
-	--]]
-
-
-	logging.verbose( "setting up chests" )
-
-
-
-
 	local chests = self.entity_manager:findAllEntitiesByName( "func_target" )
 	logging.verbose( #chests )
 
@@ -160,18 +126,14 @@ function GameRules:prepareForGame()
 
 	local items_to_remove = {}
 
-	logging.verbose( "need to remove: " .. num_to_remove )
-
 	if num_to_remove > 0 then
 		for i=1, #chests do
 			local r = math.random()
 			if r > 0.5 then
-				logging.verbose( "removing at index " .. i )
 				table.insert( items_to_remove, chests[i] )
 				num_to_remove = num_to_remove - 1
 
 				if num_to_remove == 0 then
-					logging.verbose( "removed all chests." )
 					break
 				end
 			end
@@ -184,12 +146,9 @@ function GameRules:prepareForGame()
 		end
 	end
 
-
 	for _,v in pairs(items_to_remove) do
-		logging.verbose( v )
 		self:removeEntity( v )
 	end
-
 end
 
 
@@ -630,7 +589,6 @@ function GameRules:handleMovePlayerCommand( command, player )
 	-- could offset by sprite's half bounds to ensure they don't intersect with tiles
 	local tx, ty = self:tileCoordinatesFromWorld( nwx, nwy )
 	local tile = self:getCollisionTile( tx, ty )
-	
 	-- could offset by sprite's half bounds to ensure they don't intersect with tiles
 	local tile = nil
 	if self.map then
