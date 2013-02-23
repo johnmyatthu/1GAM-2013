@@ -306,7 +306,7 @@ function Game:onDraw( params )
 		end
 	end
 
-	local depth = 255 * ((player.world_y/32) / 250)
+	local depth = 255 * ((player.world_y/32) / 275)
 	if depth > 255 then
 		depth = 255
 	end

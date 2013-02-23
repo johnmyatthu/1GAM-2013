@@ -42,8 +42,8 @@ function func_shark:onUpdate( params )
 	local dx = (player.world_x - self.world_x)
 	local dy = (player.world_y - self.world_y)
 
-	self.velocity.x = dx * 2.5
-	self.velocity.y = dy * 2.5
+	self.velocity.x = dx * 2.0
+	self.velocity.y = dy * 2.0
 
 	if math.abs(dy) < 24 and math.abs(dx) < 64 then
 		logging.verbose( "SHARK HAS EATEN YOU" )
