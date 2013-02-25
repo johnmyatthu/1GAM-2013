@@ -1,14 +1,11 @@
--- build time before a wave
-GAME_STATE_BUILD = 0
+-- the help page to inform users how to play before they begin
+GAME_STATE_HELP = 0
 
--- defend state, where most of the playing happens
-GAME_STATE_DEFEND = 1
+-- where most of the playing happens
+GAME_STATE_PLAY = 1
 
--- transition state between build and defend
-GAME_STATE_PRE_DEFEND = 2
+-- player won
+GAME_STATE_WIN = 3
 
--- player won this round
-GAME_STATE_ROUND_WIN = 3
-
--- player failed this round
-GAME_STATE_ROUND_FAIL = 4
+-- player failed
+GAME_STATE_FAIL = 4

@@ -17,9 +17,6 @@ local ACTION_USE = "use"
 -- maximum number of fish alive at once
 local MAX_FISH = 125
 
--- the amount of build time given before each wave
-local GAME_BUILD_TIME = 30
-
 -- amount of time in seconds before defend round starts after build round ends
 local GAME_BUILD_DEFEND_TRANSITION_TIME = 2
 
@@ -77,48 +74,29 @@ function Game:initialize( gamerules, config, fonts )
 
 
 
-	self.state = GAME_STATE_BUILD
-	self.timer = GAME_BUILD_TIME
+	self.state = GAME_STATE_HELP
 
-	if self.state == GAME_STATE_BUILD then
+	if self.state == GAME_STATE_HELP then
 		self.actions[ " " ] = self.nextState
 		love.mouse.setVisible( true )
 	else
 		love.mouse.setVisible( false )
 	end
 
-	self.source = self.gamerules:createSource( "sawmill" )
-	self.source:setVolume( 0.75 )
-	self.source:play()
+	--self.source = self.gamerules:createSource( "sawmill" )
+	--self.source:setVolume( 0.75 )
+	--self.source:play()
 end
 
 
 function Game:nextState()
-
-	--[[
 	if self.actions[ " " ] then
 		self.actions[ " " ] = nil
 	end
 
-	if self.state == GAME_STATE_BUILD then
-		self.state = GAME_STATE_PRE_DEFEND
-		self.timer = GAME_BUILD_DEFEND_TRANSITION_TIME
-		self:preparePlayerForNextWave( player )
-		
-		self.gamerules:updateWalkableMap()
-		love.mouse.setVisible( false )
-	elseif self.state == GAME_STATE_PRE_DEFEND then
-		self.state = GAME_STATE_DEFEND
-		self.timer = 0
-		love.mouse.setVisible( false )
-		self.gamerules:playSound( "round_begin" )
-	elseif self.state == GAME_STATE_ROUND_WIN then
-		self.state = GAME_STATE_BUILD
-		self.timer = GAME_BUILD_TIME
-		self.actions[ " " ] = self.nextState
-		self.gamerules:prepareForNextWave()
+	if self.state == GAME_STATE_HELP then
+		self.state = GAME_STATE_PLAY
 	end
-	--]]
 end
 
 function Game:keyForAction( action )
@@ -162,7 +140,6 @@ function Game:onLoad( params )
 	--]]
 
 	logging.verbose( "Initialization complete." )
-	--self.source = self.gamerules:playSound( "pulse" )
 end
 
 function Game:spawnShark()
@@ -195,85 +172,65 @@ end
 
 function Game:onUpdate( params )
 
-	for i,v in ipairs(self.next_spawn) do
-		self.next_spawn[i] = self.next_spawn[i] - params.dt
-		if v <= 0 then
-			self.next_spawn[i] = self.fish_spawn[i]
-			self:spawnFish()
+	if self.state == GAME_STATE_PLAY then
+
+		for i,v in ipairs(self.next_spawn) do
+			self.next_spawn[i] = self.next_spawn[i] - params.dt
+			if v <= 0 then
+				self.next_spawn[i] = self.fish_spawn[i]
+				self:spawnFish()
+			end
 		end
+
+		params.gamestate = self.state
+		self.gamerules:onUpdate( params )
+
+		self.gamerules:snapCameraToPlayer( player )
+
+		self:updatePlayerDirection()
+
+
+		local cam_x, cam_y = self.gamerules:getCameraPosition()
+		if love.keyboard.isDown( self:keyForAction(ACTION_MOVE_MAP_UP) ) then cam_y = cam_y + self.config.move_speed*params.dt end
+		if love.keyboard.isDown( self:keyForAction(ACTION_MOVE_MAP_DOWN) ) then cam_y = cam_y - self.config.move_speed*params.dt end
+		if love.keyboard.isDown( self:keyForAction(ACTION_MOVE_MAP_LEFT) ) then cam_x = cam_x + self.config.move_speed*params.dt end
+		if love.keyboard.isDown( self:keyForAction(ACTION_MOVE_MAP_RIGHT) ) then cam_x = cam_x - self.config.move_speed*params.dt end
+		self.gamerules:setCameraPosition( cam_x, cam_y )
+
+		local command = { 
+		up=love.keyboard.isDown( self:keyForAction(ACTION_MOVE_PLAYER_UP) ), 
+		down=love.keyboard.isDown( self:keyForAction(ACTION_MOVE_PLAYER_DOWN) ), 
+		left=love.keyboard.isDown( self:keyForAction(ACTION_MOVE_PLAYER_LEFT) ), 
+		right=love.keyboard.isDown( self:keyForAction(ACTION_MOVE_PLAYER_RIGHT) ), 
+		move_speed=self.config.move_speed, 
+		dt=params.dt }
+		
+		--self.gamerules:handleMovePlayerCommand( command, player )
+
+		player.damping.x = 0.975
+		player.damping.y = 0.975
+
+		local move_speed = 10
+
+		if command.right then
+			player.velocity.x = player.velocity.x + move_speed
+		elseif command.left then
+			player.velocity.x = player.velocity.x - move_speed
+		end
+
+		if command.up then
+			player.velocity.y = player.velocity.y - move_speed
+		elseif command.down then
+			player.velocity.y = player.velocity.y + move_speed
+		end	
+
+		if player.world_y < 0.2 then
+			player.world_y = 0.2
+		end
+
+		player.is_using = love.keyboard.isDown( self:keyForAction(ACTION_USE) )
 	end
 
-	params.gamestate = self.state
-	self.gamerules:onUpdate( params )
-
-	self.gamerules:snapCameraToPlayer( player )
-
-	self:updatePlayerDirection()
-
-
-	local cam_x, cam_y = self.gamerules:getCameraPosition()
-	if love.keyboard.isDown( self:keyForAction(ACTION_MOVE_MAP_UP) ) then cam_y = cam_y + self.config.move_speed*params.dt end
-	if love.keyboard.isDown( self:keyForAction(ACTION_MOVE_MAP_DOWN) ) then cam_y = cam_y - self.config.move_speed*params.dt end
-	if love.keyboard.isDown( self:keyForAction(ACTION_MOVE_MAP_LEFT) ) then cam_x = cam_x + self.config.move_speed*params.dt end
-	if love.keyboard.isDown( self:keyForAction(ACTION_MOVE_MAP_RIGHT) ) then cam_x = cam_x - self.config.move_speed*params.dt end
-	self.gamerules:setCameraPosition( cam_x, cam_y )
-
-	local command = { 
-	up=love.keyboard.isDown( self:keyForAction(ACTION_MOVE_PLAYER_UP) ), 
-	down=love.keyboard.isDown( self:keyForAction(ACTION_MOVE_PLAYER_DOWN) ), 
-	left=love.keyboard.isDown( self:keyForAction(ACTION_MOVE_PLAYER_LEFT) ), 
-	right=love.keyboard.isDown( self:keyForAction(ACTION_MOVE_PLAYER_RIGHT) ), 
-	move_speed=self.config.move_speed, 
-	dt=params.dt }
-	
-	--self.gamerules:handleMovePlayerCommand( command, player )
-
-	player.damping.x = 0.975
-	player.damping.y = 0.975
-
-	local move_speed = 10
-
-	if command.right then
-		player.velocity.x = player.velocity.x + move_speed
-	elseif command.left then
-		player.velocity.x = player.velocity.x - move_speed
-	end
-
-	if command.up then
-		player.velocity.y = player.velocity.y - move_speed
-	elseif command.down then
-		player.velocity.y = player.velocity.y + move_speed
-	end	
-
-	if player.world_y < 0.2 then
-		player.world_y = 0.2
-	end
-
-	player.is_using = love.keyboard.isDown( self:keyForAction(ACTION_USE) )
-
-
-	local mx, my = love.mouse.getPosition()
---[[
-	local pitch = (mx / 800)
-
-	if self.source then
-		self.source:setPitch( pitch )
-	end
---]]
-
---[[
-	if self.source then
-		local vx, vy = (mx - 400)/400, (my - 300)/300
-		logging.verbose( "vx: " .. vx .. ", vy: " .. vy )
-		self.source:setVelocity( vx, vy, 0 )
-	end
-
---]]
-
-	if self.source then
-		--self.source:setVolume( (mx)/800 )
-		--self.source:setPitch( (300+my)/600 )
-	end
 end
 
 
@@ -282,50 +239,45 @@ end
 function Game:onDraw( params )
 	love.graphics.setBackgroundColor( 39, 82, 93, 255 )
 	love.graphics.clear()
-	self.gamerules:drawWorld()
-
-	-- draw entities here
-	params.gamestate = self.state
-	self.gamerules:drawEntities( params )
-
-	--
-	-- HUD rendering
 
 
+	if self.state == GAME_STATE_PLAY then
+		self.gamerules:drawWorld()
+		-- draw entities here
+		params.gamestate = self.state
+		self.gamerules:drawEntities( params )
 
 
-
-
-
-	love.graphics.setFont( self.fonts[ "text2" ] )
-	love.graphics.setColor( 255, 255, 255, 255 )
-	if player.last_interaction_object ~= nil and player:canInteractWith({gamerules=self.gamerules, other=player.last_interaction_object} ) then
-		local action = player.last_interaction_object:useActionString()
-		if action then
-			love.graphics.printf( "press E to " .. action, 0, 500, love.graphics.getWidth(), "center" )
+		love.graphics.setFont( self.fonts[ "text2" ] )
+		love.graphics.setColor( 255, 255, 255, 255 )
+		if player.last_interaction_object ~= nil and player:canInteractWith({gamerules=self.gamerules, other=player.last_interaction_object} ) then
+			local action = player.last_interaction_object:useActionString()
+			if action then
+				love.graphics.printf( "press E to " .. action, 0, 500, love.graphics.getWidth(), "center" )
+			end
 		end
+
+		local depth = 255 * ((player.world_y/32) / 275)
+		if depth > 255 then
+			depth = 255
+		end
+		love.graphics.setColor( 0, 0, 0, depth )
+		love.graphics.rectangle( "fill", 0, 0, love.graphics.getWidth(), love.graphics.getHeight() )
+
+
+		-- draw the top overlay bar
+		love.graphics.setColor( 0, 0, 0, 64 )
+		local height = 32
+		love.graphics.rectangle( "fill", 0, 0, love.graphics.getWidth(), height )
+		love.graphics.setFont( self.fonts[ "text2" ] )
+		love.graphics.setColor( 255, 255, 255, 255 )
+		love.graphics.print( "Depth: " .. tostring(player.world_y/64) .. " meters", 10, 5 )
+
+
+		love.graphics.print( "Rum Saved: " .. tostring(0) .. " / " .. tostring(0), 610, 5 )	
+
+		love.graphics.print( "Total Entities: " .. self.gamerules.entity_manager:entityCount(), 10, 50 )
 	end
-
-	local depth = 255 * ((player.world_y/32) / 275)
-	if depth > 255 then
-		depth = 255
-	end
-	love.graphics.setColor( 0, 0, 0, depth )
-	love.graphics.rectangle( "fill", 0, 0, love.graphics.getWidth(), love.graphics.getHeight() )
-
-
-	-- draw the top overlay bar
-	love.graphics.setColor( 0, 0, 0, 64 )
-	local height = 32
-	love.graphics.rectangle( "fill", 0, 0, love.graphics.getWidth(), height )
-	love.graphics.setFont( self.fonts[ "text2" ] )
-	love.graphics.setColor( 255, 255, 255, 255 )
-	love.graphics.print( "Depth: " .. tostring(player.world_y/64) .. " meters", 10, 5 )
-
-
-	love.graphics.print( "Rum Saved: " .. tostring(0) .. " / " .. tostring(0), 610, 5 )	
-
-	love.graphics.print( "Total Entities: " .. self.gamerules.entity_manager:entityCount(), 10, 50 )	
 end
 
 function Game:updatePlayerDirection()
