@@ -268,7 +268,6 @@ end
 
 
 
-
 function Game:onDraw( params )
 	love.graphics.setBackgroundColor( 39, 82, 93, 255 )
 	love.graphics.clear()
@@ -282,13 +281,7 @@ function Game:onDraw( params )
 
 
 		love.graphics.setFont( self.fonts[ "text2" ] )
-		love.graphics.setColor( 255, 255, 255, 255 )
-		if player.last_interaction_object ~= nil and player:canInteractWith({gamerules=self.gamerules, other=player.last_interaction_object} ) then
-			local action = player.last_interaction_object:useActionString()
-			if action then
-				love.graphics.printf( "press E to " .. action, 0, 500, love.graphics.getWidth(), "center" )
-			end
-		end
+
 
 		local depth = 255 * ((player.world_y/32) / 275)
 		if depth > 255 then
@@ -307,7 +300,7 @@ function Game:onDraw( params )
 		love.graphics.print( "Depth: " .. tostring(player:seaDepth()) .. " meters", 10, 5 )
 
 
-		love.graphics.print( "Rum Saved: " .. tostring(0) .. " / " .. tostring(0), 610, 5 )	
+		love.graphics.print( "Rum Saved: " .. tostring(self.gamerules:originalTotalChests()-self.gamerules:totalChestsRemaining()) .. " / " .. tostring(self.gamerules:originalTotalChests()), 610, 5 )	
 
 		love.graphics.print( "Total Entities: " .. self.gamerules.entity_manager:entityCount(), 10, 50 )
 	end

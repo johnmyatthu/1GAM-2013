@@ -39,7 +39,7 @@ function GameRules:initialize()
 	self.entity_factory:registerClass( "PathFollower", core.PathFollower )
 	self.entity_factory:registerClass( "func_spawn", core.func_spawn )
 	self.entity_factory:registerClass( "Enemy", core.Enemy )
-	self.entity_factory:registerClass( "func_target", core.func_target )
+	self.entity_factory:registerClass( "func_chest", core.func_chest )
 	self.entity_factory:registerClass( "Bullet", core.Bullet )
 	self.entity_factory:registerClass( "Player", core.Player )
 	self.entity_factory:registerClass( "Breakable", core.Breakable )
@@ -53,14 +53,14 @@ function GameRules:initialize()
 	self.data = {}
 	self:loadData( "assets/gamerules.conf" )
 
-	self.place_points = 2
-	self.point_base = 0
 	self.target = nil
 	self.player = nil
 	
 	self.last_level = {}
 
 	love.audio.setVolume( 1.0 )
+
+	self.num_chests = 3
 end
 
 function GameRules:loadSounds( path )
@@ -80,6 +80,17 @@ function GameRules:loadSounds( path )
 		end
 	end
 end
+
+
+function GameRules:originalTotalChests()
+	return self.num_chests
+end
+
+function GameRules:totalChestsRemaining()
+	local chests = self.entity_manager:findAllEntitiesByName( "func_chest" )
+	return #chests	
+end
+
 
 function GameRules:createSource( name )
 	local sound_data = self.sound_data[ name ]
@@ -117,11 +128,14 @@ end
 
 
 function GameRules:prepareForGame()
-	local chests = self.entity_manager:findAllEntitiesByName( "func_target" )
-	local num_chests = 3
-	local num_to_remove = #chests - num_chests
+	local chests = self.entity_manager:findAllEntitiesByName( "func_chest" )
+	
+	local num_to_remove = #chests - self.num_chests
 	local items_to_remove = {}
 
+	logging.verbose( "total chests: " .. #chests .. ", num chests: " .. self.num_chests .. "; need to remove: " .. num_to_remove )
+
+	--[[
 	if num_to_remove > 0 then
 		for i=1, #chests do
 			local r = math.random()
@@ -135,8 +149,10 @@ function GameRules:prepareForGame()
 			end
 		end
 	end
+	--]]
 
 	if num_to_remove > 0 then
+		logging.verbose( "still more to go" )
 		for i=1, num_to_remove do
 			table.insert( items_to_remove, chests[i] )
 		end
@@ -293,7 +309,6 @@ function GameRules:loadMap( mapname )
 	end
 
 	self:updateWalkableMap()
-	--self.target = self.entity_manager:findFirstEntityByName( "func_target" )
 end
 
 function GameRules:colorForHealth( health, max_health )

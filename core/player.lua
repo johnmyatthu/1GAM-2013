@@ -20,7 +20,7 @@ end
 
 function Player:onSpawn( params )
 	self:loadSprite( "assets/sprites/player.conf" )
-	self:playAnimation( "idle" )
+	self:playAnimation( "left" )
 	AnimatedSprite.onSpawn( self, params )
 end
 
@@ -80,6 +80,10 @@ function Player:onCollide( params )
 
 	if params.other and self.last_interaction_object ~= params.other then
 		self.last_interaction_object = params.other
+
+		if params.other.class.name == "func_chest" then
+			params.other:fadeout()
+		end
 	end
 end
 
