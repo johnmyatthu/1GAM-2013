@@ -43,6 +43,12 @@ function Player:onUpdate( params )
 		self.velocity.y = 0
 	end
 
+	if self.velocity.x > 0 then
+		self:playAnimation( "right" )
+	else
+		self:playAnimation( "left" )
+	end	
+
 	AnimatedSprite.onUpdate(self, params)
 
 	if self.last_interaction_object ~= nil then
@@ -85,4 +91,9 @@ function Player:onDraw( params )
 		
 		AnimatedSprite.onDraw( self, params )
 	end
+end
+
+
+function Player:seaDepth()
+	return (self.world_y/64)
 end

@@ -25,7 +25,7 @@ function Entity:initialize()
 	self.time_until_health_regen = 1 -- how much time is needed since last hit to start regenerating health
 
 	self.velocity = { x=0, y=0 }
-	self.damping = { x=0, y=0 }
+	self.damping = { x=1, y=1 }
 	self.scale = { x=1, y=1 }
 end
 

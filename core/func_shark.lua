@@ -12,6 +12,10 @@ function func_shark:initialize()
 	self.color.r = math.random(255)
 	self.color.g = math.random(255)
 	self.color.b = math.random(255)
+
+
+	self.speed = 0.5
+	self.prey = nil
 end
 
 function func_shark:onSpawn( params )
@@ -36,20 +40,35 @@ function func_shark:onDraw( params )
 end
 
 function func_shark:onUpdate( params )
-	local player = params.gamerules:getPlayer()
+	if self.prey then
+		local player = params.gamerules:getPlayer()
 
-	-- calculate velocity in the direction of the player
-	local dx = (player.world_x - self.world_x)
-	local dy = (player.world_y - self.world_y)
+		-- calculate velocity in the direction of the player
+		local dx = (player.world_x - self.world_x)
+		local dy = (player.world_y - self.world_y)
 
-	self.velocity.x = dx * 2.0
-	self.velocity.y = dy * 2.0
+		self.velocity.x = dx * self.speed
+		self.velocity.y = dy * self.speed
 
-	if math.abs(dy) < 24 and math.abs(dx) < 64 then
-		logging.verbose( "SHARK HAS EATEN YOU" )
-		player.health = 0
-		player.visible = false
+		if math.abs(dy) < 24 and math.abs(dx) < 64 then
+			logging.verbose( "SHARK HAS EATEN YOU" )
+			player.health = 0
+			player.visible = false
+		end
+
+		--local prey_distance = params.gamerules:calculateEntityDistance( self, self.prey )
+	else
+		local distance = params.gamerules:calculateEntityDistance( self, params.gamerules:getPlayer() )
+		-- if the player gets too close to the shark; the shark will follow
+
+		if distance < 75 then
+			logging.verbose( "a shark has spotted you" )
+			self.speed = 1.25
+			self.prey = params.gamerules:getPlayer()
+		end
 	end
+
+
 
 	if self.fade_in_time > 0 then
 		self.fade_in_time = self.fade_in_time - params.dt

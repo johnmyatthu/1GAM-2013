@@ -17,6 +17,9 @@ local ACTION_USE = "use"
 -- maximum number of fish alive at once
 local MAX_FISH = 125
 
+-- the depth past which sharks will spawn
+local SHARK_DEPTH = 95
+
 -- amount of time in seconds before defend round starts after build round ends
 local GAME_BUILD_DEFEND_TRANSITION_TIME = 2
 
@@ -142,9 +145,40 @@ function Game:onLoad( params )
 	logging.verbose( "Initialization complete." )
 end
 
+
+function Game:randomVelocity( max_x, max_y )
+	local direction = math.random(100)
+	if direction > 50 then
+		direction = 1
+	else
+		direction = -1
+	end
+
+	return {x=direction*math.random(max_x), y=math.random(max_y)}
+end
+
+function Game:randomLocationFromPlayer( player )
+	local direction = math.random(100)
+	if direction > 50 then
+		direction = 1
+	else
+		direction = -1
+	end
+
+	target_world_x = player.world_x + (370*math.random()*direction)
+	target_world_y = player.world_y + (275*math.random()*direction)
+
+	return target_world_x, target_world_y
+end
+
+
 function Game:spawnShark()
 	local shark = self.gamerules.entity_factory:createClass("func_shark")
-	self.gamerules:spawnEntity( shark, player.world_x, player.world_y, nil )	
+	local x, y = self:randomLocationFromPlayer( player )
+	shark.velocity = self:randomVelocity( 40, 15 )
+
+	logging.verbose( shark.velocity.x .. ", " .. shark.velocity.y )
+	self.gamerules:spawnEntity( shark, x, y, nil )	
 end
 
 function Game:spawnFish()
@@ -155,18 +189,11 @@ function Game:spawnFish()
 		local thing = self.gamerules.entity_factory:createClass( "func_fish" )
 		thing.tile_x = 0
 		thing.tile_y = 0
-		local direction = math.random(100)
-		if direction > 50 then
-			direction = 1
-		else
-			direction = -1
-		end
 
-		target_world_x = player.world_x + (370*math.random()*direction)
-		target_world_y = player.world_y + (275*math.random()*direction)
-		thing.pv = {x=direction*math.random(100), y=math.random(25)}
+		local target_x, target_y = self:randomLocationFromPlayer( player )
+		thing.pv = self:randomVelocity( 100, 25 )
 		
-		self.gamerules:spawnEntity( thing, target_world_x, target_world_y, nil )
+		self.gamerules:spawnEntity( thing, target_x, target_y, nil )
 	end
 end
 
@@ -229,6 +256,12 @@ function Game:onUpdate( params )
 		end
 
 		player.is_using = love.keyboard.isDown( self:keyForAction(ACTION_USE) )
+
+
+		if player:seaDepth() > SHARK_DEPTH then
+			--logging.verbose( "You sense something dark approaching..." )
+		end
+
 	end
 
 end
@@ -271,7 +304,7 @@ function Game:onDraw( params )
 		love.graphics.rectangle( "fill", 0, 0, love.graphics.getWidth(), height )
 		love.graphics.setFont( self.fonts[ "text2" ] )
 		love.graphics.setColor( 255, 255, 255, 255 )
-		love.graphics.print( "Depth: " .. tostring(player.world_y/64) .. " meters", 10, 5 )
+		love.graphics.print( "Depth: " .. tostring(player:seaDepth()) .. " meters", 10, 5 )
 
 
 		love.graphics.print( "Rum Saved: " .. tostring(0) .. " / " .. tostring(0), 610, 5 )	
