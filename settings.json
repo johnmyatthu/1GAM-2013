@@ -6,17 +6,17 @@
 
 	"fonts" :
 	{
-		"text" : 
+		"text8" : 
 		{
 			"path" : "fonts/Minecraftia.ttf",
 			"size" : 8
 		},
-		"text2" : 
+		"text16" : 
 		{
 			"path" : "fonts/Minecraftia.ttf",
 			"size" : 16
 		},
-		"text3" : 
+		"text32" : 
 		{
 			"path" : "fonts/Minecraftia.ttf",
 			"size" : 32
@@ -27,6 +27,5 @@
 	"keys" :
 	{
 		"c" : "toggle_collision_layer",
-		"g" : "spawn_shark"
 	}
 }

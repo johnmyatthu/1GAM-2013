@@ -314,7 +314,7 @@ function Game:onDraw( params )
 		self.gamerules:drawEntities( params )
 
 
-		love.graphics.setFont( self.fonts[ "text2" ] )
+		love.graphics.setFont( self.fonts[ "text16" ] )
 
 
 		local depth = 255 * ((player.world_y/32) / 275)
@@ -329,7 +329,7 @@ function Game:onDraw( params )
 		love.graphics.setColor( 0, 0, 0, 64 )
 		local height = 32
 		love.graphics.rectangle( "fill", 0, 0, love.graphics.getWidth(), height )
-		love.graphics.setFont( self.fonts[ "text2" ] )
+		love.graphics.setFont( self.fonts[ "text16" ] )
 		love.graphics.setColor( 255, 255, 255, 255 )
 		love.graphics.print( "Depth: " .. tostring(player:seaDepth()) .. " meters", 10, 5 )
 

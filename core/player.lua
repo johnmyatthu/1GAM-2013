@@ -81,18 +81,15 @@ function Player:onCollide( params )
 	if params.other and self.last_interaction_object ~= params.other then
 		self.last_interaction_object = params.other
 
-		if params.other.class.name == "func_chest" then
+		if params.other.class.name == "func_chest" and not params.other.is_fading then
 			params.other:fadeout()
+			params.gamerules:playSound("collect")
 		end
 	end
 end
 
 function Player:onDraw( params )
-	if self.visible then	
-		local ox, oy = params.gamerules:worldToScreen( self.world_x, self.world_y )
-		love.graphics.setColor( 255, 0, 0, 255 )
-		love.graphics.line( ox, oy, ox+self.dir.x*self.aim_magnitude, oy+self.dir.y*self.aim_magnitude )
-		
+	if self.visible then
 		AnimatedSprite.onDraw( self, params )
 	end
 end
