@@ -21,13 +21,11 @@ local MAX_FISH = 125
 local MAX_SHARKS = 15
 
 -- the depth past which sharks will spawn
-local SHARK_DEPTH = 10 --95
+local SHARK_DEPTH = 70 --95
 
 -- seconds between shark spawns
 local SHARK_SPAWN_COOLDOWN = 5
 
--- amount of time in seconds before defend round starts after build round ends
-local GAME_BUILD_DEFEND_TRANSITION_TIME = 2
 
 -- Game class
 Game = class( "Game" )
@@ -87,7 +85,7 @@ function Game:initialize( gamerules, config, fonts )
 
 
 
-	self.state = GAME_STATE_HELP
+	self.state = GAME_STATE_PLAY
 
 	if self.state == GAME_STATE_HELP then
 		self.actions[ " " ] = self.nextState
@@ -195,7 +193,7 @@ function Game:spawnShark()
 	self.next_shark_spawn = self.shark_spawn_cooldown
 
 	local shark = self.gamerules.entity_factory:createClass("func_shark")
-	local x, y = self:randomLocationFromPlayer( player, 75, 75 )
+	local x, y = self:randomLocationFromPlayer( player, 175, 175 )
 
 	shark:lurk{ gamerules=self.gamerules }
 
@@ -307,8 +305,9 @@ function Game:onDraw( params )
 	love.graphics.setBackgroundColor( 39, 82, 93, 255 )
 	love.graphics.clear()
 
+	if self.state == GAME_STATE_HELP then
 
-	if self.state == GAME_STATE_PLAY then
+	elseif self.state == GAME_STATE_PLAY then
 		self.gamerules:drawWorld()
 		-- draw entities here
 		params.gamestate = self.state
@@ -335,9 +334,12 @@ function Game:onDraw( params )
 		love.graphics.print( "Depth: " .. tostring(player:seaDepth()) .. " meters", 10, 5 )
 
 
-		love.graphics.print( "Rum Saved: " .. tostring(self.gamerules:originalTotalChests()-self.gamerules:totalChestsRemaining()) .. " / " .. tostring(self.gamerules:originalTotalChests()), 610, 5 )	
+		love.graphics.print( "Treasure Saved: " .. tostring(self.gamerules:originalTotalChests()-self.gamerules:totalChestsRemaining()) .. " / " .. tostring(self.gamerules:originalTotalChests()), 550, 5 )	
 
 		love.graphics.print( "Total Entities: " .. self.gamerules.entity_manager:entityCount(), 10, 50 )
+	elseif self.state == GAME_STATE_WIN then
+	elseif self.state == GAME_STATE_FAIL then
+
 	end
 end
 

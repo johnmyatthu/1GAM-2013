@@ -130,15 +130,20 @@ end
 
 function GameRules:prepareForGame()
 	local chests = self.entity_manager:findAllEntitiesByName( "func_chest" )
-	
-	local num_to_remove = #chests - self.num_chests
+	self.num_chests = 0
 	local items_to_remove = {}
 
 	--logging.verbose( "total chests: " .. #chests .. ", num chests: " .. self.num_chests .. "; need to remove: " .. num_to_remove )
 
-	if num_to_remove > 0 then
-		for i=1, num_to_remove do
+
+	for i=1,#chests do
+		local value = math.random()
+
+
+		if value > 0.5 then
 			table.insert( items_to_remove, chests[i] )
+		else
+			self.num_chests = self.num_chests + 1
 		end
 	end
 
