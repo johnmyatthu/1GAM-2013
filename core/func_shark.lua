@@ -65,6 +65,7 @@ function func_shark:onUpdate( params )
 			if player.health > 0 then
 				player.health = 0
 				player.visible = false
+				params.gamerules:playSound( "sharkchomp" )
 				self:lurk( params )
 			end
 		end
