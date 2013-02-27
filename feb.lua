@@ -21,7 +21,7 @@ local MAX_FISH = 125
 local MAX_SHARKS = 15
 
 -- the depth past which sharks will spawn
-local SHARK_DEPTH = 70 --95
+local SHARK_DEPTH = 10 --95
 
 -- seconds between shark spawns
 local SHARK_SPAWN_COOLDOWN = 5
@@ -85,8 +85,8 @@ function Game:initialize( gamerules, config, fonts )
 
 
 
-	self.state = GAME_STATE_PLAY
-
+	self.state = GAME_STATE_FAIL
+	self.actions[ " " ] = self.nextState
 	if self.state == GAME_STATE_HELP then
 		self.actions[ " " ] = self.nextState
 		love.mouse.setVisible( true )
@@ -107,6 +107,14 @@ function Game:nextState()
 
 	if self.state == GAME_STATE_HELP then
 		self.state = GAME_STATE_PLAY
+	elseif self.state == GAME_STATE_WIN then
+		self.state = GAME_STATE_PLAY
+		self:onLoad( {gamerules=self.gamerules} )
+		self.gamerules:prepareForGame()
+	elseif self.state == GAME_STATE_FAIL then
+		self.state = GAME_STATE_PLAY
+		self:onLoad( {gamerules=self.gamerules} )
+		self.gamerules:prepareForGame()
 	end
 end
 
@@ -137,20 +145,6 @@ function Game:onLoad( params )
 	self:warpPlayerToSpawn( player )
 	self.gamerules:setPlayer( player )
 	self.gamerules:spawnEntity( player, nil, nil, nil )
-
-	-- setup cursor
-	--[[
-	self.cursor_sprite = self.gamerules.entity_factory:createClass( "AnimatedSprite" )
-	self.cursor_sprite:loadSprite( "assets/sprites/cursors.conf" )
-	self.cursor_sprite:playAnimation("one")
-	self.cursor_sprite.color = {r=0, g=255, b=255, a=255}
-
-	-- don't draw this automatically; let's draw this ourselves.
-	self.cursor_sprite.respondsToEvent = function (self, name) return (name ~= "onDraw") end
-	self.gamerules:spawnEntity( self.cursor_sprite, -1, -1, nil )
-	--]]
-
-	logging.verbose( "Initialization complete." )
 end
 
 
@@ -292,8 +286,10 @@ function Game:onUpdate( params )
 		-- the rudimentary check for win/fail conditions
 		if player.health == 0 then
 			self.state = GAME_STATE_FAIL
+			self.actions[ " " ] = self.nextState
 		elseif self.gamerules:totalChestsRemaining() == 0 then
 			self.state = GAME_STATE_WIN
+			self.actions[ " " ] = self.nextState
 		end
 	end
 
@@ -338,8 +334,23 @@ function Game:onDraw( params )
 
 		love.graphics.print( "Total Entities: " .. self.gamerules.entity_manager:entityCount(), 10, 50 )
 	elseif self.state == GAME_STATE_WIN then
-	elseif self.state == GAME_STATE_FAIL then
+		love.graphics.setFont( self.fonts[ "text32" ] )
+		love.graphics.setColor( 255, 255, 255, 255 )
 
+		love.graphics.printf( "You collected all the treasure!", 0, 120, love.graphics.getWidth(), "center" )
+		love.graphics.printf( "Thanks for playing!", 0, 250, love.graphics.getWidth(), "center" )
+
+		love.graphics.setFont( self.fonts[ "text16" ] )
+		love.graphics.printf( "This was created for #1GAM; OneGameAMonth.com February 2013", 0, 400, love.graphics.getWidth(), "center" )
+	elseif self.state == GAME_STATE_FAIL then
+		love.graphics.setFont( self.fonts[ "text32" ] )
+		love.graphics.setColor( 255, 0, 0, 255 )
+
+		love.graphics.printf( "Oh noes! You were eaten by a shark!", 0, 120, love.graphics.getWidth(), "center" )
+
+		love.graphics.setColor( 255, 255, 255, 255 )
+		love.graphics.printf( "Press <space> to try again", 0, 250, love.graphics.getWidth(), "center" )
+		love.graphics.printf( "Press <esc> to exit", 0, 300, love.graphics.getWidth(), "center" )
 	end
 end
 

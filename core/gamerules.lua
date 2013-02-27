@@ -258,6 +258,10 @@ function GameRules:updateWalkableMap( )
 end
 
 function GameRules:loadMap( mapname )
+
+	self.entity_manager.entity_list = {}
+
+
 	loader.path = "assets/maps/"
 
 	-- try and load the map...
