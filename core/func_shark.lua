@@ -72,7 +72,7 @@ function func_shark:onUpdate( params )
 
 		if self.prey then
 			local prey_distance = params.gamerules:calculateEntityDistance( self, self.prey )
-			if prey_distance > 400 then
+			if prey_distance > 250 then
 				self:lurk( params )
 			end
 		end
@@ -81,7 +81,7 @@ function func_shark:onUpdate( params )
 		-- if the player gets too close to the shark; the shark will follow
 
 		local player = params.gamerules:getPlayer()
-		if distance < 200 and player.health > 0 then
+		if distance < 170 and player.health > 0 then
 			self.speed = 1.25
 			self.prey = player
 		end
