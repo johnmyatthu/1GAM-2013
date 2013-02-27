@@ -6,7 +6,7 @@ function func_shark:initialize()
 	self.collision_mask = 3
 	self.health = 0
 
-	self.fadetime = 0.5 + math.random(2.0)
+	self.fadetime = 0.25 + math.random(2.0)
 	self.fade_in_time = self.fadetime
 
 	self.color.r = math.random(255)

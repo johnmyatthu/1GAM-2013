@@ -17,7 +17,7 @@ function func_chest:initialize()
 	self.sonar_volume = 1
 
 
-	self.fade_in_time = 1
+	self.fade_in_time = 0.5
 	self.is_fading = false
 	self.fadetime = self.fade_in_time
 end
@@ -63,24 +63,7 @@ end
 
 function func_chest:onDraw( params )
 	self.color.a = (self.fade_in_time / self.fadetime) * 255
-
-
 	AnimatedSprite.onDraw( self, params )
-	--[[
-	if self.is_locked then
-		self.health = 100*(1.0 - (self.unlock_time_left / self.total_unlock_time))
-
-		if self.health >= 100 then
-			self.is_locked = false
-			self.health = 100
-			self:playAnimation("open")
-		end
-	else
-		self.health = 100
-	end
-
-	self:drawHealthBar( params )
-	--]]
 end
 
 function func_chest:onUpdate( params )
@@ -113,27 +96,8 @@ function func_chest:onUpdate( params )
 	end
 
 	AnimatedSprite.onUpdate( self, params )
-
-	if self.is_locked and self.is_unlocking then
-		self.unlock_time_left = self.unlock_time_left - params.dt
-	end
 end
 
 function func_chest:canInteractWith( params )
-	local distance = params.gamerules:calculateEntityDistance( self, params.other )
-	if distance > self.unlock_distance then
-		return false
-	end
-
 	return true
-end
-function func_chest:startInteraction( params )
-	self.is_unlocking = true
-end
-
-function func_chest:endInteraction( params )
-	if self.is_locked then
-		self.is_unlocking = false
-		self.unlock_time_left = self.total_unlock_time
-	end
 end

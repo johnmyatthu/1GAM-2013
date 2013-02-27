@@ -1,4 +1,5 @@
 require "core"
+require "helpscreen"
 
 local player = nil
 local mouse_tile = {x = 0, y = 0}
@@ -46,7 +47,7 @@ function Game:initialize( gamerules, config, fonts )
 		0
 	}
 
-
+	self.helpscreen = HelpScreen( fonts )
 	
 	self.shark_spawn_cooldown = SHARK_SPAWN_COOLDOWN
 	self.next_shark_spawn = self.shark_spawn_cooldown
@@ -109,6 +110,8 @@ function Game:nextState()
 		self.source:rewind()
 		self.source:play()
 		self.state = GAME_STATE_PLAY
+		self:onLoad( {gamerules=self.gamerules} )
+		self.gamerules:prepareForGame()		
 	elseif self.state == GAME_STATE_WIN then
 		self.source:stop()
 		self.source:rewind()
@@ -153,6 +156,13 @@ function Game:onLoad( params )
 	self:warpPlayerToSpawn( player )
 	self.gamerules:setPlayer( player )
 	self.gamerules:spawnEntity( player, nil, nil, nil )
+
+	if not self.helpscreen_loaded then
+		params.game = self
+		params.gamerules = self.gamerules
+		self.helpscreen:prepareToShow( params )	
+		self.helpscreen_loaded = true
+	end
 end
 
 
@@ -206,6 +216,7 @@ function Game:spawnFish()
 	if self.gamerules.entity_manager:entityCount() >= MAX_FISH then
 		return
 	end
+
 	for i=1, 10 do
 		local thing = self.gamerules.entity_factory:createClass( "func_fish" )
 		thing.tile_x = 0
@@ -219,6 +230,7 @@ function Game:spawnFish()
 end
 
 function Game:onUpdate( params )
+	params.gamestate = self.state
 
 	if self.state == GAME_STATE_PLAY then
 
@@ -230,7 +242,7 @@ function Game:onUpdate( params )
 			end
 		end
 
-		params.gamestate = self.state
+		
 		self.gamerules:onUpdate( params )
 
 		self.gamerules:snapCameraToPlayer( player )
@@ -299,6 +311,11 @@ function Game:onUpdate( params )
 			self.state = GAME_STATE_WIN
 			self.actions[ " " ] = self.nextState
 		end
+	elseif self.state == GAME_STATE_HELP then
+		self.gamerules:onUpdate( params )
+
+		params.game = self
+		self.helpscreen:onUpdate( params )
 	end
 
 end
@@ -309,12 +326,13 @@ function Game:onDraw( params )
 	love.graphics.setBackgroundColor( 39, 82, 93, 255 )
 	love.graphics.clear()
 
-	if self.state == GAME_STATE_HELP then
 
-	elseif self.state == GAME_STATE_PLAY then
+	params.gamestate = self.state
+
+	if self.state == GAME_STATE_PLAY then
 		self.gamerules:drawWorld()
 		-- draw entities here
-		params.gamestate = self.state
+		
 		self.gamerules:drawEntities( params )
 
 
@@ -359,6 +377,12 @@ function Game:onDraw( params )
 		love.graphics.setColor( 255, 255, 255, 255 )
 		love.graphics.printf( "Press <space> to try again", 0, 250, love.graphics.getWidth(), "center" )
 		love.graphics.printf( "Press <esc> to exit", 0, 300, love.graphics.getWidth(), "center" )
+	elseif self.state == GAME_STATE_HELP then
+		--player.visible = false
+		self.gamerules:drawEntities( params )
+
+		params.game = self
+		self.helpscreen:onDraw( params )
 	end
 end
 
