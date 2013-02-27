@@ -63,6 +63,7 @@ function GameRules:initialize()
 	self.num_chests = 3
 end
 
+
 function GameRules:loadSounds( path )
 	logging.verbose( "Loading sounds..." )
 	if love.filesystem.exists( path ) then
@@ -133,26 +134,9 @@ function GameRules:prepareForGame()
 	local num_to_remove = #chests - self.num_chests
 	local items_to_remove = {}
 
-	logging.verbose( "total chests: " .. #chests .. ", num chests: " .. self.num_chests .. "; need to remove: " .. num_to_remove )
-
-	--[[
-	if num_to_remove > 0 then
-		for i=1, #chests do
-			local r = math.random()
-			if r > 0.5 then
-				table.insert( items_to_remove, chests[i] )
-				num_to_remove = num_to_remove - 1
-
-				if num_to_remove == 0 then
-					break
-				end
-			end
-		end
-	end
-	--]]
+	--logging.verbose( "total chests: " .. #chests .. ", num chests: " .. self.num_chests .. "; need to remove: " .. num_to_remove )
 
 	if num_to_remove > 0 then
-		logging.verbose( "still more to go" )
 		for i=1, num_to_remove do
 			table.insert( items_to_remove, chests[i] )
 		end
@@ -207,6 +191,11 @@ function GameRules:addCollision( entity )
 end
 
 function GameRules:removeCollision( entity )
+
+	if self.collision_layer then
+		self.collision_layer:set( entity.tile_x, entity.tile_y, nil )
+	end
+
 	if self.grid then
 		self.grid:removeShape( entity )
 	end
@@ -504,6 +493,16 @@ function GameRules:snapCameraToPlayer( player )
 end
 
 
+function GameRules:randomVelocity( max_x, max_y )
+	local direction = math.random(100)
+	if direction > 50 then
+		direction = 1
+	else
+		direction = -1
+	end
+
+	return {x=direction*math.random(max_x), y=math.random(max_y)}
+end
 
 function GameRules:drawWorld()
 	love.graphics.push()

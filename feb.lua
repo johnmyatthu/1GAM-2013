@@ -17,8 +17,14 @@ local ACTION_USE = "use"
 -- maximum number of fish alive at once
 local MAX_FISH = 125
 
+-- maximum number of sharks
+local MAX_SHARKS = 15
+
 -- the depth past which sharks will spawn
-local SHARK_DEPTH = 95
+local SHARK_DEPTH = 10 --95
+
+-- seconds between shark spawns
+local SHARK_SPAWN_COOLDOWN = 5
 
 -- amount of time in seconds before defend round starts after build round ends
 local GAME_BUILD_DEFEND_TRANSITION_TIME = 2
@@ -42,6 +48,10 @@ function Game:initialize( gamerules, config, fonts )
 		0
 	}
 
+
+	
+	self.shark_spawn_cooldown = SHARK_SPAWN_COOLDOWN
+	self.next_shark_spawn = self.shark_spawn_cooldown
 
 	self.key_for_action = {}
 	self.key_for_action[ ACTION_MOVE_MAP_LEFT ] = "left"
@@ -146,7 +156,17 @@ function Game:onLoad( params )
 end
 
 
-function Game:randomVelocity( max_x, max_y )
+
+function Game:randomLocationFromPlayer( player, min_x, min_y )
+
+	if min_x == nil then
+		min_x = 0
+	end
+
+	if min_y == nil then
+		min_y = 0
+	end
+
 	local direction = math.random(100)
 	if direction > 50 then
 		direction = 1
@@ -154,30 +174,31 @@ function Game:randomVelocity( max_x, max_y )
 		direction = -1
 	end
 
-	return {x=direction*math.random(max_x), y=math.random(max_y)}
-end
-
-function Game:randomLocationFromPlayer( player )
-	local direction = math.random(100)
-	if direction > 50 then
-		direction = 1
-	else
-		direction = -1
-	end
-
-	target_world_x = player.world_x + (370*math.random()*direction)
-	target_world_y = player.world_y + (275*math.random()*direction)
+	target_world_x = player.world_x + (min_x*direction) + (370*math.random()*direction)
+	target_world_y = player.world_y + (min_y*direction) + (275*math.random()*direction)
 
 	return target_world_x, target_world_y
 end
 
 
 function Game:spawnShark()
-	local shark = self.gamerules.entity_factory:createClass("func_shark")
-	local x, y = self:randomLocationFromPlayer( player )
-	shark.velocity = self:randomVelocity( 40, 15 )
 
-	logging.verbose( shark.velocity.x .. ", " .. shark.velocity.y )
+	if #self.gamerules.entity_manager:findAllEntitiesByName("func_shark") >= MAX_SHARKS then
+		return
+	end
+
+	-- don't spawn too rapidly
+	if self.next_shark_spawn > 0 then
+		return
+	end
+
+	self.next_shark_spawn = self.shark_spawn_cooldown
+
+	local shark = self.gamerules.entity_factory:createClass("func_shark")
+	local x, y = self:randomLocationFromPlayer( player, 75, 75 )
+
+	shark:lurk{ gamerules=self.gamerules }
+
 	self.gamerules:spawnEntity( shark, x, y, nil )	
 end
 
@@ -190,8 +211,8 @@ function Game:spawnFish()
 		thing.tile_x = 0
 		thing.tile_y = 0
 
-		local target_x, target_y = self:randomLocationFromPlayer( player )
-		thing.pv = self:randomVelocity( 100, 25 )
+		local target_x, target_y = self:randomLocationFromPlayer( player, 20, 20 )
+		thing.pv = self.gamerules:randomVelocity( 100, 25 )
 		
 		self.gamerules:spawnEntity( thing, target_x, target_y, nil )
 	end
@@ -215,6 +236,11 @@ function Game:onUpdate( params )
 		self.gamerules:snapCameraToPlayer( player )
 
 		self:updatePlayerDirection()
+
+		self.next_shark_spawn = self.next_shark_spawn - params.dt
+		if self.next_shark_spawn < 0 then
+			self.next_shark_spawn = 0
+		end
 
 
 		local cam_x, cam_y = self.gamerules:getCameraPosition()
@@ -260,8 +286,17 @@ function Game:onUpdate( params )
 
 		if player:seaDepth() > SHARK_DEPTH then
 			--logging.verbose( "You sense something dark approaching..." )
+			self:spawnShark()
 		end
 
+
+
+		-- the rudimentary check for win/fail conditions
+		if player.health == 0 then
+			self.state = GAME_STATE_FAIL
+		elseif self.gamerules:totalChestsRemaining() == 0 then
+			self.state = GAME_STATE_WIN
+		end
 	end
 
 end
