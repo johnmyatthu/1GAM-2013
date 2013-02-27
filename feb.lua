@@ -21,7 +21,7 @@ local MAX_FISH = 125
 local MAX_SHARKS = 15
 
 -- the depth past which sharks will spawn
-local SHARK_DEPTH = 10 --95
+local SHARK_DEPTH = 70 --95
 
 -- seconds between shark spawns
 local SHARK_SPAWN_COOLDOWN = 5
@@ -85,8 +85,7 @@ function Game:initialize( gamerules, config, fonts )
 
 
 
-	self.state = GAME_STATE_FAIL
-	self.actions[ " " ] = self.nextState
+	self.state = GAME_STATE_HELP
 	if self.state == GAME_STATE_HELP then
 		self.actions[ " " ] = self.nextState
 		love.mouse.setVisible( true )
@@ -94,9 +93,9 @@ function Game:initialize( gamerules, config, fonts )
 		love.mouse.setVisible( false )
 	end
 
-	--self.source = self.gamerules:createSource( "sawmill" )
-	--self.source:setVolume( 0.75 )
-	--self.source:play()
+	self.source = self.gamerules:createSource( "sawmill" )
+	self.source:setVolume( 0.75 )
+	
 end
 
 
@@ -106,12 +105,21 @@ function Game:nextState()
 	end
 
 	if self.state == GAME_STATE_HELP then
+		self.source:stop()
+		self.source:rewind()
+		self.source:play()
 		self.state = GAME_STATE_PLAY
 	elseif self.state == GAME_STATE_WIN then
+		self.source:stop()
+		self.source:rewind()
+		self.source:play()		
 		self.state = GAME_STATE_PLAY
 		self:onLoad( {gamerules=self.gamerules} )
 		self.gamerules:prepareForGame()
 	elseif self.state == GAME_STATE_FAIL then
+		self.source:stop()
+		self.source:rewind()
+		self.source:play()	
 		self.state = GAME_STATE_PLAY
 		self:onLoad( {gamerules=self.gamerules} )
 		self.gamerules:prepareForGame()
