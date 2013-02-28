@@ -61,6 +61,7 @@ function GameRules:initialize()
 	love.audio.setVolume( 1.0 )
 
 	self.num_chests = 3
+
 end
 
 
@@ -133,14 +134,14 @@ function GameRules:prepareForGame()
 	self.num_chests = 0
 	local items_to_remove = {}
 
-	--logging.verbose( "total chests: " .. #chests .. ", num chests: " .. self.num_chests .. "; need to remove: " .. num_to_remove )
+	logging.verbose( "total chests: " .. #chests .. ", num chests: " .. self.num_chests )
 
 
 	for i=1,#chests do
 		local value = math.random()
 
 
-		if value > 0.5 then
+		if value > 0.5 and self.num_chests > 3 then
 			table.insert( items_to_remove, chests[i] )
 		else
 			self.num_chests = self.num_chests + 1
@@ -333,11 +334,11 @@ end
 
 -- determine if a tile is within the map and is valid
 function GameRules:isTileWithinMap( tile_x, tile_y )
-	if tile_x < 0 or tile_x > self.map.width then
+	if tile_x < 0 or tile_x > self.map.width-1 then
 		return false
 	end
 
-	if tile_y < 0 or tile_y > self.map.height then
+	if tile_y < 0 or tile_y > self.map.height-1 then
 		return false
 	end
 

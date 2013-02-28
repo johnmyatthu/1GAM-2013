@@ -111,21 +111,18 @@ function Game:nextState()
 		self.source:play()
 		self.state = GAME_STATE_PLAY
 		self:onLoad( {gamerules=self.gamerules} )
-		self.gamerules:prepareForGame()		
 	elseif self.state == GAME_STATE_WIN then
 		self.source:stop()
 		self.source:rewind()
 		self.source:play()		
 		self.state = GAME_STATE_PLAY
 		self:onLoad( {gamerules=self.gamerules} )
-		self.gamerules:prepareForGame()
 	elseif self.state == GAME_STATE_FAIL then
 		self.source:stop()
 		self.source:rewind()
 		self.source:play()	
 		self.state = GAME_STATE_PLAY
 		self:onLoad( {gamerules=self.gamerules} )
-		self.gamerules:prepareForGame()
 	end
 end
 
@@ -323,7 +320,8 @@ end
 
 
 function Game:onDraw( params )
-	love.graphics.setBackgroundColor( 39, 82, 93, 255 )
+	--love.graphics.setBackgroundColor( 39, 82, 93, 255 )
+	love.graphics.setBackgroundColor( 29, 72, 83, 255 )
 	love.graphics.clear()
 
 
