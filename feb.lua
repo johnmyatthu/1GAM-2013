@@ -96,7 +96,6 @@ function Game:initialize( gamerules, config, fonts )
 
 	self.source = self.gamerules:createSource( "sawmill" )
 	self.source:setVolume( 0.75 )
-	
 end
 
 
@@ -138,18 +137,18 @@ end
 
 function Game:warpPlayerToSpawn( player )
 	local spawn = self.gamerules.spawn
+	-- to work around a bug in the map exporter/importer; hard code the spawn position
+	spawn.x = 50
+	spawn.y = 2
 	player.world_x, player.world_y = self.gamerules:worldCoordinatesFromTileCenter( spawn.x, spawn.y )
 	player.tile_x, player.tile_y = self.gamerules:tileCoordinatesFromWorld( player.world_x, player.world_y )
 end
 
 function Game:onLoad( params )
 	-- load the map
-	self.gamerules:loadMap( self.config.map )
-	self.gamerules:prepareForGame()
-	player = self.gamerules.entity_factory:createClass( "Player" )
+	self.gamerules:loadMap( self.config.map )	
+	local player = self.gamerules.entity_factory:createClass( "Player" )
 
-	-- assuming this map has a spawn point; we'll set the player spawn
-	-- and then center the camera on the player
 	self:warpPlayerToSpawn( player )
 	self.gamerules:setPlayer( player )
 	self.gamerules:spawnEntity( player, nil, nil, nil )
@@ -160,6 +159,8 @@ function Game:onLoad( params )
 		self.helpscreen:prepareToShow( params )	
 		self.helpscreen_loaded = true
 	end
+
+	self.gamerules:prepareForGame()
 end
 
 
@@ -202,7 +203,7 @@ function Game:spawnShark()
 	self.next_shark_spawn = self.shark_spawn_cooldown
 
 	local shark = self.gamerules.entity_factory:createClass("func_shark")
-	local x, y = self:randomLocationFromPlayer( player, 175, 175 )
+	local x, y = self:randomLocationFromPlayer( self.gamerules:getPlayer(), 175, 175 )
 
 	shark:lurk{ gamerules=self.gamerules }
 
@@ -219,7 +220,7 @@ function Game:spawnFish()
 		thing.tile_x = 0
 		thing.tile_y = 0
 
-		local target_x, target_y = self:randomLocationFromPlayer( player, 20, 20 )
+		local target_x, target_y = self:randomLocationFromPlayer( self.gamerules:getPlayer(), 20, 20 )
 		thing.pv = self.gamerules:randomVelocity( 100, 25 )
 		
 		self.gamerules:spawnEntity( thing, target_x, target_y, nil )
@@ -239,6 +240,7 @@ function Game:onUpdate( params )
 			end
 		end
 
+		local player = self.gamerules:getPlayer()
 		
 		self.gamerules:onUpdate( params )
 
@@ -324,7 +326,7 @@ function Game:onDraw( params )
 	love.graphics.setBackgroundColor( 29, 72, 83, 255 )
 	love.graphics.clear()
 
-
+	local player = self.gamerules:getPlayer()
 	params.gamestate = self.state
 
 	if self.state == GAME_STATE_PLAY then
@@ -385,6 +387,7 @@ function Game:onDraw( params )
 end
 
 function Game:updatePlayerDirection()
+	local player = self.gamerules:getPlayer()
 		-- get a vector from player to mouse cursor
 	local mx, my = love.mouse.getPosition()
 	local wx, wy = self.gamerules:worldCoordinatesFromMouse( mx, my )
