@@ -79,7 +79,7 @@ function func_chest:onUpdate( params )
 
 	-- calculate the volume based on the distance from the player
 	local sonar_distance = params.gamerules:calculateEntityDistance( self, params.gamerules:getPlayer() )
-	self.sonar_volume = (1 - ((sonar_distance)/3000))
+	self.sonar_volume = (1 - ((sonar_distance)/GAME_SONAR_DIVISOR))
 	if self.sonar_volume < 0 then
 		self.sonar_volume = 0
 	end

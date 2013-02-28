@@ -22,7 +22,7 @@ local MAX_FISH = 125
 local MAX_SHARKS = 15
 
 -- the depth past which sharks will spawn
-local SHARK_DEPTH = 70 --95
+local SHARK_DEPTH = 15
 
 -- seconds between shark spawns
 local SHARK_SPAWN_COOLDOWN = 5
@@ -336,7 +336,7 @@ function Game:onDraw( params )
 		love.graphics.setFont( self.fonts[ "text16" ] )
 
 
-		local depth = 255 * ((player.world_y/32) / 275)
+		local depth = 255 * ((GAME_DEPTH_OFFSET + (player.world_y/32)) / GAME_DEPTH_DIVISOR)
 		if depth > 255 then
 			depth = 255
 		end
