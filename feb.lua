@@ -110,18 +110,24 @@ function Game:nextState()
 		self.source:play()
 		self.state = GAME_STATE_PLAY
 		self:onLoad( {gamerules=self.gamerules} )
+		self.gamerules:prepareForGame()
+		self.gamerules:getPlayer().visible = true
 	elseif self.state == GAME_STATE_WIN then
 		self.source:stop()
 		self.source:rewind()
 		self.source:play()		
 		self.state = GAME_STATE_PLAY
 		self:onLoad( {gamerules=self.gamerules} )
+		self.gamerules:prepareForGame()
+		self.gamerules:getPlayer().visible = true
 	elseif self.state == GAME_STATE_FAIL then
 		self.source:stop()
 		self.source:rewind()
 		self.source:play()	
 		self.state = GAME_STATE_PLAY
 		self:onLoad( {gamerules=self.gamerules} )
+		self.gamerules:prepareForGame()
+		self.gamerules:getPlayer().visible = true
 	end
 end
 
@@ -156,8 +162,6 @@ function Game:onLoad( params )
 		self.helpscreen:prepareToShow( params )	
 		self.helpscreen_loaded = true
 	end
-
-	self.gamerules:prepareForGame()
 end
 
 
@@ -329,8 +333,8 @@ function Game:onDraw( params )
 	if self.state == GAME_STATE_PLAY then
 		self.gamerules:drawWorld()
 		-- draw entities here
-		
 		self.gamerules:drawEntities( params )
+
 
 
 		love.graphics.setFont( self.fonts[ "text16" ] )
@@ -357,6 +361,11 @@ function Game:onDraw( params )
 
 		love.graphics.print( "Total Entities: " .. self.gamerules.entity_manager:entityCount(), 10, 50 )
 	elseif self.state == GAME_STATE_WIN then
+		self.gamerules:drawWorld()
+		self.gamerules:drawEntities( params )
+		love.graphics.setColor( 0, 0, 0, 64 )
+		love.graphics.rectangle( "fill", 0, 0, love.graphics.getWidth(), love.graphics.getHeight() )	
+
 		love.graphics.setFont( self.fonts[ "text32" ] )
 		love.graphics.setColor( 255, 255, 255, 255 )
 
@@ -366,6 +375,12 @@ function Game:onDraw( params )
 		love.graphics.setFont( self.fonts[ "text16" ] )
 		love.graphics.printf( "This was created for #1GAM; OneGameAMonth.com February 2013", 0, 400, love.graphics.getWidth(), "center" )
 	elseif self.state == GAME_STATE_FAIL then
+		self.gamerules:drawWorld()
+		self.gamerules:drawEntities( params )
+		love.graphics.setColor( 0, 0, 0, 64 )
+		love.graphics.rectangle( "fill", 0, 0, love.graphics.getWidth(), love.graphics.getHeight() )	
+	
+
 		love.graphics.setFont( self.fonts[ "text32" ] )
 		love.graphics.setColor( 255, 0, 0, 255 )
 
@@ -375,12 +390,14 @@ function Game:onDraw( params )
 		love.graphics.printf( "Press <space> to try again", 0, 250, love.graphics.getWidth(), "center" )
 		love.graphics.printf( "Press <esc> to exit", 0, 300, love.graphics.getWidth(), "center" )
 	elseif self.state == GAME_STATE_HELP then
-		--player.visible = false
+		self.gamerules:getPlayer().visible = false
 		self.gamerules:drawEntities( params )
 
 		params.game = self
 		self.helpscreen:onDraw( params )
 	end
+
+
 end
 
 function Game:updatePlayerDirection()
