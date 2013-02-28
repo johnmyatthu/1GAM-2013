@@ -137,9 +137,6 @@ end
 
 function Game:warpPlayerToSpawn( player )
 	local spawn = self.gamerules.spawn
-	-- to work around a bug in the map exporter/importer; hard code the spawn position
-	spawn.x = 50
-	spawn.y = 2
 	player.world_x, player.world_y = self.gamerules:worldCoordinatesFromTileCenter( spawn.x, spawn.y )
 	player.tile_x, player.tile_y = self.gamerules:tileCoordinatesFromWorld( player.world_x, player.world_y )
 end

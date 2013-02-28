@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<map version="1.0" orientation="orthogonal" width="100" height="80" tilewidth="32" tileheight="32">
+ <tileset firstgid="1" name="orthotiles" tilewidth="32" tileheight="32">
+  <image source="orthotiles.png" width="128" height="128"/>
+  <tile id="0">
+   <properties>
+    <property name="classname" value="func_chest"/>
+   </properties>
+  </tile>
+  <tile id="2">
+   <properties>
+    <property name="classname" value="info_player_spawn"/>
+   </properties>
+  </tile>
+ </tileset>
+ <layer name="Ground" width="100" height="80">
+  <data encoding="base64" compression="zlib">
+   eJzt1EGWgzAMBFF2yf1PnAvwCJZaUmNqUbsZYusjPsdxfIiIiIiIiIiIiIiIiIiIiOh235Omz/TWziww8bPAxMcAD08LPLwsMPH0wASLnct6YILJ7ik8cMFj15QemPh54OLpgQkmO1Vpgo2nR9Tkje9Bl8fqjN68m6v3q56Rw24+ySM7Mzy098/OrcNjeqYTHtHZVXtMz7PbJPJ/le/H1W881adjP6o8/j1jerauHlezUexE1Cv7vav4XmZmqnyXlRaZu2bn1mUyaVm9F5GZKvcsck4Hj+g8Mr9TvWcqi87d6rSY8lCer/LbsWKh8ri6s3puyt2o3Mmp3ah4l1S+FS5P2A3ljkTv0mVSff6O++Lhd9/sMxXnU5hUeai/VXfu6uCRtYk+29Ej8juVHhkXlaP6exK5l5tHl0nVdzF7n9XnVlu4unSev3PGO1o52Ds3PU888Ng5HPyLzO3s7zGYNZw+AxERERERERERERH59QPO1OfD
+  </data>
+ </layer>
+ <layer name="Collision" width="100" height="80">
+  <data encoding="base64" compression="zlib">
+   eJztlEsOhEAIBc3c/9CzNjGtwOPTWpW8nXYDJR4HAAAAAAAAAAAAAAAAAAAAWPhdBHq4coGTHlYucFLDEwf4qMHqAh95eFzgJI+ID5xowcUsoj5wogcns1D4wIsOfMxC6QMncdQ+8BIjywdO/OBkHplOcGOnwofXyRe/gyof1hl9eTet/WXPaMJuduLpDR95ePub7GNnIr1O9PEGsn1k1XJ3x65+KvYjo5aVh533pep/pbjfWov1PisZ/8vITJXfstJFpNenqJwq66xymb0Xnpkq98xTZ+RdlY+n70fvukO5Z546M2qb6qLLh7K+1XnRuy0uVD5WPavnZj1XTXQ2FS7U35LKb4aXHXZDuSPeXqqcZNdf0S8+5vUbPVNRn8JJlo/IPd5eJ/iIuvGePdGH5x5lfUovVqx3V/Y1zUeVEwuV/VjPzXYx1Utl/ZUzfqMrNd2zxdWZ7vnh40z3/Kali+6+d4pnblfP46DXYXcNhBBCCCGEEEIIIYQQQublD7LxGgU=
+  </data>
+ </layer>
+ <layer name="Game" width="100" height="80">
+  <data encoding="base64" compression="zlib">
+   eJzt18ENABAQBECi/5414Ifs5TLTgH2wWWMA3a10AAAAAAAAAABam+kAAABQjI0MAAD37GoAAOC19D/j5vx0doAE3Qek6B8qcR+BE90AAAD/2NtQh/cIAAAAAAB1bF/QABA=
+  </data>
+ </layer>
+</map>
