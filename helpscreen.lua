@@ -27,13 +27,11 @@ function HelpScreen:prepareToShow( params )
 	self.chest:onSpawn( params )
 	self.chest.sonar_sound:setVolume( 0.5 )
 
-	
 	local player = params.gamerules.entity_factory:createClass( "Player" )
 	player.world_x = 650
 	player.world_y = 216
 	self.submarine = player
 	self.submarine:onSpawn( params )
-	--params.gamerules:spawnEntity( chest, nil, nil, nil )
 end
 
 
