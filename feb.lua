@@ -357,7 +357,7 @@ function Game:onDraw( params )
 		love.graphics.print( "Depth: " .. string.format("%2.2f", player:seaDepth()) .. " meters", 10, 5 )
 
 
-		love.graphics.print( "Treasure Saved: " .. tostring(self.gamerules:originalTotalChests()-self.gamerules:totalChestsRemaining()) .. " / " .. tostring(self.gamerules:originalTotalChests()), 550, 5 )	
+		love.graphics.print( "Treasure Saved: " .. tostring(self.gamerules:originalTotalChests()-self.gamerules:totalChestsRemaining()) .. " / " .. tostring(self.gamerules:originalTotalChests()), 540, 5 )	
 
 		--love.graphics.print( "Total Entities: " .. self.gamerules.entity_manager:entityCount(), 10, 50 )
 	elseif self.state == GAME_STATE_WIN then
