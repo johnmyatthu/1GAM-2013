@@ -20,6 +20,8 @@ function func_chest:initialize()
 	self.fade_in_time = 0.5
 	self.is_fading = false
 	self.fadetime = self.fade_in_time
+
+	self.ignore_distance = false
 end
 
 function func_chest:onSpawn( params )
@@ -79,15 +81,17 @@ function func_chest:onUpdate( params )
 
 	-- calculate the volume based on the distance from the player
 	local sonar_distance = params.gamerules:calculateEntityDistance( self, params.gamerules:getPlayer() )
-	self.sonar_volume = (1 - ((sonar_distance)/GAME_SONAR_DIVISOR))
-	if self.sonar_volume < 0 then
-		self.sonar_volume = 0
+	if not self.ignore_distance then
+		self.sonar_volume = (1 - ((sonar_distance)/GAME_SONAR_DIVISOR))
+		if self.sonar_volume < 0 then
+			self.sonar_volume = 0
+		end
 	end
 
 	if self.next_sonar_time > 0 then
 		self.next_sonar_time = self.next_sonar_time - params.dt
 
-		if self.next_sonar_time <= 0 and self.is_locked then
+		if self.next_sonar_time <= 0 then
 			self.next_sonar_time = self.sonar_interval
 			self.sonar_sound:rewind()
 			self.sonar_sound:setVolume( self.sonar_volume )

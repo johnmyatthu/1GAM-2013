@@ -16,14 +16,18 @@ end
 function HelpScreen:prepareToShow( params )
 	params.game:spawnFish()
 
-
 	-- spawn a chest
 	local chest = params.gamerules.entity_factory:createClass( "func_chest" )
 	chest.world_x = 650
 	chest.world_y = 276
 	self.chest = chest
+	self.chest.ignore_distance = true
+	self.chest.sonar_interval = 1.5
+	self.chest.next_sonar_time = 0.1
 	self.chest:onSpawn( params )
+	self.chest.sonar_sound:setVolume( 0.5 )
 
+	
 	local player = params.gamerules.entity_factory:createClass( "Player" )
 	player.world_x = 650
 	player.world_y = 216
@@ -60,6 +64,7 @@ function HelpScreen:onDraw( params )
 end
 
 function HelpScreen:onUpdate( params )
+
 	self.chest:onUpdate( params )
 	self.submarine:onUpdate( params )
 	fish = params.gamerules.entity_manager:findAllEntitiesByName( "func_fish" )
