@@ -6,10 +6,10 @@ import subprocess
 import shlex
 
 # the root folder to package
-PROJECT_PATH = "1GAM-2013"
+PROJECT_PATH = "."
 
 # the generated love binary (runnable binary + package)
-PROJECT_NAME = "test"
+PROJECT_NAME = "treasuretrove"
 
 # the generated love package
 PACKAGE_NAME = "%s.love" % PROJECT_NAME
@@ -34,7 +34,6 @@ def love_binary_path():
 		"linux" : "/usr/local/bin/love"
 	}
 
-
 	return love_paths[ host_platform() ]
 
 def platform_generate_binary( archive, vars ):
@@ -43,7 +42,8 @@ def platform_generate_binary( archive, vars ):
 	commands = {
 		'linux' : [],
 		'macosx' : [
-			'cp -R %(source)s %(temp)s/',
+			'mkdir -p %(temp)s',
+			'cp -R %(source)s %(temp)s',
 			'mkdir -p %(temp)s/love.app/Contents/Resources',
 			'cp -R %(archive)s %(temp)s/love.app/Contents/Resources'
 		],
@@ -56,7 +56,7 @@ def platform_generate_binary( archive, vars ):
 		process = subprocess.check_call( shlex.split(command), shell=False )
 
 # the archive name that will be created (.love)
-archive = os.path.abspath( os.path.join(PROJECT_PATH, os.path.pardir, PACKAGE_NAME ))
+archive = os.path.abspath( os.path.join(PROJECT_PATH, PACKAGE_NAME ))
 
 
 def zip_files_to_archive( files, archive ):
@@ -68,17 +68,17 @@ def zip_files_to_archive( files, archive ):
 
 	z.close()
 
-if __name__ == "__main__":
 
-	excludes = [ '.git', 'CVSROOT', '.gitignore', '.gitmodules' ]
+def create_file_list( root_path, excludes ):
+	
 	excludes = r'|'.join( [fnmatch.translate(x) for x in excludes] ) or r'$.'
 
 	archive_files = []
 
-	working_directory = os.getcwd()
-	os.chdir( PROJECT_PATH )
+	
+	#os.chdir( PROJECT_PATH )
 
-	for root, dirs, files in os.walk( ".", topdown=True ):
+	for root, dirs, files in os.walk( root_path, topdown=True ):
 		# exclude directories
 		#dirs[:] = [os.path.join(root, d) for d in dirs]
 		dirs[:] = [d for d in dirs if not re.match(excludes,d)]
@@ -90,8 +90,17 @@ if __name__ == "__main__":
 		for filename in files:
 			archive_files.append( filename )
 
-	zip_files_to_archive( archive_files, archive )
+	return archive_files
 
+if __name__ == "__main__":
+
+	excludes = [ '.git', 'CVSROOT', '.gitignore', '.gitmodules', '*.psd', '*.sublime-*', '.DS_Store' ]
+	working_directory = os.getcwd()
+
+	# zip the files into a .love bundle
+	archive_files = create_file_list( ".", excludes )
+	zip_files_to_archive( archive_files, archive )
+	
 	variables = {
 		'source' : love_binary_path(),
 		'archive' : archive,
@@ -99,5 +108,6 @@ if __name__ == "__main__":
 	}
 
 	os.chdir( working_directory )
-	print( working_directory )
-	#platform_generate_binary( archive, variables )
+	
+	# create a platform-specific package
+	platform_generate_binary( archive, variables )
