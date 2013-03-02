@@ -87,7 +87,7 @@ def platform_generate_binary( archive, vars ):
 		],
 		'macosx' : [
 			'mkdir -p %(temp)s',
-			'cp -R %(source)s %(temp)s',
+			'cp -R %(source)s %(temp)s/%(project_name)s.app',
 			'mkdir -p %(temp)s/%(project_name)s.app/Contents/Resources',
 			'cp -R %(archive)s %(temp)s/%(project_name)s.app/Contents/Resources'
 		],
