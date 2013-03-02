@@ -4,6 +4,7 @@ import fnmatch
 import re
 import subprocess
 import shlex
+import stat
 
 # the root folder to package
 PROJECT_PATH = "."
@@ -20,10 +21,11 @@ def host_platform():
 
 	if 'darwin' in p:
 		hostplatform = 'macosx'
+	elif 'linux' in p or 'nix' in p:
+		hostplatform = 'linux'		
 	elif 'win' in p or 'nt' in p:
 		hostplatform = 'windows'
-	elif 'linux' in p or 'nix' in p:
-		hostplatform = 'linux'
+
 
 	return hostplatform
 
@@ -31,7 +33,7 @@ def love_binary_path():
 	love_paths = {
 		"macosx" : "/Applications/love.app",
 		"windows" : "",
-		"linux" : "/usr/local/bin/love"
+		"linux" : "/usr/bin/love"
 	}
 
 	return love_paths[ host_platform() ]
@@ -40,20 +42,39 @@ def platform_generate_binary( archive, vars ):
 	lovepath = love_binary_path()
 
 	commands = {
-		'linux' : [],
+		'linux' : [
+			'gzip %(temp)s/%(project_name)s'
+		],
 		'macosx' : [
 			'mkdir -p %(temp)s',
 			'cp -R %(source)s %(temp)s',
-			'mkdir -p %(temp)s/love.app/Contents/Resources',
-			'cp -R %(archive)s %(temp)s/love.app/Contents/Resources'
+			'mkdir -p %(temp)s/%(project_name)s.app/Contents/Resources',
+			'cp -R %(archive)s %(temp)s/%(project_name)s.app/Contents/Resources'
 		],
 		'windows' : []
 	}
 
+	try:
+		os.makedirs( "%(temp)s" % vars )
+	except OSError:
+		pass
+	except:
+		raise
+
+	if host_platform() == "linux":
+		target = "%s/%s" % (vars['temp'], vars['project_name'])
+		f = open( target, "wb" )
+		love = open( vars['source'], "rb" ).read()
+		f.write( love )
+		package = open( vars['archive'], "rb" ).read()
+		f.write( package )
+		f.close()
+		os.chmod( target, stat.S_IXUSR | stat.S_IWUSR | stat.S_IRUSR | stat.S_IXGRP | stat.S_IXOTH | stat.S_IRGRP | stat.S_IROTH )
+
 	for cmd in commands[ host_platform() ]:
 		command = (cmd % vars)
 		print( command )
-		process = subprocess.check_call( shlex.split(command), shell=False )
+		process = subprocess.check_call( shlex.split(command), shell=host_platform()=='windows' )
 
 # the archive name that will be created (.love)
 archive = os.path.abspath( os.path.join(PROJECT_PATH, PACKAGE_NAME ))
@@ -95,7 +116,11 @@ def create_file_list( root_path, excludes ):
 if __name__ == "__main__":
 
 	excludes = [ '.git', 'CVSROOT', '.gitignore', '.gitmodules', '*.psd', '*.sublime-*', '.DS_Store' ]
-	working_directory = os.getcwd()
+
+	# if package already exists; purge it
+	if os.path.exists( PACKAGE_NAME ):
+		os.unlink( PACKAGE_NAME )
+
 
 	# zip the files into a .love bundle
 	archive_files = create_file_list( ".", excludes )
@@ -104,10 +129,9 @@ if __name__ == "__main__":
 	variables = {
 		'source' : love_binary_path(),
 		'archive' : archive,
-		'temp' :  os.path.abspath('output')
+		'temp' :  os.path.abspath('output'),
+		'project_name' : PROJECT_NAME
 	}
-
-	os.chdir( working_directory )
 	
 	# create a platform-specific package
 	platform_generate_binary( archive, variables )
