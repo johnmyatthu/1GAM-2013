@@ -258,7 +258,7 @@ function GameRules:updateWalkableMap( )
 end
 
 function GameRules:loadMap( mapname )
-
+	--[[
 	self.entity_manager.entity_list = {}
 
 
@@ -307,6 +307,7 @@ function GameRules:loadMap( mapname )
 	end
 
 	self:updateWalkableMap()
+	--]]
 end
 
 function GameRules:colorForHealth( health, max_health )
@@ -333,12 +334,14 @@ end
 
 -- determine if a tile is within the map and is valid
 function GameRules:isTileWithinMap( tile_x, tile_y )
-	if tile_x < 0 or tile_x > self.map.width-1 then
-		return false
-	end
+	if self.map then
+		if tile_x < 0 or tile_x > self.map.width-1 then
+			return false
+		end
 
-	if tile_y < 0 or tile_y > self.map.height-1 then
-		return false
+		if tile_y < 0 or tile_y > self.map.height-1 then
+			return false
+		end
 	end
 
 	return true
@@ -520,9 +523,11 @@ function GameRules:drawWorld()
 	local ftx, fty = math.floor(cx), math.floor(cy)
 	love.graphics.translate(ftx, fty)
 
-	self.map:autoDrawRange( ftx, fty, 1, 50 )
-
-	self.map:draw()
+	if self.map then
+		self.map:autoDrawRange( ftx, fty, 1, 50 )
+		self.map:draw()
+	end
+	
 	--love.graphics.rectangle("line", self.map:getDrawRange())
 	love.graphics.pop()	
 end
@@ -545,7 +550,11 @@ end
 
 -- coordinate system functions
 function GameRules:worldCoordinatesFromTileCenter( tile_x, tile_y )
-	return (self.map.tileWidth * tile_x) + self.map.tileWidth/2, (self.map.tileHeight * tile_y) + self.map.tileHeight/2
+	if self.map then
+		return (self.map.tileWidth * tile_x) + self.map.tileWidth/2, (self.map.tileHeight * tile_y) + self.map.tileHeight/2
+	else
+		return 0, 0
+	end
 end
 
 -- worldToScreen conversion
@@ -564,8 +573,12 @@ function GameRules:tileGridFromWorld( world_x, world_y )
 end
 
 function GameRules:tileCoordinatesFromWorld( world_x, world_y )
-	--local ix, iy = self.map:toIso( world_x - (self.map.tileWidth/2), world_y )
-	return math.floor(world_x/self.map.tileWidth), math.floor(world_y/self.map.tileHeight)
+	if self.map then
+		--local ix, iy = self.map:toIso( world_x - (self.map.tileWidth/2), world_y )
+		return math.floor(world_x/self.map.tileWidth), math.floor(world_y/self.map.tileHeight)
+	else
+		return 0, 0
+	end
 end
 
 function GameRules:tileCoordinatesFromMouse( mouse_x, mouse_y )

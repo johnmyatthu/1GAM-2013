@@ -9,11 +9,6 @@ function Player:initialize()
 	self.attack_damage = 1
 
 	self.dir = {x=0, y=0}
-	self.aim_magnitude = 10
-
-	self.last_interaction_object = nil
-	self.is_using = false
-	self.was_using_lastframe = false
 
 	self.visible = true
 end
@@ -50,25 +45,6 @@ function Player:onUpdate( params )
 	end	
 
 	AnimatedSprite.onUpdate(self, params)
-
-	if self.last_interaction_object ~= nil then
-		if not self:canInteractWith( {gamerules=params.gamerules, other=self.last_interaction_object} ) then
-			-- get tile distance from me and my interaction object
-			-- if I'm too far away, cancel interaction
-			self.last_interaction_object:endInteraction( {} )
-			self.last_interaction_object = nil
-		end
-	end
-
-	if self.last_interaction_object then
-		if not self.was_using_lastframe and self.is_using then
-			self.last_interaction_object:startInteraction( {} )
-		elseif self.was_using_lastframe and not self.is_using then
-			self.last_interaction_object:endInteraction( {} )
-		end	
-	end
-
-	self.was_using_lastframe = self.is_using
 end
 
 function Player:respondsToEvent( event_name, params )
@@ -77,24 +53,10 @@ end
 
 function Player:onCollide( params )
 	AnimatedSprite.onCollide( self, params )
-
-	if params.other and self.last_interaction_object ~= params.other then
-		self.last_interaction_object = params.other
-
-		if params.other.class.name == "func_chest" and not params.other.is_fading then
-			params.other:fadeout()
-			params.gamerules:playSound("collect")
-		end
-	end
 end
 
 function Player:onDraw( params )
 	if self.visible then
 		AnimatedSprite.onDraw( self, params )
 	end
-end
-
-
-function Player:seaDepth()
-	return (self.world_y/64)
 end
