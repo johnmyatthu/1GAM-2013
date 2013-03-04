@@ -15,18 +15,6 @@ local ACTION_MOVE_PLAYER_UP = "move_player_up"
 local ACTION_MOVE_PLAYER_DOWN = "move_player_down"
 local ACTION_USE = "use"
 
--- maximum number of fish alive at once
-local MAX_FISH = 125
-
--- maximum number of sharks
-local MAX_SHARKS = 15
-
--- the depth past which sharks will spawn
-local SHARK_DEPTH = 15
-
--- seconds between shark spawns
-local SHARK_SPAWN_COOLDOWN = 5
-
 
 -- Game class
 Game = class( "Game" )
