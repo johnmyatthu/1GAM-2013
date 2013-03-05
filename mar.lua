@@ -171,8 +171,7 @@ function Game:onUpdate( params )
 	if self.state == GAME_STATE_PLAY then
 		local player = self.gamerules:getPlayer()
 		self.gamerules:onUpdate( params )
-		self.gamerules:snapCameraToPlayer( player )
-		self:updatePlayerDirection()
+
 
 
 		local cam_x, cam_y = self.gamerules:getCameraPosition()
@@ -191,7 +190,8 @@ function Game:onUpdate( params )
 		dt=params.dt }
 		
 		self.gamerules:handleMovePlayerCommand( command, player )
-
+		self.gamerules:snapCameraToPlayer( player )
+		self:updatePlayerDirection()
 	elseif self.state == GAME_STATE_HELP then
 		self.gamerules:onUpdate( params )
 
