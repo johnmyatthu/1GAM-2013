@@ -1,5 +1,5 @@
 {
-	"map" : "ocean3.tmx",
+	"map" : "rogue.tmx",
 	"move_speed" : 200,
 	"spawn" : [0, 0],
 	"game" : "mar",

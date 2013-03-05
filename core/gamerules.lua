@@ -39,12 +39,9 @@ function GameRules:initialize()
 	self.entity_factory:registerClass( "PathFollower", core.PathFollower )
 	self.entity_factory:registerClass( "func_spawn", core.func_spawn )
 	self.entity_factory:registerClass( "Enemy", core.Enemy )
-	self.entity_factory:registerClass( "func_chest", core.func_chest )
 	self.entity_factory:registerClass( "Bullet", core.Bullet )
 	self.entity_factory:registerClass( "Player", core.Player )
 	self.entity_factory:registerClass( "Breakable", core.Breakable )
-	self.entity_factory:registerClass( "func_fish", core.func_fish )
-	self.entity_factory:registerClass( "func_shark", core.func_shark )
 	
 	self.sounds = {}
 	self.sound_data = {}
@@ -258,7 +255,7 @@ function GameRules:updateWalkableMap( )
 end
 
 function GameRules:loadMap( mapname )
-	--[[
+	
 	self.entity_manager.entity_list = {}
 
 
@@ -307,7 +304,6 @@ function GameRules:loadMap( mapname )
 	end
 
 	self:updateWalkableMap()
-	--]]
 end
 
 function GameRules:colorForHealth( health, max_health )
