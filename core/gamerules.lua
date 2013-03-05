@@ -625,8 +625,20 @@ function GameRules:handleMovePlayerCommand( command, player )
 	end
 
 	-- for now, just collide with tiles that exist on the collision layer.
-	if not tile then
-		player.world_x, player.world_y = nwx, nwy
+	if self.map then
+		-- try the x direction
+		local tx, ty = self:tileCoordinatesFromWorld( nwx, player.world_y )
+		tile = self:getCollisionTile( tx, ty )
+		if not tile then
+			player.world_x = nwx -- X direction is clear
+		end
+
+		-- try the y direction
+		tx, ty = self:tileCoordinatesFromWorld( player.world_x, nwy )
+		tile = self:getCollisionTile( tx, ty )
+		if not tile then
+			player.world_y = nwy -- Y direction is clear
+		end
 	end
 	
 	if command.up or command.down or command.left or command.right then
