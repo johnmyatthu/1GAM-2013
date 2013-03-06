@@ -41,7 +41,7 @@ function Game:initialize( gamerules, config, fonts )
 
 	self.actionmap = {}
 	self.actionmap[ "toggle_collision_layer" ] = self.toggleDrawCollisions
-	self.actionmap[ "spawn_shark"] = self.spawnShark
+	
 
 	self.actions = {}
 	logging.verbose( "Mapping keys to actions..." )
@@ -68,7 +68,6 @@ function Game:initialize( gamerules, config, fonts )
 	else
 		love.mouse.setVisible( false )
 	end
-
 end
 
 
@@ -136,6 +135,12 @@ function Game:onLoad( params )
 		self.helpscreen:prepareToShow( params )	
 		self.helpscreen_loaded = true
 	end
+
+
+	local enemy = self.gamerules.entity_factory:createClass( "Enemy" )
+
+	self.gamerules:spawnEntity( enemy, 120, 60, nil )
+	enemy.velocity.x = 30
 end
 
 

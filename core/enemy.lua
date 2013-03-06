@@ -71,17 +71,23 @@ function Enemy:onSpawn( params )
 	else
 		logging.verbose( "Unable to find target." )
 	end
+
+
+	self.light = params.gamerules.entity_factory:createClass( "func_light" )
+	params.gamerules:addLight( self.light )	
 end
 
 function Enemy:onUpdate( params )
 	
-	if params.gamestate ~= core.GAME_STATE_DEFEND then
-		return
-	end
+	-- if params.gamestate ~= core.GAME_STATE_DEFEND then
+	-- 	return
+	-- end
 	self.time_until_color_restore = self.time_until_color_restore - params.dt
 	if self.time_until_color_restore <= 0 then
 		self.color = { r=255, g=255, b=255, a=255 }
 	end
+
+
 
 	self.next_attack_time = self.next_attack_time - params.dt
 
@@ -117,6 +123,9 @@ function Enemy:onUpdate( params )
 	end
 
 	PathFollower.onUpdate( self, params )
+
+	self.light.world_x = self.world_x
+	self.light.world_y = self.world_y	
 end
 
 

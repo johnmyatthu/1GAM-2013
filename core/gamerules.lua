@@ -26,16 +26,6 @@ function GameRules:initialize()
 	self.entity_manager = EntityManager:new()
 	self.pathfinder = nil
 
-	-- the current wave level
-	self.level = 0
-	self.total_waves = 0
-
-	-- total number of enemies this level
-	self.wave_enemies = 0
-	self.enemies_destroyed = 0
-	self.last_bonus = 0
-	self.total_score = 0
-
 	-- need to register all entity classes somewhere; this is not the best spot :/
 	self.entity_factory:registerClass( "WorldEntity", core.WorldEntity )
 	self.entity_factory:registerClass( "AnimatedSprite", core.AnimatedSprite )
@@ -46,7 +36,7 @@ function GameRules:initialize()
 	self.entity_factory:registerClass( "Player", core.Player )
 	self.entity_factory:registerClass( "Breakable", core.Breakable )
 	self.entity_factory:registerClass( "func_light", core.func_light )
-	
+
 	self.sounds = {}
 	self.sound_data = {}
 	self:loadSounds( "assets/sounds/sounds.conf" )
@@ -65,7 +55,8 @@ function GameRules:initialize()
 	self.num_chests = 3
 
 	self.light_layer = love.graphics.newCanvas()
-	self.lightmap = love.graphics.newImage( "assets/sprites/lightmap.png" )
+
+	self.lights = {}
 end
 
 
@@ -518,15 +509,25 @@ function GameRules:randomVelocity( max_x, max_y )
 	return {x=direction*math.random(max_x), y=math.random(max_y)}
 end
 
+
+function GameRules:drawLights()
+	for _, light in pairs(self.lights) do
+		light:onDraw( {gamerules = self} )
+	end
+end
+
+function GameRules:addLight( light )
+	table.insert( self.lights, light )
+end
+
 function GameRules:drawWorld()
 
 	love.graphics.setCanvas()
-	love.graphics.push()
+	--love.graphics.push()
 	love.graphics.setColor(255,255,255,255)
 	local cx, cy = self:getCameraPosition()
 	local ftx, fty = math.floor(cx), math.floor(cy)
 	
-
 	love.graphics.translate( ftx, fty )
 	if self.map then
 		local window_width, window_height = love.graphics.getWidth(), love.graphics.getHeight()
@@ -543,19 +544,15 @@ function GameRules:drawWorld()
 	end
 	
 	-- love.graphics.rectangle("line", self.map:getDrawRange())
-	love.graphics.pop()
+	--love.graphics.pop()
 
 
 	love.graphics.setCanvas( self.light_layer )
 	love.graphics.setColor( 0, 0, 0, 0 )
 	love.graphics.clear()
-	love.graphics.setColor(255,255,255, 255)
-	
-	--love.graphics.rectangle('fill',0,0,100,100)
 
-	local xoffset = (love.graphics.getWidth() / 2) - (self.lightmap:getWidth()/2) * LIGHT_SCALE_FACTOR
-	local yoffset = (love.graphics.getHeight() / 2) - (self.lightmap:getHeight()/2) * LIGHT_SCALE_FACTOR	
-	love.graphics.draw( self.lightmap, xoffset, yoffset, 0, LIGHT_SCALE_FACTOR, LIGHT_SCALE_FACTOR )
+	-- draw lights
+	self:drawLights()
 
 	love.graphics.setCanvas()
 	love.graphics.setBlendMode( "multiplicative" )
