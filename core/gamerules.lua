@@ -60,6 +60,8 @@ function GameRules:initialize()
 	self.min_chests = 3
 	self.num_chests = 3
 
+	self.light_layer = love.graphics.newCanvas()
+	self.lightmap = love.graphics.newImage( "assets/sprites/lightmap.png" )
 end
 
 
@@ -513,11 +515,14 @@ function GameRules:randomVelocity( max_x, max_y )
 end
 
 function GameRules:drawWorld()
+
+	love.graphics.setCanvas()
 	love.graphics.push()
 	love.graphics.setColor(255,255,255,255)
 	local cx, cy = self:getCameraPosition()
 	local ftx, fty = math.floor(cx), math.floor(cy)
 	
+
 	love.graphics.translate( ftx, fty )
 	if self.map then
 		local window_width, window_height = love.graphics.getWidth(), love.graphics.getHeight()
@@ -534,7 +539,26 @@ function GameRules:drawWorld()
 	end
 	
 	-- love.graphics.rectangle("line", self.map:getDrawRange())
-	love.graphics.pop()	
+	love.graphics.pop()
+
+
+	love.graphics.setCanvas( self.light_layer )
+	love.graphics.setColor( 0, 0, 0, 0 )
+	love.graphics.clear()
+	love.graphics.setColor(255,255,255, 255)
+	
+	--love.graphics.rectangle('fill',0,0,100,100)
+	local scale_factor = 3
+	local xoffset = (love.graphics.getWidth() / 2) - (self.lightmap:getWidth()/2) * scale_factor
+	local yoffset = (love.graphics.getHeight() / 2) - (self.lightmap:getHeight()/2) * scale_factor	
+	love.graphics.draw( self.lightmap, xoffset, yoffset, 0, scale_factor, scale_factor )
+
+	love.graphics.setCanvas()
+	love.graphics.setBlendMode( "multiplicative" )
+	love.graphics.setColor( 255, 255, 255, 255 )
+	love.graphics.draw( self.light_layer, 0, 0, 0, 1.0, 1.0 )
+	love.graphics.setBlendMode( "alpha" )
+	
 end
 
 function GameRules:drawEntities( params )
