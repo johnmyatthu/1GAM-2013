@@ -10,7 +10,7 @@ require "core.entitymanager"
 
 local MAP_COLLISION_LAYER_NAME = "Collision"
 local MAP_GROUND_LAYER_NAME = "Ground"
-
+local MAP_FOG_LAYER_NAME = "Fog"
 
 GameRules = class( "GameRules" )
 function GameRules:initialize()
@@ -517,14 +517,23 @@ function GameRules:drawWorld()
 	love.graphics.setColor(255,255,255,255)
 	local cx, cy = self:getCameraPosition()
 	local ftx, fty = math.floor(cx), math.floor(cy)
-	love.graphics.translate(ftx, fty)
-
+	
+	love.graphics.translate( ftx, fty )
 	if self.map then
-		self.map:autoDrawRange( ftx, fty, 1, 50 )
+		local window_width, window_height = love.graphics.getWidth(), love.graphics.getHeight()
+		local tx, ty = self:tileCoordinatesFromWorld( (window_width/2)-cx, (window_height/2)-cy )
+
+		fog = self.map.layers[ MAP_FOG_LAYER_NAME ]
+		for x, y, tile in fog:circle( tx, ty, 5, false ) do
+			fog:set( x, y, nil )
+		end
+
+
+		self.map:autoDrawRange( ftx, fty, 1, 5 )
 		self.map:draw()
 	end
 	
-	--love.graphics.rectangle("line", self.map:getDrawRange())
+	-- love.graphics.rectangle("line", self.map:getDrawRange())
 	love.graphics.pop()	
 end
 
