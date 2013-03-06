@@ -9,7 +9,7 @@ function func_light:initialize()
 
 	self.scale_factor = 2
 	self.lightmap = love.graphics.newImage( "assets/sprites/lightmap.png" )
-	self.color.a = 32
+	self.color.a = 128
 end
 
 function func_light:onSpawn( params )

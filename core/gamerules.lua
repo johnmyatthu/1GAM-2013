@@ -474,12 +474,22 @@ function GameRules:spawnEntityAtTileWithProperties( layer, tile_x, tile_y, prope
 		else
 			local entity = self.entity_factory:createClass( classname )
 			if entity then
-					-- set the world position for the entity from the tile coordinates
-				entity.world_x, entity.world_y = self:worldCoordinatesFromTileCenter( tile_x, tile_y )
-				self:spawnEntity( entity, entity.world_x, entity.world_y, properties )
-
 				-- remove this tile from the layer
 				layer:set( tile_x, tile_y, nil )
+
+
+					-- set the world position for the entity from the tile coordinates
+				entity.world_x, entity.world_y = self:worldCoordinatesFromTileCenter( tile_x, tile_y )
+
+
+				if classname == "func_light" then
+					self:addLight( entity )
+					return
+				end
+
+				self:spawnEntity( entity, entity.world_x, entity.world_y, properties )
+
+
 
 
 				if entity.collision_mask > 0 then

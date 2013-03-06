@@ -7,10 +7,15 @@
     <property name="classname" value="info_player_spawn"/>
    </properties>
   </tile>
+  <tile id="4">
+   <properties>
+    <property name="classname" value="func_light"/>
+   </properties>
+  </tile>
  </tileset>
  <layer name="Ground" width="25" height="25">
   <data encoding="base64" compression="zlib">
-   eJzjYGBg4KADZqMhHrVj1I5RO0btGLVj1I5RO0btGGx20BoDAF0BD2c=
+   eJzjYmBg4KID5qEhHrVj1I5RO0btGLVj1I5RO0btGGx20BoDAK6ZHI0=
   </data>
  </layer>
  <layer name="Collision" width="25" height="25">
@@ -20,12 +25,12 @@
  </layer>
  <layer name="Game" width="25" height="25">
   <data encoding="base64" compression="zlib">
-   eJxjYBgFgxUwD7QDRsEoGAWjYBSMglEwaAEAIjwABA==
+   eJxjYKAPYB0EaocaYB5oB4yCUTAKRsEoGAWjYNACAKwMABM=
   </data>
  </layer>
- <layer name="Fog" width="25" height="25">
+ <layer name="Fog" width="25" height="25" visible="0">
   <data encoding="base64" compression="zlib">
-   eJztw8EJAAAMA6H7Zf+NO0dBwVVTVfXVA6MdERg=
+   eJztw8EJAAAMA6H7Z/99O0dBwVVTVfXVA2h9Gtw=
   </data>
  </layer>
 </map>
