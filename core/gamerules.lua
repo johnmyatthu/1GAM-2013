@@ -12,6 +12,9 @@ local MAP_COLLISION_LAYER_NAME = "Collision"
 local MAP_GROUND_LAYER_NAME = "Ground"
 local MAP_FOG_LAYER_NAME = "Fog"
 
+local LIGHT_RADIUS = 4
+local LIGHT_SCALE_FACTOR = 2
+
 GameRules = class( "GameRules" )
 function GameRules:initialize()
 	self.camera_x = 0
@@ -42,6 +45,7 @@ function GameRules:initialize()
 	self.entity_factory:registerClass( "Bullet", core.Bullet )
 	self.entity_factory:registerClass( "Player", core.Player )
 	self.entity_factory:registerClass( "Breakable", core.Breakable )
+	self.entity_factory:registerClass( "func_light", core.func_light )
 	
 	self.sounds = {}
 	self.sound_data = {}
@@ -529,7 +533,7 @@ function GameRules:drawWorld()
 		local tx, ty = self:tileCoordinatesFromWorld( (window_width/2)-cx, (window_height/2)-cy )
 
 		fog = self.map.layers[ MAP_FOG_LAYER_NAME ]
-		for x, y, tile in fog:circle( tx, ty, 5, false ) do
+		for x, y, tile in fog:circle( tx, ty, LIGHT_RADIUS, false ) do
 			fog:set( x, y, nil )
 		end
 
@@ -548,10 +552,10 @@ function GameRules:drawWorld()
 	love.graphics.setColor(255,255,255, 255)
 	
 	--love.graphics.rectangle('fill',0,0,100,100)
-	local scale_factor = 3
-	local xoffset = (love.graphics.getWidth() / 2) - (self.lightmap:getWidth()/2) * scale_factor
-	local yoffset = (love.graphics.getHeight() / 2) - (self.lightmap:getHeight()/2) * scale_factor	
-	love.graphics.draw( self.lightmap, xoffset, yoffset, 0, scale_factor, scale_factor )
+
+	local xoffset = (love.graphics.getWidth() / 2) - (self.lightmap:getWidth()/2) * LIGHT_SCALE_FACTOR
+	local yoffset = (love.graphics.getHeight() / 2) - (self.lightmap:getHeight()/2) * LIGHT_SCALE_FACTOR	
+	love.graphics.draw( self.lightmap, xoffset, yoffset, 0, LIGHT_SCALE_FACTOR, LIGHT_SCALE_FACTOR )
 
 	love.graphics.setCanvas()
 	love.graphics.setBlendMode( "multiplicative" )

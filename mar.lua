@@ -220,15 +220,6 @@ function Game:onDraw( params )
 
 		love.graphics.setFont( self.fonts[ "text16" ] )
 
-
-		local depth = 255 * ((GAME_DEPTH_OFFSET + (player.world_y/32)) / GAME_DEPTH_DIVISOR)
-		if depth > 255 then
-			depth = 255
-		end
-		love.graphics.setColor( 0, 0, 0, depth )
-		love.graphics.rectangle( "fill", 0, 0, love.graphics.getWidth(), love.graphics.getHeight() )
-
-
 		-- draw the top overlay bar
 		love.graphics.setColor( 0, 0, 0, 64 )
 		local height = 32
