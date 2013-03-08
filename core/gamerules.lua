@@ -522,7 +522,7 @@ end
 
 function GameRules:drawLights()
 	for _, light in pairs(self.lights) do
-		light:onDraw( {gamerules = self} )
+		light:onDraw( {gamerules = self, lightpass=1} )
 	end
 end
 
@@ -538,6 +538,7 @@ function GameRules:drawWorld()
 	local cx, cy = self:getCameraPosition()
 	local ftx, fty = math.floor(cx), math.floor(cy)
 	
+	love.graphics.push()
 	love.graphics.translate( ftx, fty )
 	if self.map then
 		local window_width, window_height = love.graphics.getWidth(), love.graphics.getHeight()
@@ -552,10 +553,16 @@ function GameRules:drawWorld()
 		self.map:autoDrawRange( ftx, fty, 1, 5 )
 		self.map:draw()
 	end
-	
-	-- love.graphics.rectangle("line", self.map:getDrawRange())
-	--love.graphics.pop()
 
+	love.graphics.pop()
+end
+
+
+function GameRules:drawLightmap( params )
+	local cx, cy = self:getCameraPosition()
+	local ftx, fty = math.floor(cx), math.floor(cy)
+	
+	love.graphics.translate( ftx, fty )
 
 	love.graphics.setCanvas( self.light_layer )
 	love.graphics.setColor( 0, 0, 0, 0 )
@@ -568,8 +575,7 @@ function GameRules:drawWorld()
 	love.graphics.setBlendMode( "multiplicative" )
 	love.graphics.setColor( 255, 255, 255, 255 )
 	love.graphics.draw( self.light_layer, 0, 0, 0, 1.0, 1.0 )
-	love.graphics.setBlendMode( "alpha" )
-	
+	love.graphics.setBlendMode( "alpha" )	
 end
 
 function GameRules:drawEntities( params )
@@ -680,7 +686,7 @@ function GameRules:handleMovePlayerCommand( command, player )
 	end
 	
 	if command.up or command.down or command.left or command.right then
-		--player:setDirectionFromMoveCommand( command )
+		player:setDirectionFromMoveCommand( command )
 	end
 
 	if self.map then

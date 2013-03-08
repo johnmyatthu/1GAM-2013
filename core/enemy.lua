@@ -71,10 +71,6 @@ function Enemy:onSpawn( params )
 	else
 		logging.verbose( "Unable to find target." )
 	end
-
-
-	self.light = params.gamerules.entity_factory:createClass( "func_light" )
-	params.gamerules:addLight( self.light )	
 end
 
 function Enemy:onUpdate( params )
@@ -123,13 +119,11 @@ function Enemy:onUpdate( params )
 	end
 
 	PathFollower.onUpdate( self, params )
-
-	self.light.world_x = self.world_x
-	self.light.world_y = self.world_y	
 end
 
-
+--[[
 function Enemy:onDraw( params )
 	PathFollower.onDraw( self, params )
 	self:drawHealthBar( params )
 end
+--]]

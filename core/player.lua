@@ -11,6 +11,8 @@ function Player:initialize()
 	self.dir = {x=0, y=0}
 
 	self.visible = true
+	self.light_radius = 0.5
+	self.light_intensity = 0.15
 end
 
 function Player:onSpawn( params )
@@ -38,11 +40,6 @@ function Player:onUpdate( params )
 		self.velocity.y = 0
 	end
 
-	if self.velocity.x > 0 then
-		self:playAnimation( "right" )
-	else
-		self:playAnimation( "left" )
-	end	
 
 	AnimatedSprite.onUpdate(self, params)
 end

@@ -12,6 +12,8 @@ function AnimatedSprite:initialize()
 	self.animations = nil
 	self.spritesheet = nil
 	self.animation_index_from_name = {}
+
+	self.light_radius = 2
 end
 
 
@@ -118,9 +120,20 @@ function AnimatedSprite:playAnimation( name )
 	end
 end
 
+function AnimatedSprite:onSpawn( params )
+	self.light = params.gamerules.entity_factory:createClass( "func_light" )
+	params.gamerules:spawnEntity( self.light, nil, nil, nil )
+	params.gamerules:addLight( self.light )
+
+	Entity.onSpawn( self, params )
+end	
+
 -- params:
 --	dt: the frame delta time
 function AnimatedSprite:onUpdate( params )
+
+
+
 	if self.animations then
 		-- constrain the animation to the first direction if this one is invalid
 		if self.animations[ self.current_animation ][ self.current_direction ] == nil then
@@ -138,6 +151,14 @@ end
 -- params:
 --	gamerules: the instance of the active gamerules class
 function AnimatedSprite:onDraw( params )
+
+	self.light.world_x = self.world_x
+	self.light.world_y = self.world_y
+	if self.light_intensity ~= nil then
+		self.light.intensity = self.light_intensity
+	end
+	self.light.scale_factor = self.light_radius
+	
 	Entity.onDraw(self, params)
 
 	love.graphics.setColor( self.color.r, self.color.g, self.color.b, self.color.a )

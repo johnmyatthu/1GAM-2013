@@ -220,7 +220,7 @@ function Game:onDraw( params )
 		self.gamerules:drawWorld()
 		-- draw entities here
 		self.gamerules:drawEntities( params )
-
+		self.gamerules:drawLightmap( params )
 
 
 		love.graphics.setFont( self.fonts[ "text16" ] )
@@ -274,7 +274,7 @@ function Game:onDraw( params )
 		self.helpscreen:onDraw( params )
 	end
 
-
+	
 end
 
 function Game:updatePlayerDirection()
