@@ -68,6 +68,12 @@ function Game:initialize( gamerules, config, fonts )
 	else
 		love.mouse.setVisible( false )
 	end
+
+
+	self.cell_layer = nil
+	
+	self.ca_interval = 0.1
+	self.next_ca = self.ca_interval
 end
 
 
@@ -137,12 +143,184 @@ function Game:onLoad( params )
 	end
 
 
-	local enemy = self.gamerules.entity_factory:createClass( "Enemy" )
+	-- local enemy = self.gamerules.entity_factory:createClass( "Enemy" )
+	-- self.gamerules:spawnEntity( enemy, 120, 60, nil )
+	-- enemy.velocity.x = 30
 
-	self.gamerules:spawnEntity( enemy, 120, 60, nil )
-	enemy.velocity.x = 30
+	self.cellsw = self.gamerules.map.width
+	self.cellsh = self.gamerules.map.height
+
+	self.cell_layer = self.gamerules.map.layers["cells"]
+	self.cell = self.cell_layer:get(0,0)
+	-- empty all grid cells
+	-- for x,y, tile in self.cell_layer:iterate() do
+	-- 	self.cell_layer:set(x, y, nil)
+	-- end
+
+	-- create a snapshot
+	self.cell_data = self:clone_data( self.cell_layer )
+
+	local n = self:neighbors( self.cell_data, 4, 4 )
+	logging.verbose( "neighbors: " .. #n )
+
+	--self:copy_data( self.cell_data, self.cell_layer )
 end
 
+
+function Game:clone_data( layer )
+	local data = {}
+
+	for x = 1, self.cellsw do
+		for y = 1, self.cellsh do
+			if not data[x] then
+				data[x] = {}
+			end
+			if not data[x][y] then
+				data[x][y] = {}
+			end
+
+			data[x][y] = nil
+
+			local t = layer:get(x, y)
+			if t then
+				data[x][y] = 1
+			end
+		end
+	end
+
+--[[
+	for x, y, tile in layer:iterate() do
+		if not data[x] then
+			data[x] = {}
+		end
+		if not data[x][y] then
+			data[x][y] = {}
+		end
+		logging.verbose( "huzzah!" )
+		data[x][y] = 1
+	end
+--]]
+
+	return data
+end
+
+
+
+function Game:copy_data( data, layer )
+	for x = 1, self.cellsw do
+		for y = 1, self.cellsh do
+			local cell = nil
+			if data[x] and data[x][y] then
+				cell = self.cell	
+			end
+
+			layer:set( x, y, cell )
+		end
+	end
+end
+
+function Game:inWidthRange(x)
+	return x ~= nil and x >= 1 and x < self.cellsw
+end
+
+function Game:inHeightRange(x)	
+	return y ~= nil and y >= 1 and y < self.cellsh
+end
+
+function Game:cell_at( data, x, y )
+	if data[x] and data[x][y] then
+	--if self:inWidthRange(x) and self.inHeightRange(y) then
+		return data[x][y]
+	end
+
+	--logging.verbose( "not in range: " .. x .. ", " .. y )
+
+	return nil
+end
+
+-- get the 8 neighbors of cell at x, y in data
+function Game:neighbors( data, x, y )
+	local neighbors = {}
+	local n = nil
+	-- upper left
+		n = self:cell_at(data, x-1, y-1)
+		if n then
+			table.insert( neighbors, n )
+		end
+
+	-- top center
+		n = self:cell_at(data, x, y-1)
+		if n then
+			table.insert( neighbors, n )
+		end	
+
+	-- upper right
+		n = self:cell_at(data, x+1, y-1)
+		if n then
+			table.insert( neighbors, n )
+		end
+
+	-- left
+		n = self:cell_at(data, x-1, y)
+		if n then
+			table.insert( neighbors, n )
+		end	
+
+	-- right
+		n = self:cell_at(data, x+1, y)
+		if n then
+			table.insert( neighbors, n )
+		end
+
+	-- lower left
+		n = self:cell_at(data, x-1, y+1)
+		if n then
+			table.insert( neighbors, n )
+		end
+
+	-- bottom center
+		n = self:cell_at(data, x, y+1)
+		if n then
+			table.insert( neighbors, n )
+		end
+
+	-- lower right
+		n = self:cell_at(data, x+1, y+1)
+		if n then
+			table.insert( neighbors, n )
+		end
+
+	return neighbors
+end
+
+
+function Game:evaluate_ca()
+	-- make a copy of the data
+	local last = core.util.deepcopy( self.cell_data )
+	local next_data = core.util.deepcopy( self.cell_data )
+
+	for x = 1, self.cellsw do
+		for y = 1, self.cellsh do
+			local neighbors = self:neighbors( last, x, y )
+			local neighbors_count = #neighbors
+
+			if last[x][y] then -- alive cell
+				if neighbors_count < 2 or neighbors_count > 3 then
+					-- cell dies due to overcrowding or over-population
+					next_data[x][y] = nil
+				end
+			else -- dead cell
+				-- a cell can be born
+				if neighbors_count == 3 then
+					next_data[x][y] = 1
+				end
+			end
+		end
+	end
+
+	self:copy_data( next_data, self.cell_layer )
+	self.cell_data = next_data
+end
 
 
 function Game:randomLocationFromPlayer( player, min_x, min_y )
@@ -171,6 +349,13 @@ end
 
 
 function Game:onUpdate( params )
+	self.next_ca = self.next_ca - params.dt
+	if self.next_ca <= 0 then
+		self.next_ca = self.ca_interval
+		self:evaluate_ca()
+	end
+	
+
 	params.gamestate = self.state
 
 	if self.state == GAME_STATE_PLAY then
@@ -299,7 +484,7 @@ function Game:onKeyPressed( params )
 end
 
 function Game:onKeyReleased( params )
-
+	--self:evaluate_ca()
 end
 
 function Game:onMousePressed( params )

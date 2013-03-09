@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<map version="1.0" orientation="orthogonal" width="25" height="25" tilewidth="32" tileheight="32">
+<map version="1.0" orientation="orthogonal" width="40" height="25" tilewidth="32" tileheight="32">
  <tileset firstgid="1" name="orthotiles" tilewidth="32" tileheight="32">
   <image source="orthotiles.png" width="128" height="128"/>
   <tile id="2">
@@ -13,24 +13,29 @@
    </properties>
   </tile>
  </tileset>
- <layer name="Ground" width="25" height="25">
+ <layer name="Ground" width="40" height="25">
   <data encoding="base64" compression="zlib">
-   eJzjYmBg4KID5qEhHrVj1I5RO0btGLVj1I5RO0btGGx20BoDAK6ZHI0=
+   eJztzqERADAQBKHTP+m/3rSxAoHntl3ci/Lz8/Pza/Lz8/Pza/LzK/zKPgWxLeU=
   </data>
  </layer>
- <layer name="Collision" width="25" height="25">
+ <layer name="Collision" width="40" height="25">
   <data encoding="base64" compression="zlib">
-   eJxjYmBgYKIDpiUYtWPUjlE7Ru0YtWPUjlE7Ru0YbHbQGgMAtPEAwQ==
+   eJzt17EJADAQxLDn9x86KwRUJIUF17u9nZn9fL+qz9Rn6jP1mfpMfaY+U5+pz9Rn6jOvf+3NDsLBAP0=
   </data>
  </layer>
- <layer name="Game" width="25" height="25">
+ <layer name="Game" width="40" height="25">
   <data encoding="base64" compression="zlib">
-   eJxjYKAPYB0EaocaYB5oB4yCUTAKRsEoGAWjYNACAKwMABM=
+   eJztzrEJAAAIBDFB3H9lpxC/SOorrirfBLTc6+8BAACARwsVGwAT
   </data>
  </layer>
- <layer name="Fog" width="25" height="25" visible="0">
+ <layer name="Fog" width="40" height="25" visible="0">
   <data encoding="base64" compression="zlib">
-   eJztw8EJAAAMA6H7Z/99O0dBwVVTVfXVA2h9Gtw=
+   eJztzrEJAAAMw7Ds+f/fHlEKHWTwribp8ZuubXx8fHx8fHx8fHx8fHx8H3wDRmsa3A==
+  </data>
+ </layer>
+ <layer name="cells" width="40" height="25">
+  <data encoding="base64" compression="zlib">
+   eJzt1UEOQBEMBFDb3v/C9k2rpRiJeRsJofM/QhpRjaADOES1N+uOakbjJ+m6Vo7VfNXv8uZamXfmy67n/bvRuta8Wav5ov7s+E6Z84eGvJ9U8/reod6kGS9nIyL6RQdtOQF7
   </data>
  </layer>
 </map>
