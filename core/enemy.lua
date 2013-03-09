@@ -22,6 +22,13 @@ function Enemy:initialize()
 	self.health = 1
 
 	self.obstruction = nil
+
+	self.view_direction = {x=0, y=1}
+	self.view_distance = 30
+	self.rotation = 45
+
+	self.light_radius = 0.5
+	self.light_intensity = 0.75
 end
 
 function Enemy:onCollide( params )
@@ -62,8 +69,8 @@ function Enemy:onSpawn( params )
 	self:playAnimation( "one" )
 	PathFollower.onSpawn( self, params )
 
-	local target = params.gamerules.entity_manager:findFirstEntityByName( "func_target" )
-	if target then
+	local target = params.gamerules.entity_manager:findFirstEntityByName( "Player" )
+	if target and target.light_level > 0.2 then
 		local path, cost = params.gamerules:getPath( self.tile_x, self.tile_y, target.tile_x, target.tile_y )
 		self:setPath( path )
 		self.target = target
@@ -71,6 +78,19 @@ function Enemy:onSpawn( params )
 	else
 		logging.verbose( "Unable to find target." )
 	end
+end
+
+function Enemy:onDraw( params )
+	AnimatedSprite.onDraw( self, params )
+
+	self.view_direction.x = math.cos(self.rotation) * self.view_distance
+	self.view_direction.y = math.sin(self.rotation) * self.view_distance
+
+	local startx, starty = params.gamerules:worldToScreen( self.world_x, self.world_y )
+	local endx, endy = params.gamerules:worldToScreen( self.world_x+self.view_direction.x, self.world_y+self.view_direction.y )
+
+	love.graphics.setColor( 255, 0, 0, 255 )
+	love.graphics.line( startx, starty, endx, endy )
 end
 
 function Enemy:onUpdate( params )
@@ -83,9 +103,17 @@ function Enemy:onUpdate( params )
 		self.color = { r=255, g=255, b=255, a=255 }
 	end
 
-
-
 	self.next_attack_time = self.next_attack_time - params.dt
+
+	local target = params.gamerules.entity_manager:findFirstEntityByName( "Player" )
+	if target then
+		-- get a vector from me to the target
+		local dx, dy = (target.world_x - self.world_x), (target.world_y - self.world_y)
+
+	end
+
+	--self.velocity.x = self.view_direction.x * 1
+	--self.velocity.y = self.view_direction.y * 1
 
 	if self.target then
 		-- calculate distance to target

@@ -144,8 +144,8 @@ function Game:onLoad( params )
 	end
 
 
-	-- local enemy = self.gamerules.entity_factory:createClass( "Enemy" )
-	-- self.gamerules:spawnEntity( enemy, 120, 60, nil )
+	local enemy = self.gamerules.entity_factory:createClass( "Enemy" )
+	self.gamerules:spawnEntity( enemy, 120, 60, nil )
 	-- enemy.velocity.x = 30
 
 	self.cellsw = self.gamerules.map.width
