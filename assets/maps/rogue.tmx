@@ -15,27 +15,22 @@
  </tileset>
  <layer name="Ground" width="40" height="25">
   <data encoding="base64" compression="zlib">
-   eJztzqERADAQBKHTP+m/3rSxAoHntl3ci/Lz8/Pza/Lz8/Pza/LzK/zKPgWxLeU=
+   eJztzqENADAQxLDDr+4/byeoHlU6YBAU4kky5Z1H2/8dHx8fHx8fHx8fX1N8fHy7r7kLZXwtoQ==
   </data>
  </layer>
  <layer name="Collision" width="40" height="25">
   <data encoding="base64" compression="zlib">
-   eJzt17EJADAQxLDn9x86KwRUJIUF17u9nZn9fL+qz9Rn6jP1mfpMfaY+U5+pz9Rn6jOvf+3NDsLBAP0=
+   eJztzrEJADAMxMDH+w+dCYILEeyADr5yYVWSWr6b7v6afYx9jH2MfYx9jH2MfYx9zPT/jn2MfcwvfZt3AGL2AUE=
   </data>
  </layer>
  <layer name="Game" width="40" height="25">
   <data encoding="base64" compression="zlib">
-   eJztzrEJAAAIBDFB3H9lpxC/SOorrirfBLTc6+8BAACARwsVGwAT
+   eJzt1DEKACAMA8CC+P8v+wI7WZVyN2fIEBLRyyzKUm+8LrBhJ8BNPgc4wZfwK9vMLUkPACI=
   </data>
  </layer>
  <layer name="Fog" width="40" height="25" visible="0">
   <data encoding="base64" compression="zlib">
    eJztzrEJAAAMw7Ds+f/fHlEKHWTwribp8ZuubXx8fHx8fHx8fHx8fHx8H3wDRmsa3A==
-  </data>
- </layer>
- <layer name="cells" width="40" height="25">
-  <data encoding="base64" compression="zlib">
-   eJzt1UEOQBEMBFDb3v/C9k2rpRiJeRsJofM/QhpRjaADOES1N+uOakbjJ+m6Vo7VfNXv8uZamXfmy67n/bvRuta8Wav5ov7s+E6Z84eGvJ9U8/reod6kGS9nIyL6RQdtOQF7
   </data>
  </layer>
 </map>

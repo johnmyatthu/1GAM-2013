@@ -1,5 +1,7 @@
 require "core"
 
+local LIGHT_LEVEL_DIVISOR = 120
+
 Player = class("Player", AnimatedSprite)
 function Player:initialize()
 	AnimatedSprite.initialize(self)
@@ -13,6 +15,8 @@ function Player:initialize()
 	self.visible = true
 	self.light_radius = 0.5
 	self.light_intensity = 0.15
+
+	self.light_level = 0
 end
 
 function Player:onSpawn( params )
@@ -40,6 +44,23 @@ function Player:onUpdate( params )
 		self.velocity.y = 0
 	end
 
+
+	local lights = params.gamerules.entity_manager:findAllEntitiesByName( "func_light" )
+
+	local min = 99999999
+
+	for _, light in pairs(lights) do
+		if light ~= self.light then
+			local dist = params.gamerules:calculateEntityDistance( light, self )
+			if dist < min then
+				min = dist
+			end
+		end			
+	end
+
+	self.light_level = 1.1 - (min/LIGHT_LEVEL_DIVISOR)
+	self.light_level = math.max( self.light_level, 0 )
+	self.light_level = math.min( self.light_level, 1 )
 
 	AnimatedSprite.onUpdate(self, params)
 end

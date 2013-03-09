@@ -11,10 +11,13 @@ function func_light:initialize()
 	self.lightmap = love.graphics.newImage( "assets/sprites/lightmap.png" )
 	self.color.a = 128
 	self.intensity = 1
+	self.radius = self.scale_factor
 end
 
 function func_light:onDraw( params )
 	if params.lightpass ~= nil then
+
+		self.radius = self.scale_factor
 
 		love.graphics.setColor(self.color.r, self.color.g, self.color.b, self.color.a*self.intensity )
 

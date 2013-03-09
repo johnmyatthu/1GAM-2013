@@ -16,6 +16,7 @@ local ACTION_MOVE_PLAYER_DOWN = "move_player_down"
 local ACTION_USE = "use"
 
 
+
 -- Game class
 Game = class( "Game" )
 function Game:initialize( gamerules, config, fonts )
@@ -151,19 +152,22 @@ function Game:onLoad( params )
 	self.cellsh = self.gamerules.map.height
 
 	self.cell_layer = self.gamerules.map.layers["cells"]
-	self.cell = self.cell_layer:get(0,0)
-	-- empty all grid cells
-	-- for x,y, tile in self.cell_layer:iterate() do
-	-- 	self.cell_layer:set(x, y, nil)
-	-- end
+	if self.cell_layer then
 
-	-- create a snapshot
-	self.cell_data = self:clone_data( self.cell_layer )
+		self.cell = self.cell_layer:get(0,0)
+		-- empty all grid cells
+		-- for x,y, tile in self.cell_layer:iterate() do
+		-- 	self.cell_layer:set(x, y, nil)
+		-- end
 
-	local n = self:neighbors( self.cell_data, 4, 4 )
-	logging.verbose( "neighbors: " .. #n )
+		-- create a snapshot
+		self.cell_data = self:clone_data( self.cell_layer )
 
-	--self:copy_data( self.cell_data, self.cell_layer )
+		local n = self:neighbors( self.cell_data, 4, 4 )
+		logging.verbose( "neighbors: " .. #n )
+
+		--self:copy_data( self.cell_data, self.cell_layer )
+	end
 end
 
 
@@ -349,11 +353,13 @@ end
 
 
 function Game:onUpdate( params )
+	--[[
 	self.next_ca = self.next_ca - params.dt
 	if self.next_ca <= 0 then
 		self.next_ca = self.ca_interval
 		self:evaluate_ca()
 	end
+	--]]
 	
 
 	params.gamestate = self.state
@@ -416,10 +422,10 @@ function Game:onDraw( params )
 		love.graphics.rectangle( "fill", 0, 0, love.graphics.getWidth(), height )
 		love.graphics.setFont( self.fonts[ "text16" ] )
 		love.graphics.setColor( 255, 255, 255, 255 )
-		love.graphics.print( "Depth: " .. string.format("%2.2f", 0) .. " meters", 10, 5 )
+		love.graphics.print( "Light Level: " .. self.gamerules:getPlayer().light_level, 10, 5 )
 
 
-		love.graphics.print( "Treasure Saved: " .. tostring(self.gamerules:originalTotalChests()-self.gamerules:totalChestsRemaining()) .. " / " .. tostring(self.gamerules:originalTotalChests()), 540, 5 )	
+		--love.graphics.print( "Treasure Saved: " .. tostring(self.gamerules:originalTotalChests()-self.gamerules:totalChestsRemaining()) .. " / " .. tostring(self.gamerules:originalTotalChests()), 540, 5 )	
 
 		--love.graphics.print( "Total Entities: " .. self.gamerules.entity_manager:entityCount(), 10, 50 )
 	elseif self.state == GAME_STATE_WIN then
@@ -435,7 +441,7 @@ function Game:onDraw( params )
 		love.graphics.printf( "Thanks for playing!", 0, 250, love.graphics.getWidth(), "center" )
 
 		love.graphics.setFont( self.fonts[ "text16" ] )
-		love.graphics.printf( "This was created for #1GAM; OneGameAMonth.com February 2013", 0, 400, love.graphics.getWidth(), "center" )
+		love.graphics.printf( "This was created for #1GAM; OneGameAMonth.com March 2013", 0, 400, love.graphics.getWidth(), "center" )
 	elseif self.state == GAME_STATE_FAIL then
 		self.gamerules:drawWorld()
 		self.gamerules:drawEntities( params )

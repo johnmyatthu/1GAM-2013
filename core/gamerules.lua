@@ -484,7 +484,6 @@ function GameRules:spawnEntityAtTileWithProperties( layer, tile_x, tile_y, prope
 
 				if classname == "func_light" then
 					self:addLight( entity )
-					return
 				end
 
 				self:spawnEntity( entity, entity.world_x, entity.world_y, properties )
@@ -573,7 +572,7 @@ function GameRules:drawLightmap( params )
 
 	love.graphics.setCanvas()
 	love.graphics.setBlendMode( "multiplicative" )
-	love.graphics.setColor( 255, 255, 255, 255 )
+	love.graphics.setColor( 255, 255, 255, 192 )
 	love.graphics.draw( self.light_layer, 0, 0, 0, 1.0, 1.0 )
 	love.graphics.setBlendMode( "alpha" )	
 end
