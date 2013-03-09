@@ -1,6 +1,6 @@
 require "core"
 
-local LIGHT_LEVEL_DIVISOR = 120
+local LIGHT_LEVEL_DIVISOR = 90
 
 Player = class("Player", AnimatedSprite)
 function Player:initialize()
@@ -13,8 +13,8 @@ function Player:initialize()
 	self.dir = {x=0, y=0}
 
 	self.visible = true
-	self.light_radius = 0.5
-	self.light_intensity = 0.15
+	self.light_scale = 0.5
+	self.light_intensity = 0 --0.15
 
 	self.light_level = 0
 end
@@ -51,11 +51,11 @@ function Player:onUpdate( params )
 
 	for _, light in pairs(lights) do
 		if light ~= self.light then
-			local dist = params.gamerules:calculateEntityDistance( light, self )
+			local dist = params.gamerules:calculateEntityDistance( light, self ) / light.radius
 			if dist < min then
 				min = dist
 			end
-		end			
+		end	
 	end
 
 	self.light_level = 1.1 - (min/LIGHT_LEVEL_DIVISOR)

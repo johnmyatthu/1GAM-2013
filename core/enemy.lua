@@ -1,5 +1,12 @@
 require "core"
 
+local E_STATE_WAYPOINT = 0
+local E_STATE_SCAN = 1
+
+
+-- seconds
+local SCAN_TIME = 2
+
 Enemy = class( "Enemy", PathFollower )
 function Enemy:initialize()
 	PathFollower.initialize(self)
@@ -18,17 +25,30 @@ function Enemy:initialize()
 	self.hit_color_cooldown_seconds = 0.1
 	self.time_until_color_restore = 0
 
-	self.collision_mask = 2
+	self.collision_mask = 0
 	self.health = 1
 
 	self.obstruction = nil
 
 	self.view_direction = {x=0, y=1}
 	self.view_distance = 30
-	self.rotation = 45
+	self.rotation = 0
 
-	self.light_radius = 0.5
+	self.light_scale = 0.5
+	self.light_radius = 0.4
 	self.light_intensity = 0.75
+
+	self.move_speed = 32
+
+	self.waypoint = nil
+	self.first_waypoint = 0
+
+	self.state = E_STATE_WAYPOINT -- can be 'waypoint' or 'scan'
+	-- waypoint state will be actively moving towards a waypoint
+	-- scan state will be paused at a waypoint looking around
+
+	self.scan_time = SCAN_TIME
+
 end
 
 function Enemy:onCollide( params )
@@ -83,14 +103,52 @@ end
 function Enemy:onDraw( params )
 	AnimatedSprite.onDraw( self, params )
 
-	self.view_direction.x = math.cos(self.rotation) * self.view_distance
-	self.view_direction.y = math.sin(self.rotation) * self.view_distance
+	--self.view_direction.x = math.cos(self.rotation) * self.view_distance
+	--self.view_direction.y = math.sin(self.rotation) * self.view_distance
 
 	local startx, starty = params.gamerules:worldToScreen( self.world_x, self.world_y )
-	local endx, endy = params.gamerules:worldToScreen( self.world_x+self.view_direction.x, self.world_y+self.view_direction.y )
+	local endx, endy = params.gamerules:worldToScreen( self.world_x+(self.view_direction.x*32), self.world_y+(self.view_direction.y*32) )
 
 	love.graphics.setColor( 255, 0, 0, 255 )
 	love.graphics.line( startx, starty, endx, endy )
+
+	-- draw line to next waypoint
+	startx, starty = params.gamerules:worldToScreen( self.world_x, self.world_y )
+
+	endx, endy = params.gamerules:worldToScreen( self.waypoint.world_x, self.waypoint.world_y )
+	love.graphics.setColor( 128, 128, 255, 128 )
+	love.graphics.line( startx, starty, endx, endy )
+
+end
+
+function Enemy:updateDirectionForWaypoint( target )
+	if target == nil then
+		return
+	end
+
+	local dx, dy = (target.world_x - self.world_x), (target.world_y - self.world_y)
+
+	local length = math.sqrt((dx*dx) + (dy*dy))
+
+	self.view_direction.x = dx/length
+	self.view_direction.y = dy/length
+
+	--logging.verbose( "x: " .. self.view_direction.x .. ", y: " .. self.view_direction.y )
+end
+
+
+function Enemy:findWaypoint( params, name )
+	if name == nil then
+		logging.warning( "waypoint name is invalid!" )
+	end
+
+	local waypoints = params.gamerules.entity_manager:findAllEntitiesByName( "func_waypoint" )
+	for _,wp in pairs(waypoints) do
+		if wp.name == name then
+			self.waypoint = wp
+			break
+		end
+	end
 end
 
 function Enemy:onUpdate( params )
@@ -98,6 +156,32 @@ function Enemy:onUpdate( params )
 	-- if params.gamestate ~= core.GAME_STATE_DEFEND then
 	-- 	return
 	-- end
+	if not self.waypoint then
+		-- first task: find a waypoint
+		self:findWaypoint( params, self.first_waypoint )
+	end
+
+	-- move towards waypoint
+	if self.state == E_STATE_WAYPOINT then
+		local dist = params.gamerules:calculateEntityDistance( self.waypoint, self )
+		if dist < 32 then
+			-- enter scan state
+			self.state = E_STATE_SCAN
+
+			-- find the next waypoint here
+			self:findWaypoint( params, self.waypoint.next_waypoint )
+
+			-- update scan time
+			self.scan_time = SCAN_TIME
+		end
+	elseif self.state == E_STATE_SCAN then
+		self.scan_time = self.scan_time - params.dt
+		if self.scan_time <= 0 then
+			self.state = E_STATE_WAYPOINT
+			self:updateDirectionForWaypoint( self.waypoint )
+		end
+	end
+
 	self.time_until_color_restore = self.time_until_color_restore - params.dt
 	if self.time_until_color_restore <= 0 then
 		self.color = { r=255, g=255, b=255, a=255 }
@@ -112,8 +196,15 @@ function Enemy:onUpdate( params )
 
 	end
 
-	--self.velocity.x = self.view_direction.x * 1
-	--self.velocity.y = self.view_direction.y * 1
+	if self.state == E_STATE_WAYPOINT then
+		self.velocity.x = self.view_direction.x * self.move_speed
+		self.velocity.y = self.view_direction.y * self.move_speed
+	else
+		self.velocity.x = 0
+		self.velocity.y = 0
+	end
+
+	--params.gamerules:handleMovePlayerCommand
 
 	if self.target then
 		-- calculate distance to target

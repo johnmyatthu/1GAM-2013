@@ -157,7 +157,14 @@ function AnimatedSprite:onDraw( params )
 	if self.light_intensity ~= nil then
 		self.light.intensity = self.light_intensity
 	end
-	self.light.scale_factor = self.light_radius
+
+	if self.light_scale ~= nil then
+		self.light.scale_factor = self.light_scale
+	end
+
+	if self.light_radius ~= nil then
+		self.light.radius = self.light_radius
+	end
 	
 	Entity.onDraw(self, params)
 

@@ -36,6 +36,7 @@ function GameRules:initialize()
 	self.entity_factory:registerClass( "Player", core.Player )
 	self.entity_factory:registerClass( "Breakable", core.Breakable )
 	self.entity_factory:registerClass( "func_light", core.func_light )
+	self.entity_factory:registerClass( "func_waypoint", core.func_waypoint )
 
 	self.sounds = {}
 	self.sound_data = {}
@@ -300,6 +301,29 @@ function GameRules:loadMap( mapname )
 		end
 	end
 
+	local object_layer = self.map.layers["Objects"]
+	if object_layer then
+		for k,v in pairs(object_layer.objects) do
+			properties = {}
+			for key,value in pairs( v.properties ) do
+				properties[ key ] = value
+			end
+
+			-- bundle these values in with the properties
+			properties[ "name" ] = v.name
+			properties[ "type" ] = v.type
+
+			-- the spawn function accepts tile coordinates, but the objects are in "map" (world) coordinates
+			-- so just convert these
+			local tx, ty = self:tileCoordinatesFromWorld( v.x, v.y )
+
+			self:spawnEntityAtTileWithProperties( nil, tx, ty, properties )
+		end
+	else
+		logging.verbose( "No 'Objects' layer found" )
+	end
+
+
 	self:updateWalkableMap()
 end
 
@@ -470,17 +494,20 @@ function GameRules:spawnEntityAtTileWithProperties( layer, tile_x, tile_y, prope
 		if classname == "info_player_spawn" then
 			-- yadda, yadda, yadda; make this not a HACK
 			self.spawn = { x = tile_x, y = tile_y }
-			layer:set( tile_x, tile_y, nil )
+
+			if layer then
+				layer:set( tile_x, tile_y, nil )
+			end
 		else
 			local entity = self.entity_factory:createClass( classname )
 			if entity then
 				-- remove this tile from the layer
-				layer:set( tile_x, tile_y, nil )
-
+				if layer then
+					layer:set( tile_x, tile_y, nil )
+				end
 
 					-- set the world position for the entity from the tile coordinates
 				entity.world_x, entity.world_y = self:worldCoordinatesFromTileCenter( tile_x, tile_y )
-
 
 				if classname == "func_light" then
 					self:addLight( entity )
@@ -544,10 +571,11 @@ function GameRules:drawWorld()
 		local tx, ty = self:tileCoordinatesFromWorld( (window_width/2)-cx, (window_height/2)-cy )
 
 		fog = self.map.layers[ MAP_FOG_LAYER_NAME ]
-		for x, y, tile in fog:circle( tx, ty, LIGHT_RADIUS, false ) do
-			fog:set( x, y, nil )
+		if fog then
+			for x, y, tile in fog:circle( tx, ty, LIGHT_RADIUS, false ) do
+				fog:set( x, y, nil )
+			end
 		end
-
 
 		self.map:autoDrawRange( ftx, fty, 1, 5 )
 		self.map:draw()

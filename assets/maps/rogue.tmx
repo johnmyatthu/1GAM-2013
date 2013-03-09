@@ -1,21 +1,19 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <map version="1.0" orientation="orthogonal" width="40" height="25" tilewidth="32" tileheight="32">
- <tileset firstgid="1" name="orthotiles" tilewidth="32" tileheight="32">
-  <image source="orthotiles.png" width="128" height="128"/>
-  <tile id="2">
-   <properties>
-    <property name="classname" value="info_player_spawn"/>
-   </properties>
-  </tile>
+ <tileset firstgid="1" name="gametiles" tilewidth="32" tileheight="32">
+  <image source="gametiles.png" width="128" height="128"/>
   <tile id="4">
    <properties>
     <property name="classname" value="func_light"/>
    </properties>
   </tile>
  </tileset>
+ <tileset firstgid="17" name="rogue" tilewidth="32" tileheight="32">
+  <image source="rogue.png" width="128" height="128"/>
+ </tileset>
  <layer name="Ground" width="40" height="25">
   <data encoding="base64" compression="zlib">
-   eJztzqENADAQxLDDr+4/byeoHlU6YBAU4kky5Z1H2/8dHx8fHx8fHx8fX1N8fHy7r7kLZXwtoQ==
+   eJztzqENADAQxLCb4dX9Z+0E1aNKBwyCQjxJprzzaPu/4+Pj4+Pj4+Pj42uKj49v9zV3AdZITOE=
   </data>
  </layer>
  <layer name="Collision" width="40" height="25">
@@ -23,14 +21,54 @@
    eJztzrEJADAMxMDH+w+dCYILEeyADr5yYVWSWr6b7v6afYx9jH2MfYx9jH2MfYx9zPT/jn2MfcwvfZt3AGL2AUE=
   </data>
  </layer>
- <layer name="Game" width="40" height="25">
-  <data encoding="base64" compression="zlib">
-   eJzt1DEKACAMA8CC+P8v+wI7WZVyN2fIEBLRyyzKUm+8LrBhJ8BNPgc4wZfwK9vMLUkPACI=
-  </data>
- </layer>
- <layer name="Fog" width="40" height="25" visible="0">
-  <data encoding="base64" compression="zlib">
-   eJztzrEJAAAMw7Ds+f/fHlEKHWTwribp8ZuubXx8fHx8fHx8fHx8fHx8H3wDRmsa3A==
-  </data>
- </layer>
+ <objectgroup name="Objects" width="40" height="25">
+  <object name="player_spawn" gid="3" x="105" y="101">
+   <properties>
+    <property name="classname" value="info_player_spawn"/>
+   </properties>
+  </object>
+  <object name="corner" gid="4" x="128" y="448">
+   <properties>
+    <property name="classname" value="func_waypoint"/>
+    <property name="next_waypoint" value="hall"/>
+   </properties>
+  </object>
+  <object gid="1" x="96" y="256">
+   <properties>
+    <property name="classname" value="Enemy"/>
+    <property name="first_waypoint" value="hall"/>
+   </properties>
+  </object>
+  <object name="hall" gid="4" x="96" y="320">
+   <properties>
+    <property name="classname" value="func_waypoint"/>
+    <property name="next_waypoint" value="corner"/>
+   </properties>
+  </object>
+  <object name="func_light" gid="5" x="32" y="160">
+   <properties>
+    <property name="classname" value="func_light"/>
+   </properties>
+  </object>
+  <object name="func_light" gid="5" x="192" y="320">
+   <properties>
+    <property name="classname" value="func_light"/>
+   </properties>
+  </object>
+  <object name="func_light" gid="5" x="32" y="512">
+   <properties>
+    <property name="classname" value="func_light"/>
+   </properties>
+  </object>
+  <object name="func_light" gid="5" x="128" y="768">
+   <properties>
+    <property name="classname" value="func_light"/>
+   </properties>
+  </object>
+  <object name="func_light" gid="5" x="416" y="768">
+   <properties>
+    <property name="classname" value="func_light"/>
+   </properties>
+  </object>
+ </objectgroup>
 </map>
