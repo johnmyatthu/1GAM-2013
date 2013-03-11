@@ -27,7 +27,7 @@
     <property name="classname" value="info_player_spawn"/>
    </properties>
   </object>
-  <object name="corner" gid="4" x="128" y="448">
+  <object name="corner" gid="4" x="128" y="704">
    <properties>
     <property name="classname" value="func_waypoint"/>
     <property name="next_waypoint" value="hall"/>

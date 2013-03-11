@@ -193,7 +193,20 @@ function Enemy:onUpdate( params )
 	if target then
 		-- get a vector from me to the target
 		local dx, dy = (target.world_x - self.world_x), (target.world_y - self.world_y)
+		--logging.verbose( "dx: " .. dx .. ", dy: " ..  dy )
+		local len = math.sqrt( (dx*dx) + (dy*dy) )
+		local x = dx/len
+		local y = dy/len
 
+		--logging.verbose( "x: " .. x .. ", y: " ..  y )
+
+		-- so now we dot the vector we have with the view_diraction of the enemy
+		dx, dy = (x - self.view_direction.x), (y - self.view_direction.y)
+		local dp = (x * self.view_direction.x) + (y * self.view_direction.y)
+		if dp > 0 then
+			logging.verbose( "I see you..." )
+		end
+		--logging.verbose( "dp: " .. dp )
 	end
 
 	if self.state == E_STATE_WAYPOINT then
