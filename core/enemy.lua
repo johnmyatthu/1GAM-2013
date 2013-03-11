@@ -194,19 +194,29 @@ function Enemy:onUpdate( params )
 		-- get a vector from me to the target
 		local dx, dy = (target.world_x - self.world_x), (target.world_y - self.world_y)
 		--logging.verbose( "dx: " .. dx .. ", dy: " ..  dy )
-		local len = math.sqrt( (dx*dx) + (dy*dy) )
-		local x = dx/len
-		local y = dy/len
+		--local len = math.sqrt( (dx*dx) + (dy*dy) )
+		local distance = core.util.vector.length( dx, dy )
+		local x = dx/distance
+		local y = dy/distance
 
 		--logging.verbose( "x: " .. x .. ", y: " ..  y )
 
 		-- so now we dot the vector we have with the view_diraction of the enemy
 		dx, dy = (x - self.view_direction.x), (y - self.view_direction.y)
 		local dp = (x * self.view_direction.x) + (y * self.view_direction.y)
+
 		if dp > 0 then
-			logging.verbose( "I see you..." )
+			local angle = math.deg(core.util.vector.angle( x, y, self.view_direction.x, self.view_direction.y) )
+			if distance < 128 and angle < 60 then
+				logging.verbose( "I see you..." )
+			end
 		end
 		--logging.verbose( "dp: " .. dp )
+
+
+
+		-- find the angle
+		--local angle = math.acos( dp / len )
 	end
 
 	if self.state == E_STATE_WAYPOINT then

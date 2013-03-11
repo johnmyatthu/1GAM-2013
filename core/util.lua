@@ -78,3 +78,18 @@ function deepcopy(t)
 	setmetatable(res,mt)
 	return res
 end
+
+
+vector = {}
+
+function vector.dot( x1, y1, x2, y2 )
+	return (x1 * x2) + (y1 * y2)
+end
+
+function vector.length( x, y )
+	return math.sqrt( vector.dot( x, y, x, y ) )
+end
+
+function vector.angle( x1, y1, x2, y2 )
+	return math.acos( vector.dot(x1, y1, x2, y2) / (vector.length(x1, y1) * vector.length(x2, y2)) )
+end
