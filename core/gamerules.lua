@@ -424,6 +424,60 @@ function GameRules:isTileWalkable( tile_x, tile_y )
 	return self:getCollisionTile( tile_x, tile_y ) == nil	
 end
 
+function GameRules:collisionTrace( wx, wy, wx2, wy2 )
+	local x, y, hit = wx2, wy2, 0
+
+	-- if hit == 0 then we hit our target with no obstructions
+		-- returns wx2, wy2
+	-- else we hit a collision tile
+		-- returns the world space point where we hit the tile
+	local tile_width = self.map.tileWidth
+	local tile_height = self.map.tileHeight
+
+	local tiles_w = math.floor( (wx2-wx) / tile_width )
+	local tiles_h = math.floor( (wy2-wy) / tile_height )
+
+	local dir_x = 0
+	if tiles_w < 0 then
+		dir_x = -1
+	elseif tiles_w > 0 then
+		dir_x = 1
+	end
+
+	local dir_y = 0
+	if tiles_h < 0 then
+		dir_y = -1
+	elseif tiles_h > 0 then
+		dir_y = 1
+	end
+
+	-- I'm using repeat loops here because the for x=1, m, z do ... loops were
+	-- getting stuck in an infinite loop; apparently it doesn't check the conditional after executing it once?
+	local tilestart_x, tilestart_y = self:tileCoordinatesFromWorld( wx, wy )
+	found_collision = false
+	tx = 0
+	repeat
+		ty = 0
+		repeat
+			local tile = self.collision_layer:get( tilestart_x + tx, tilestart_y + ty )
+			if tile ~= nil then
+				x, y = self:worldCoordinatesFromTileCenter( tilestart_x + tx, tilestart_y + ty )
+				x = x + ((tile_width/2) * -dir_x)
+				hit = 1
+
+				-- early out -- hit a tile
+				found_collision = true
+				break
+			end
+			ty = ty + dir_y
+		until ty == tiles_h or found_collision
+
+		tx = tx + dir_x
+	until tx == tiles_w or found_collision
+
+	return x, y, hit
+end
+
 -- returns path and cost or nil, nil if there is no path
 function GameRules:getPath( start_x, start_y, end_x, end_y )
 	-- verify target tiles are correct

@@ -6,6 +6,7 @@ local E_STATE_SCAN = 1
 
 -- seconds
 local SCAN_TIME = 2
+local MIN_PLAYER_LIGHT_LEVEL = 0.25
 
 Enemy = class( "Enemy", PathFollower )
 function Enemy:initialize()
@@ -31,7 +32,8 @@ function Enemy:initialize()
 	self.obstruction = nil
 
 	self.view_direction = {x=0, y=1}
-	self.view_distance = 30
+	self.view_distance = 256
+	self.view_angle = 60
 	self.rotation = 0
 
 	self.light_scale = 0.5
@@ -48,7 +50,8 @@ function Enemy:initialize()
 	-- scan state will be paused at a waypoint looking around
 
 	self.scan_time = SCAN_TIME
-
+	self.saw_player = 0
+	self.trace_end = nil
 end
 
 function Enemy:onCollide( params )
@@ -101,6 +104,13 @@ function Enemy:onSpawn( params )
 end
 
 function Enemy:onDraw( params )
+
+	if self.saw_player > 0 then
+		self.color = {r=255, g=0, b=0, a=255}
+	else
+		self.color = {r=255, g=255, b=255, a=255}
+	end
+
 	AnimatedSprite.onDraw( self, params )
 
 	--self.view_direction.x = math.cos(self.rotation) * self.view_distance
@@ -112,13 +122,20 @@ function Enemy:onDraw( params )
 	love.graphics.setColor( 255, 0, 0, 255 )
 	love.graphics.line( startx, starty, endx, endy )
 
-	-- draw line to next waypoint
 	startx, starty = params.gamerules:worldToScreen( self.world_x, self.world_y )
+	if self.waypoint then
+		-- draw line to next waypoint
+		endx, endy = params.gamerules:worldToScreen( self.waypoint.world_x, self.waypoint.world_y )
+		love.graphics.setColor( 128, 128, 255, 128 )
+		love.graphics.line( startx, starty, endx, endy )
 
-	endx, endy = params.gamerules:worldToScreen( self.waypoint.world_x, self.waypoint.world_y )
-	love.graphics.setColor( 128, 128, 255, 128 )
-	love.graphics.line( startx, starty, endx, endy )
+	end
 
+	if self.trace_end ~= nil then
+		endx, endy = params.gamerules:worldToScreen( self.trace_end.x, self.trace_end.y )
+		love.graphics.setColor( 255, 0, 255, 255 )
+		love.graphics.line( startx, starty, endx, endy )	
+	end
 end
 
 function Enemy:updateDirectionForWaypoint( target )
@@ -146,9 +163,11 @@ function Enemy:findWaypoint( params, name )
 	for _,wp in pairs(waypoints) do
 		if wp.name == name then
 			self.waypoint = wp
-			break
+			return
 		end
 	end
+
+	--logging.verbose( "Unable to find waypoint: " .. name )
 end
 
 function Enemy:onUpdate( params )
@@ -159,10 +178,18 @@ function Enemy:onUpdate( params )
 	if not self.waypoint then
 		-- first task: find a waypoint
 		self:findWaypoint( params, self.first_waypoint )
+		self:updateDirectionForWaypoint( self.waypoint )
+	end
+
+	if self.saw_player > 0 then
+		self.saw_player = self.saw_player - params.dt
+		if self.saw_player <= 0 then
+			self.saw_player = 0
+		end
 	end
 
 	-- move towards waypoint
-	if self.state == E_STATE_WAYPOINT then
+	if self.waypoint and self.state == E_STATE_WAYPOINT then
 		local dist = params.gamerules:calculateEntityDistance( self.waypoint, self )
 		if dist < 32 then
 			-- enter scan state
@@ -207,19 +234,22 @@ function Enemy:onUpdate( params )
 
 		if dp > 0 then
 			local angle = math.deg(core.util.vector.angle( x, y, self.view_direction.x, self.view_direction.y) )
-			if distance < 128 and angle < 60 then
-				logging.verbose( "I see you..." )
+			if distance < self.view_distance and angle < self.view_angle and target.light_level > MIN_PLAYER_LIGHT_LEVEL then
+				--self.saw_player = 2
+
+				-- we have to perform a trace from wx, wy to wx2, wy2
+				-- if any collision tiles are present, we must ignore it
+				
+				local x, y, hit = params.gamerules:collisionTrace( self.world_x, self.world_y, target.world_x, target.world_y )
+				if hit == 0 then
+					self.saw_player = 2
+				end
+				self.trace_end = {x=x, y=y}
 			end
 		end
-		--logging.verbose( "dp: " .. dp )
-
-
-
-		-- find the angle
-		--local angle = math.acos( dp / len )
 	end
 
-	if self.state == E_STATE_WAYPOINT then
+	if self.waypoint and self.state == E_STATE_WAYPOINT then
 		self.velocity.x = self.view_direction.x * self.move_speed
 		self.velocity.y = self.view_direction.y * self.move_speed
 	else
