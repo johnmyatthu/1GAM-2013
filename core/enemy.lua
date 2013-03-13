@@ -2,7 +2,7 @@ require "core"
 
 local E_STATE_WAYPOINT = 0
 local E_STATE_SCAN = 1
-
+local E_STATE_INVESTIGATE = 2
 
 -- seconds
 local SCAN_TIME = 2
@@ -32,7 +32,7 @@ function Enemy:initialize()
 	self.obstruction = nil
 
 	self.view_direction = {x=0, y=1}
-	self.view_distance = 256
+	self.view_distance = 300
 	self.view_angle = 60
 	self.rotation = 0
 
@@ -207,6 +207,13 @@ function Enemy:onUpdate( params )
 			self.state = E_STATE_WAYPOINT
 			self:updateDirectionForWaypoint( self.waypoint )
 		end
+	elseif self.state == E_STATE_INVESTIGATE then
+		local dist = core.util.vector.length( self.world_x-self.trace_end.x, self.world_y-self.trace_end.y )
+		if dist < 32 then
+			self.state = E_STATE_SCAN
+			self:findWaypoint( params, self.waypoint.next_waypoint )
+			self.scan_time = SCAN_TIME
+		end
 	end
 
 	self.time_until_color_restore = self.time_until_color_restore - params.dt
@@ -231,7 +238,7 @@ function Enemy:onUpdate( params )
 		-- so now we dot the vector we have with the view_diraction of the enemy
 		dx, dy = (x - self.view_direction.x), (y - self.view_direction.y)
 		local dp = (x * self.view_direction.x) + (y * self.view_direction.y)
-
+		local delta_len = core.util.vector.length( dx, dy )
 		if dp > 0 then
 			local angle = math.deg(core.util.vector.angle( x, y, self.view_direction.x, self.view_direction.y) )
 			if distance < self.view_distance and angle < self.view_angle and target.light_level > MIN_PLAYER_LIGHT_LEVEL then
@@ -240,16 +247,21 @@ function Enemy:onUpdate( params )
 				-- we have to perform a trace from wx, wy to wx2, wy2
 				-- if any collision tiles are present, we must ignore it
 				
-				local x, y, hit = params.gamerules:collisionTrace( self.world_x, self.world_y, target.world_x, target.world_y )
+				local tx, ty, hit = params.gamerules:collisionTrace( self.world_x, self.world_y, target.world_x, target.world_y )
 				if hit == 0 then
 					self.saw_player = 2
+					self.state = E_STATE_INVESTIGATE
+
+					-- update view direction to follow the last seen point
+					self.view_direction.x = x
+					self.view_direction.y = y
 				end
-				self.trace_end = {x=x, y=y}
+				self.trace_end = {x=tx, y=ty}
 			end
 		end
 	end
 
-	if self.waypoint and self.state == E_STATE_WAYPOINT then
+	if self.waypoint and self.state ~= E_STATE_SCAN then
 		self.velocity.x = self.view_direction.x * self.move_speed
 		self.velocity.y = self.view_direction.y * self.move_speed
 	else
