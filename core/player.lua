@@ -1,6 +1,6 @@
 require "core"
 
-local LIGHT_LEVEL_DIVISOR = 90
+local LIGHT_LEVEL_DIVISOR = 100
 
 Player = class("Player", AnimatedSprite)
 function Player:initialize()
@@ -58,7 +58,7 @@ function Player:onUpdate( params )
 		end	
 	end
 
-	self.light_level = 1.1 - (min/LIGHT_LEVEL_DIVISOR)
+	self.light_level = 1.0 - (min/LIGHT_LEVEL_DIVISOR)
 	self.light_level = math.max( self.light_level, 0 )
 	self.light_level = math.min( self.light_level, 1 )
 

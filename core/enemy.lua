@@ -6,7 +6,7 @@ local E_STATE_SCAN = 1
 
 -- seconds
 local SCAN_TIME = 2
-local MIN_PLAYER_LIGHT_LEVEL = 0.25
+local MIN_PLAYER_LIGHT_LEVEL = 0.03
 
 Enemy = class( "Enemy", PathFollower )
 function Enemy:initialize()
@@ -32,7 +32,7 @@ function Enemy:initialize()
 	self.obstruction = nil
 
 	self.view_direction = {x=0, y=1}
-	self.view_distance = 256
+	self.view_distance = 460
 	self.view_angle = 60
 	self.rotation = 0
 

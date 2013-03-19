@@ -22,7 +22,7 @@
   </data>
  </layer>
  <objectgroup name="Objects" width="40" height="25">
-  <object name="player_spawn" gid="3" x="105" y="101">
+  <object name="player_spawn" gid="3" x="32" y="64">
    <properties>
     <property name="classname" value="info_player_spawn"/>
    </properties>
@@ -45,27 +45,27 @@
     <property name="next_waypoint" value="corner"/>
    </properties>
   </object>
-  <object name="func_light" gid="5" x="32" y="160">
+  <object name="func_light" gid="5" x="96" y="128">
    <properties>
     <property name="classname" value="func_light"/>
    </properties>
   </object>
-  <object name="func_light" gid="5" x="192" y="320">
+  <object name="func_light" gid="5" x="96" y="320">
    <properties>
     <property name="classname" value="func_light"/>
    </properties>
   </object>
-  <object name="func_light" gid="5" x="32" y="512">
+  <object name="func_light" gid="5" x="96" y="512">
    <properties>
     <property name="classname" value="func_light"/>
    </properties>
   </object>
-  <object name="func_light" gid="5" x="128" y="768">
+  <object name="func_light" gid="5" x="32" y="704">
    <properties>
     <property name="classname" value="func_light"/>
    </properties>
   </object>
-  <object name="func_light" gid="5" x="416" y="768">
+  <object name="func_light" gid="5" x="608" y="704">
    <properties>
     <property name="classname" value="func_light"/>
    </properties>
@@ -103,17 +103,12 @@
     <property name="classname" value="func_light"/>
    </properties>
   </object>
-  <object name="func_light" gid="5" x="704" y="384">
+  <object name="func_light" gid="5" x="608" y="288">
    <properties>
     <property name="classname" value="func_light"/>
    </properties>
   </object>
   <object name="func_light" gid="5" x="896" y="608">
-   <properties>
-    <property name="classname" value="func_light"/>
-   </properties>
-  </object>
-  <object name="func_light" gid="5" x="704" y="768">
    <properties>
     <property name="classname" value="func_light"/>
    </properties>
@@ -128,9 +123,70 @@
     <property name="classname" value="func_light"/>
    </properties>
   </object>
-  <object name="func_light" gid="5" x="992" y="64">
+  <object name="func_light" gid="5" x="928" y="64">
    <properties>
     <property name="classname" value="func_light"/>
+   </properties>
+  </object>
+  <object gid="1" x="672" y="128">
+   <properties>
+    <property name="classname" value="Enemy"/>
+    <property name="first_waypoint" value="right_hall"/>
+   </properties>
+  </object>
+  <object name="right_alcove" gid="4" x="704" y="160">
+   <properties>
+    <property name="classname" value="func_waypoint"/>
+    <property name="next_waypoint" value="right_hall"/>
+   </properties>
+  </object>
+  <object name="right_hall" gid="4" x="800" y="512">
+   <properties>
+    <property name="classname" value="func_waypoint"/>
+    <property name="next_waypoint" value="right_alcove"/>
+   </properties>
+  </object>
+  <object name="right_hall2" gid="4" x="832" y="576">
+   <properties>
+    <property name="classname" value="func_waypoint"/>
+    <property name="next_waypoint" value="second_hall_south"/>
+   </properties>
+  </object>
+  <object name="second_hall_south" gid="4" x="512" y="704">
+   <properties>
+    <property name="classname" value="func_waypoint"/>
+    <property name="next_waypoint" value="right_hall2"/>
+   </properties>
+  </object>
+  <object gid="1" x="864" y="544">
+   <properties>
+    <property name="classname" value="Enemy"/>
+    <property name="first_waypoint" value="right_hall2"/>
+   </properties>
+  </object>
+  <object name="func_light" gid="5" x="608" y="512">
+   <properties>
+    <property name="classname" value="func_light"/>
+   </properties>
+  </object>
+  <object name="func_light" gid="5" x="320" y="704">
+   <properties>
+    <property name="classname" value="func_light"/>
+   </properties>
+  </object>
+  <object name="func_light" gid="5" x="864" y="416">
+   <properties>
+    <property name="classname" value="func_light"/>
+   </properties>
+  </object>
+  <object name="func_light" gid="5" x="832" y="192">
+   <properties>
+    <property name="classname" value="func_light"/>
+   </properties>
+  </object>
+  <object gid="6" x="1120" y="96">
+   <properties>
+    <property name="classname" value="func_loot"/>
    </properties>
   </object>
  </objectgroup>
