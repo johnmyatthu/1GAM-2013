@@ -17,6 +17,8 @@ function Player:initialize()
 	self.light_intensity = 0 --0.15
 
 	self.light_level = 0
+
+	self.is_tagged = false -- tagged by an enemy
 end
 
 function Player:onSpawn( params )

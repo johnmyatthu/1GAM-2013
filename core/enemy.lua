@@ -35,7 +35,7 @@ function Enemy:initialize()
 	self.view_direction = {x=0, y=1}
 	self.view_distance = 460
 
-	self.view_angle = 120
+	self.view_angle = 100
 	self.rotation = 0
 
 	self.light_scale = 0.5
@@ -115,19 +115,22 @@ function Enemy:onDraw( params )
 	end
 end
 
-function Enemy:updateDirectionForWaypoint( target )
-	if target == nil then
-		return
-	end
 
-	local dx, dy = (target.world_x - self.world_x), (target.world_y - self.world_y)
+function Enemy:updateDirectionForWorldPosition( world_x, world_y )
+	local dx, dy = (world_x - self.world_x), (world_y - self.world_y)
 
 	local length = math.sqrt((dx*dx) + (dy*dy))
 
 	self.view_direction.x = dx/length
 	self.view_direction.y = dy/length
+end
 
-	--logging.verbose( "x: " .. self.view_direction.x .. ", y: " .. self.view_direction.y )
+function Enemy:updateDirectionForWaypoint( target )
+	if target == nil then
+		return
+	end
+
+	self:updateDirectionForWorldPosition( target.world_x, target.world_y )
 end
 
 
@@ -193,15 +196,34 @@ function Enemy:onUpdate( params )
 			elseif self.path == nil then
 				-- find a path to the waypoint
 				self.path = params.gamerules:getPath( self.tile_x, self.tile_y, self.waypoint.tile_x, self.waypoint.tile_y )
+				self.state = E_STATE_FIND_WAYPOINT
 			end
 		end
 	elseif self.state == E_STATE_INVESTIGATE then
 		local dist = core.util.vector.length( self.world_x-self.trace_end.x, self.world_y-self.trace_end.y )
 		self.move_multiplier = self.persue_multiplier
-		if dist < 64 then
+		if dist < 16 then
+			local target = params.gamerules.entity_manager:findFirstEntityByName( "Player" )
+			if target and not target.is_tagged then
+				target.is_tagged = true
+			end
 			self.state = E_STATE_SCAN
 			self:findWaypoint( params, self.waypoint.next_waypoint )
 			self.scan_time = SCAN_TIME
+		end
+	elseif self.state == E_STATE_FIND_WAYPOINT then
+		if self.path then
+			local tile = self.path[ self.current_path_step ]
+			if tile then
+				-- update view direction for this tile
+				local world_x, world_y = params.gamerules:worldCoordinatesFromTileCenter( tile.x, tile.y )
+				self:updateDirectionForWorldPosition( world_x, world_y )
+			end
+		else
+			self.state = E_STATE_SCAN
+			self.scan_time = SCAN_TIME
+			self:findWaypoint( params, self.waypoint.next_waypoint )
+			logging.verbose( "changing to scan state" )
 		end
 	end
 
@@ -278,31 +300,18 @@ function Enemy:onUpdate( params )
 	end
 
 	if params.gamerules:moveEntityInDirection( self, dir, params.dt ) then
+		self.velocity.x = 0
+		self.velocity.y = 0
+		logging.verbose( "hit tile: " .. dir.x .. ", " .. dir.y )
 		self.state = E_STATE_SCAN
 		self:findWaypoint( params, self.waypoint.next_waypoint )
 		self.scan_time = SCAN_TIME
+		self.path = nil
 	else
 
 
 	end
 
-	if self.target then
-		-- calculate distance to target
-		local dx, dy = (self.target.tile_x - self.tile_x), (self.target.tile_y - self.tile_y)
-		local min_range = 1
-		if math.abs(dx) <= min_range and math.abs(dy) <= min_range then		
-			if self.next_attack_time <= 0 then
-				self.next_attack_time = self.attack_delay
-
-				-- attack the target
-				if self.target then
-					if self.target.health > 0 then
-						self.target:onHit( {gamerules=params.gamerules, attacker=self, attack_damage=self.attack_damage} )
-					end
-				end
-			end
-		end
-	end
 
 	PathFollower.onUpdate( self, params )
 end

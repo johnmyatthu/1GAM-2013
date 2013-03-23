@@ -32,7 +32,7 @@ function PathFollower:onUpdate( params )
 		-- the minimum number of units the sprite can be to a tile's center before it is considered "close enough"
 		local TILE_DISTANCE_THRESHOLD = 2
 		local command = { up=false, down=false, left=false, right=false }
-		command.move_speed = 32
+		command.move_speed = self.move_speed
 		command.dt = params.dt
 
 		if self.path then
