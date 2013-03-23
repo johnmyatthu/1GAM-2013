@@ -13,12 +13,12 @@
  </tileset>
  <layer name="Ground" width="40" height="25">
   <data encoding="base64" compression="zlib">
-   eJzt1jsSwCAIBFDO4OT+Z02fGSPLZ9nCgiqIT4eoy8yWeDybOH335HhqdNbO+qfW/q0RqXV9WC8o+DzzVf6/VXnd54uyr6IHry/n+zOq+ND5O3zoWjK+6L3A3D8kb8rXtZfs+63aNx1MX+SdxfKh566KT6H/TzbPm2batnNGxrPjBY7+S/8=
+   eJzt1jsSwCAIBFDO4Hj/s9o7o7J8FgoLqhB8ZlAyRGQ0j3mI13NNjqZGZm2vv2rvew1Lre/DeqGDT7Ne5PmNysu+Xzr7Inrw+3y+m7GLD10/w4fuxeOzzgXm90PyqnxZRvZ8i/ZVB9uHniemD7l32b7b7Kru/5dN809TbTs5Le+zYwGlxkwF
   </data>
  </layer>
  <layer name="Collision" width="40" height="25">
   <data encoding="base64" compression="zlib">
-   eJztlksOwCAIRIn3P3S3jY2F4TOwcBJXwvBiFFwisoavk7R9S4zFo9I7yh/JjXjvHh6vy/f1Q+PZfJZ6me83K666v0zmQ3T5avje9abyofUr+BBF+bxzwSp2/0OVOT8qzpI931B119fE5PP8s1h8aN/d86r1N7u677/GZvnTdLOdOD357PUAqkACIw==
+   eJztljsOwDAIQ1Huf+iuVaoUzMcwxBJTwLwhgSwRWcPjJO3ckmPxqPSO8kdqI967h8fr8n390Hw2n6Vf5vvNyqueL5P5EF2+Gr53v6l8aP8KPkRRPu9esIo9/1Bl7o8KRvZ+Q9XdXxObD31PTD5k7u411frbXd33X2Oz/Gm62U6cnnp2PJN4Ah0=
   </data>
  </layer>
  <objectgroup name="Objects" width="40" height="25">
@@ -146,19 +146,19 @@
     <property name="next_waypoint" value="right_alcove"/>
    </properties>
   </object>
-  <object name="right_hall2" gid="4" x="832" y="576">
+  <object name="right_hall2" gid="4" x="704" y="608">
    <properties>
     <property name="classname" value="func_waypoint"/>
     <property name="next_waypoint" value="second_hall_south"/>
    </properties>
   </object>
-  <object name="second_hall_south" gid="4" x="512" y="704">
+  <object name="second_hall_south" gid="4" x="448" y="704">
    <properties>
     <property name="classname" value="func_waypoint"/>
     <property name="next_waypoint" value="right_hall2"/>
    </properties>
   </object>
-  <object gid="1" x="864" y="544">
+  <object gid="1" x="736" y="608">
    <properties>
     <property name="classname" value="Enemy"/>
     <property name="first_waypoint" value="right_hall2"/>

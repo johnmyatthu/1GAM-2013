@@ -736,6 +736,48 @@ function GameRules:findMinimumDisplacementVector( a, b )
 	return -dx, -dy
 end
 
+
+function GameRules:moveEntityInDirection( entity, direction, dt )
+	-- get the next world position of the entity
+	local nwx, nwy = entity.world_x, entity.world_y
+
+	nwx = entity.world_x + (direction.x * dt)
+	nwy = entity.world_y + (direction.y * dt)
+
+	local tile = nil
+
+	-- for now, just collide with tiles that exist on the collision layer.
+	if self.map then
+		
+
+		-- try the x direction
+		local tx, ty = self:tileCoordinatesFromWorld( nwx, entity.world_y )
+		local tileX = self:getCollisionTile( tx, ty )
+		if not tileX then
+			entity.world_x = nwx -- X direction is clear
+		end
+
+		-- try the y direction
+		tx, ty = self:tileCoordinatesFromWorld( entity.world_x, nwy )
+		local tileY = self:getCollisionTile( tx, ty )
+		if not tileY then
+			entity.world_y = nwy -- Y direction is clear
+		end
+
+		tile = tileX or tileY
+	end
+	
+	if nwx ~= entity.world_x and nwy ~= entity.world_y then
+		--entity:setDirectionFromMoveCommand( command )
+	end
+
+	if self.map then
+		entity.tile_x, entity.tile_y = self:tileCoordinatesFromWorld( entity.world_x, entity.world_y )
+	end
+
+	return tile
+end
+
 function GameRules:handleMovePlayerCommand( command, player )
 	-- get the next world position of the entity
 	local nwx, nwy = player.world_x, player.world_y

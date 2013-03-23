@@ -3,6 +3,7 @@ require "core"
 local E_STATE_WAYPOINT = 0
 local E_STATE_SCAN = 1
 local E_STATE_INVESTIGATE = 2
+local E_STATE_FIND_WAYPOINT = 3
 
 -- seconds
 local SCAN_TIME = 2
@@ -34,14 +35,17 @@ function Enemy:initialize()
 	self.view_direction = {x=0, y=1}
 	self.view_distance = 460
 
-	self.view_angle = 60
+	self.view_angle = 120
 	self.rotation = 0
 
 	self.light_scale = 0.5
 	self.light_radius = 0.4
 	self.light_intensity = 0.75
 
-	self.move_speed = 32
+	self.normal_move_speed = 32
+	self.persue_multiplier = 2.0
+	self.move_speed = self.normal_move_speed
+	self.move_multiplier = 1.0
 
 	self.waypoint = nil
 	self.first_waypoint = 0
@@ -53,38 +57,10 @@ function Enemy:initialize()
 	self.scan_time = SCAN_TIME
 	self.saw_player = 0
 	self.trace_end = nil
+
 end
 
 function Enemy:onCollide( params )
-	if params.other and params.other.class.name == "Bullet" then
-		self.color = {r=255, g=0, b=0, a=255}
-		params.gamerules:removeEntity( params.other )
-		self.time_until_color_restore = self.hit_color_cooldown_seconds
-
-		self.health = self.health - params.other.attack_damage
-		self.time_since_last_hit = 0
-		params.gamerules:playSound( "bullet_enemy_hit" )
-	elseif params.other.health > 0 and (self.class.name ~= params.other.class.name) then
-
-		-- this entity is probably in our way...
-		if self.next_attack_time <= 0 then
-			self.next_attack_time = self.attack_delay
-			params.other:onHit( {attack_damage=self.attack_damage, gamerules=params.gamerules} )
-			
-			if params.other.health > 0 then
-				self.follow_path = false
-				self.obstruction = params.other
-			else
-				self.follow_path = true
-			end
-		end
-
-		-- stop, we found our target
-		if params.other == self.target then
-			self.follow_path = false
-		end		
-	end
-
 	Entity.onCollide( self, params )
 end
 
@@ -186,6 +162,7 @@ function Enemy:onUpdate( params )
 		self.saw_player = self.saw_player - params.dt
 		if self.saw_player <= 0 then
 			self.saw_player = 0
+
 		end
 	end
 
@@ -201,16 +178,27 @@ function Enemy:onUpdate( params )
 
 			-- update scan time
 			self.scan_time = SCAN_TIME
+			self.move_multiplier = 1.0			
 		end
 	elseif self.state == E_STATE_SCAN then
 		self.scan_time = self.scan_time - params.dt
+
 		if self.scan_time <= 0 then
-			self.state = E_STATE_WAYPOINT
-			self:updateDirectionForWaypoint( self.waypoint )
+			local tx, ty, hit = params.gamerules:collisionTrace( self.world_x, self.world_y, self.waypoint.world_x, self.waypoint.world_y )
+			self.move_multiplier = 1.0
+			if hit == 0 then
+				-- hit nothing
+				self.state = E_STATE_WAYPOINT
+				self:updateDirectionForWaypoint( self.waypoint )
+			elseif self.path == nil then
+				-- find a path to the waypoint
+				self.path = params.gamerules:getPath( self.tile_x, self.tile_y, self.waypoint.tile_x, self.waypoint.tile_y )
+			end
 		end
 	elseif self.state == E_STATE_INVESTIGATE then
 		local dist = core.util.vector.length( self.world_x-self.trace_end.x, self.world_y-self.trace_end.y )
-		if dist < 32 then
+		self.move_multiplier = self.persue_multiplier
+		if dist < 64 then
 			self.state = E_STATE_SCAN
 			self:findWaypoint( params, self.waypoint.next_waypoint )
 			self.scan_time = SCAN_TIME
@@ -252,25 +240,51 @@ function Enemy:onUpdate( params )
 				if hit == 0 then
 					self.saw_player = 2
 					self.state = E_STATE_INVESTIGATE
-
+					self.path = nil
 					-- update view direction to follow the last seen point
 					self.view_direction.x = x
 					self.view_direction.y = y
+					self.trace_end = {x=tx, y=ty}
 				end
-				self.trace_end = {x=tx, y=ty}
+				
 			end
 		end
 	end
 
-	if self.waypoint and self.state ~= E_STATE_SCAN then
-		self.velocity.x = self.view_direction.x * self.move_speed
-		self.velocity.y = self.view_direction.y * self.move_speed
+
+
+	dir = {x = 0, y = 0}
+	if not self.path and self.waypoint and self.state ~= E_STATE_SCAN then
+		dir.x = self.view_direction.x * self.move_speed * self.move_multiplier
+		dir.y = self.view_direction.y * self.move_speed * self.move_multiplier
+	elseif self.path then
+		if self.velocity.x ~= 0 then
+			if self.velocity.x > 0 then
+				dir.x = self.move_speed
+			else
+				dir.x = -self.move_speed
+			end
+		end
+		if self.velocity.y ~= 0 then
+			if self.velocity.y > 0 then
+				dir.y = self.move_speed
+			else
+				dir.y = -self.move_speed
+			end
+		end
 	else
-		self.velocity.x = 0
-		self.velocity.y = 0
+		dir.x = 0
+		dir.y = 0
 	end
 
-	--params.gamerules:handleMovePlayerCommand
+	if params.gamerules:moveEntityInDirection( self, dir, params.dt ) then
+		self.state = E_STATE_SCAN
+		self:findWaypoint( params, self.waypoint.next_waypoint )
+		self.scan_time = SCAN_TIME
+	else
+
+
+	end
 
 	if self.target then
 		-- calculate distance to target
@@ -287,19 +301,6 @@ function Enemy:onUpdate( params )
 					end
 				end
 			end
-		end
-	end
-
-	if self.health <= 0 then
-		params.gamerules:playSound( "enemy_killed" )
-		params.gamerules:onEnemyDestroyed( self )
-		params.gamerules:removeEntity( self )
-	end
-
-	if self.obstruction then
-		if self.obstruction.health <= 0 then
-			self.follow_path = true
-			self.obstruction = nil
 		end
 	end
 
