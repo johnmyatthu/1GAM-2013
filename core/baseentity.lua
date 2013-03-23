@@ -29,6 +29,9 @@ function Entity:initialize()
 	self.scale = { x=1, y=1 }
 end
 
+function Entity:onRemove( params )
+end
+
 -- this can be overridden in order to skip drawing, for example.
 function Entity:respondsToEvent( event_name, params )
 	return true

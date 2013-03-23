@@ -13,12 +13,12 @@
  </tileset>
  <layer name="Ground" width="40" height="25">
   <data encoding="base64" compression="zlib">
-   eJzt1jsSwCAIBFDO4Hj/s9o7o7J8FgoLqhB8ZlAyRGQ0j3mI13NNjqZGZm2vv2rvew1Lre/DeqGDT7Ne5PmNysu+Xzr7Inrw+3y+m7GLD10/w4fuxeOzzgXm90PyqnxZRvZ8i/ZVB9uHniemD7l32b7b7Kru/5dN809TbTs5Le+zYwGlxkwF
+   eJzt1kEOQBEMBNCeQdz/rPYSdOi0jXQxK349ST+aiLTk6YucxjVzNDWYtV/9UXufa9zUKh/WCxl8mvUs/1+reezzJbPPogfL9+bbGbP40PUZPnQvv/uYKR/XFx1vH/rO8vQh5663b3d3Rff/yaZ500TbVs6b770zAO2GTBE=
   </data>
  </layer>
  <layer name="Collision" width="40" height="25">
   <data encoding="base64" compression="zlib">
-   eJztljsOwDAIQ1Huf+iuVaoUzMcwxBJTwLwhgSwRWcPjJO3ckmPxqPSO8kdqI967h8fr8n390Hw2n6Vf5vvNyqueL5P5EF2+Gr53v6l8aP8KPkRRPu9esIo9/1Bl7o8KRvZ+Q9XdXxObD31PTD5k7u411frbXd33X2Oz/Gm62U6cnnp2PJN4Ah0=
+   eJztlsEOwCAIQ4n//9G7Li4KFQskowknobyDIkNERvFYSTu35Fg8mN5efk+tx3v2OPFqvq8fmh/NZ+l38/3eymPPl8p8iJqPw/fuV5UP7c/gQ/QHPqaaz6fs/pqi+dA9K5IPmbtzDVu7vyv7/mtslp0mm23FeVIfHQ9LuAIR
   </data>
  </layer>
  <objectgroup name="Objects" width="40" height="25">

@@ -34,9 +34,9 @@ function GameRules:initialize()
 	self.entity_factory:registerClass( "Enemy", core.Enemy )
 	self.entity_factory:registerClass( "Bullet", core.Bullet )
 	self.entity_factory:registerClass( "Player", core.Player )
-	self.entity_factory:registerClass( "Breakable", core.Breakable )
 	self.entity_factory:registerClass( "func_light", core.func_light )
 	self.entity_factory:registerClass( "func_waypoint", core.func_waypoint )
+	self.entity_factory:registerClass( "func_loot", core.func_loot )
 
 	self.sounds = {}
 	self.sound_data = {}
@@ -607,6 +607,7 @@ function GameRules:drawLights()
 end
 
 function GameRules:addLight( light )
+	light.id = #self.lights
 	table.insert( self.lights, light )
 end
 
@@ -718,6 +719,7 @@ function GameRules:worldCoordinatesFromMouse( mouse_x, mouse_y )
 end
 
 function GameRules:removeEntity(entity)
+	entity:onRemove( {gamerules=self} )
 	self.entity_manager:removeEntity( entity )
 	self:removeCollision(entity)
 end

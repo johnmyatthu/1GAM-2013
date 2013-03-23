@@ -64,6 +64,14 @@ function Player:onUpdate( params )
 	self.light_level = math.max( self.light_level, 0 )
 	self.light_level = math.min( self.light_level, 1 )
 
+	local loot = params.gamerules.entity_manager:findFirstEntityByName( "func_loot" )
+	if loot then
+		local loot_dist = params.gamerules:calculateEntityDistance( loot, self )
+		if loot_dist < 16 then
+			params.gamerules:removeEntity( loot )
+		end
+	end
+
 	AnimatedSprite.onUpdate(self, params)
 end
 

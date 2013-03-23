@@ -61,7 +61,7 @@ function Game:initialize( gamerules, config, fonts )
 
 
 
-	self.state = GAME_STATE_PLAY
+	self.state = GAME_STATE_HELP
 
 	if self.state == GAME_STATE_HELP then
 		self.actions[ " " ] = self.nextState
@@ -82,33 +82,33 @@ function Game:nextState()
 	if self.actions[ " " ] then
 		self.actions[ " " ] = nil
 	end
---[[
+
 	if self.state == GAME_STATE_HELP then
-		self.source:stop()
-		self.source:rewind()
-		self.source:play()
+		--self.source:stop()
+		--self.source:rewind()
+		--self.source:play()
 		self.state = GAME_STATE_PLAY
-		self:onLoad( {gamerules=self.gamerules} )
+		self:onLoadGame( {gamerules=self.gamerules} )
 		self.gamerules:prepareForGame()
 		self.gamerules:getPlayer().visible = true
 	elseif self.state == GAME_STATE_WIN then
-		self.source:stop()
-		self.source:rewind()
-		self.source:play()		
+		--self.source:stop()
+		--self.source:rewind()
+		--self.source:play()
 		self.state = GAME_STATE_PLAY
 		self:onLoad( {gamerules=self.gamerules} )
 		self.gamerules:prepareForGame()
 		self.gamerules:getPlayer().visible = true
 	elseif self.state == GAME_STATE_FAIL then
-		self.source:stop()
-		self.source:rewind()
-		self.source:play()	
+		--self.source:stop()
+		--self.source:rewind()
+		--self.source:play()	
 		self.state = GAME_STATE_PLAY
 		self:onLoad( {gamerules=self.gamerules} )
 		self.gamerules:prepareForGame()
 		self.gamerules:getPlayer().visible = true
 	end
---]]
+
 end
 
 function Game:keyForAction( action )
@@ -127,7 +127,8 @@ function Game:warpPlayerToSpawn( player )
 	player.tile_x, player.tile_y = self.gamerules:tileCoordinatesFromWorld( player.world_x, player.world_y )
 end
 
-function Game:onLoad( params )
+
+function Game:onLoadGame( params )
 	-- load the map
 	self.gamerules:loadMap( self.config.map )	
 	local player = self.gamerules.entity_factory:createClass( "Player" )
@@ -164,7 +165,11 @@ function Game:onLoad( params )
 		logging.verbose( "neighbors: " .. #n )
 
 		--self:copy_data( self.cell_data, self.cell_layer )
-	end
+	end	
+end
+
+function Game:onLoad( params )
+
 end
 
 
@@ -365,8 +370,6 @@ function Game:onUpdate( params )
 		local player = self.gamerules:getPlayer()
 		self.gamerules:onUpdate( params )
 
-
-
 		local cam_x, cam_y = self.gamerules:getCameraPosition()
 		if love.keyboard.isDown( self:keyForAction(ACTION_MOVE_MAP_UP) ) then cam_y = cam_y + self.config.move_speed*params.dt end
 		if love.keyboard.isDown( self:keyForAction(ACTION_MOVE_MAP_DOWN) ) then cam_y = cam_y - self.config.move_speed*params.dt end
@@ -386,8 +389,6 @@ function Game:onUpdate( params )
 		self.gamerules:snapCameraToPlayer( player )
 		self:updatePlayerDirection()
 	elseif self.state == GAME_STATE_HELP then
-		self.gamerules:onUpdate( params )
-
 		params.game = self
 		self.helpscreen:onUpdate( params )
 	end
@@ -455,9 +456,6 @@ function Game:onDraw( params )
 		love.graphics.printf( "Press <space> to try again", 0, 250, love.graphics.getWidth(), "center" )
 		love.graphics.printf( "Press <esc> to exit", 0, 300, love.graphics.getWidth(), "center" )
 	elseif self.state == GAME_STATE_HELP then
-		self.gamerules:getPlayer().visible = false
-		self.gamerules:drawEntities( params )
-
 		params.game = self
 		self.helpscreen:onDraw( params )
 	end

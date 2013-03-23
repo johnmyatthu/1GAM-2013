@@ -223,7 +223,6 @@ function Enemy:onUpdate( params )
 			self.state = E_STATE_SCAN
 			self.scan_time = SCAN_TIME
 			self:findWaypoint( params, self.waypoint.next_waypoint )
-			logging.verbose( "changing to scan state" )
 		end
 	end
 
@@ -302,11 +301,10 @@ function Enemy:onUpdate( params )
 	if params.gamerules:moveEntityInDirection( self, dir, params.dt ) then
 		self.velocity.x = 0
 		self.velocity.y = 0
-		logging.verbose( "hit tile: " .. dir.x .. ", " .. dir.y )
+		--logging.verbose( "hit tile: " .. dir.x .. ", " .. dir.y )
 		self.state = E_STATE_SCAN
 		self:findWaypoint( params, self.waypoint.next_waypoint )
 		self.scan_time = SCAN_TIME
-		self.path = nil
 	else
 
 
