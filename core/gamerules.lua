@@ -667,7 +667,10 @@ function GameRules:drawEntities( params )
 	love.graphics.setColor( 255, 255, 255, 255 )
 	params.gamerules = self
 	self.entity_manager:eventForEachEntity( "onDraw", params )
-	love.graphics.pop()	
+	love.graphics.pop()
+
+
+	self.entity_manager:eventForEachEntity( "resetMoves", params )
 end
 
 -- -------------------------------------------------------------
@@ -750,8 +753,7 @@ function GameRules:moveEntityInDirection( entity, direction, dt )
 
 	-- for now, just collide with tiles that exist on the collision layer.
 	if self.map then
-		
-
+		entity.moves = entity.moves + 1
 		-- try the x direction
 		local tx, ty = self:tileCoordinatesFromWorld( nwx, entity.world_y )
 		local tileX = self:getCollisionTile( tx, ty )

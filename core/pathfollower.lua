@@ -30,10 +30,8 @@ function PathFollower:onUpdate( params )
 	if self.follow_path then
 
 		-- the minimum number of units the sprite can be to a tile's center before it is considered "close enough"
-		local TILE_DISTANCE_THRESHOLD = 2
+		local TILE_DISTANCE_THRESHOLD = 1.1
 		local command = { up=false, down=false, left=false, right=false }
-		command.move_speed = self.move_speed
-		command.dt = params.dt
 
 		if self.path then
 			local tile = self.path[ self.current_path_step ]
@@ -68,42 +66,32 @@ function PathFollower:onUpdate( params )
 					return
 				end
 
-				-- this mess should be refactored and put into gamerules to use collision.
-				local min_vel = command.move_speed
-				
-				local mx = 0
-				local my = 0
+				dir = {x = 0, y = 0}
 				if self.velocity.x ~= 0 then
-					if self.velocity.x > 0 then mx = command.move_speed else mx = -command.move_speed end
+					if self.velocity.x > 0 then
+						dir.x = self.move_speed
+					else
+						dir.x = -self.move_speed
+					end
+					self.velocity.x = 0
 				end
 				if self.velocity.y ~= 0 then
-					if self.velocity.y > 0 then my = command.move_speed else my = -command.move_speed end
+					if self.velocity.y > 0 then
+						dir.y = self.move_speed
+					else
+						dir.y = -self.move_speed
+					end
+					self.velocity.y = 0
 				end
+				
+				
 
-				local vertical_speed = my
-				if mx ~= 0 and my ~= 0 then
-					vertical_speed = my * 0.5
-				end
-
-				if self.velocity.x > 0 then
-					command.right = true
-				elseif self.velocity.x < 0 then
-					command.left = true
-				end
-
-				if self.velocity.y > 0 then
-					command.down = true
-				elseif self.velocity.y < 0 then
-					command.up = true
-				end
-
-				self.world_x = self.world_x + (mx * params.dt)
-				self.world_y = self.world_y + (vertical_speed * params.dt)
+				params.gamerules:moveEntityInDirection(self, dir, params.dt)
 			end
 		end
 
-		command.move_speed = 0
-		params.gamerules:handleMovePlayerCommand( command, self )
+		--command.move_speed = 0
+		--params.gamerules:handleMovePlayerCommand( command, self )
 	end
 
 	AnimatedSprite.onUpdate(self, params)

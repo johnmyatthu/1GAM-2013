@@ -398,8 +398,7 @@ end
 
 
 function Game:onDraw( params )
-	--love.graphics.setBackgroundColor( 39, 82, 93, 255 )
-	love.graphics.setBackgroundColor( 36, 56, 53, 255 )
+	love.graphics.setBackgroundColor( 0, 0, 0, 255 )
 	love.graphics.clear()
 
 	local player = self.gamerules:getPlayer()

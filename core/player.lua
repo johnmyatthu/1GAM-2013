@@ -52,7 +52,7 @@ function Player:onUpdate( params )
 	local min = 99999999
 
 	for _, light in pairs(lights) do
-		if light ~= self.light then
+		if light ~= self.light and light.intensity > 0 then
 			local dist = params.gamerules:calculateEntityDistance( light, self ) / light.radius
 			if dist < min then
 				min = dist

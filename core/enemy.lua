@@ -113,6 +113,20 @@ function Enemy:onDraw( params )
 		love.graphics.setColor( 255, 0, 255, 255 )
 		love.graphics.line( startx, starty, endx, endy )	
 	end
+
+
+	-- get my position in screen space
+	local x, y = params.gamerules:worldToScreen( self.world_x, self.world_y )
+	y = y - 64
+	x = x - 50
+
+	love.graphics.setColor( 255, 255, 255, 255 )
+	love.graphics.print( "self.path = " .. tostring(self.path), x, y )	
+
+	y = y - 24
+	love.graphics.print( "self.state = " .. tostring(self.state), x, y )
+
+
 end
 
 
@@ -152,6 +166,7 @@ end
 
 function Enemy:onUpdate( params )
 	
+	self.move_speed = self.normal_move_speed * self.move_multiplier
 	-- if params.gamestate ~= core.GAME_STATE_DEFEND then
 	-- 	return
 	-- end
@@ -232,7 +247,6 @@ function Enemy:onUpdate( params )
 	end
 
 	self.next_attack_time = self.next_attack_time - params.dt
-
 	local target = params.gamerules.entity_manager:findFirstEntityByName( "Player" )
 	if target then
 		-- get a vector from me to the target
@@ -275,10 +289,10 @@ function Enemy:onUpdate( params )
 
 
 	dir = {x = 0, y = 0}
-	if not self.path and self.waypoint and self.state ~= E_STATE_SCAN then
+	if (self.path == nil) and self.waypoint and (self.state ~= E_STATE_SCAN) then
 		dir.x = self.view_direction.x * self.move_speed * self.move_multiplier
 		dir.y = self.view_direction.y * self.move_speed * self.move_multiplier
-	elseif self.path then
+	elseif (self.path == nil) then
 		if self.velocity.x ~= 0 then
 			if self.velocity.x > 0 then
 				dir.x = self.move_speed
@@ -296,18 +310,19 @@ function Enemy:onUpdate( params )
 	else
 		dir.x = 0
 		dir.y = 0
+		self.velocity.x = 0
+		self.velocity.y = 0		
 	end
 
-	if params.gamerules:moveEntityInDirection( self, dir, params.dt ) then
-		self.velocity.x = 0
-		self.velocity.y = 0
-		--logging.verbose( "hit tile: " .. dir.x .. ", " .. dir.y )
-		self.state = E_STATE_SCAN
-		self:findWaypoint( params, self.waypoint.next_waypoint )
-		self.scan_time = SCAN_TIME
-	else
-
-
+	if self.path == nil and (self.state ~= E_STATE_FIND_WAYPOINT) then
+		if params.gamerules:moveEntityInDirection( self, dir, params.dt ) then
+			self.velocity.x = 0
+			self.velocity.y = 0
+			--logging.verbose( "hit tile: " .. dir.x .. ", " .. dir.y )
+			self.state = E_STATE_SCAN
+			self:findWaypoint( params, self.waypoint.next_waypoint )
+			self.scan_time = SCAN_TIME
+		end
 	end
 
 
