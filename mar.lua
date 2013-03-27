@@ -60,9 +60,9 @@ function Game:initialize( gamerules, config, fonts )
 	end
 
 
-
+	self.total_loot = 0
 	self.state = GAME_STATE_HELP
-
+	
 	if self.state == GAME_STATE_HELP then
 		self.actions[ " " ] = self.nextState
 		love.mouse.setVisible( true )
@@ -90,25 +90,23 @@ function Game:nextState()
 		self.state = GAME_STATE_PLAY
 		self:onLoadGame( {gamerules=self.gamerules} )
 		self.gamerules:prepareForGame()
-		self.gamerules:getPlayer().visible = true
 	elseif self.state == GAME_STATE_WIN then
 		--self.source:stop()
 		--self.source:rewind()
 		--self.source:play()
+		logging.verbose( "time to play" )
 		self.state = GAME_STATE_PLAY
-		self:onLoad( {gamerules=self.gamerules} )
+		self:onLoadGame( {gamerules=self.gamerules} )
 		self.gamerules:prepareForGame()
-		self.gamerules:getPlayer().visible = true
 	elseif self.state == GAME_STATE_FAIL then
 		--self.source:stop()
 		--self.source:rewind()
-		--self.source:play()	
+		--self.source:play()
+		logging.verbose( "time to play" )
 		self.state = GAME_STATE_PLAY
-		self:onLoad( {gamerules=self.gamerules} )
+		self:onLoadGame( {gamerules=self.gamerules} )
 		self.gamerules:prepareForGame()
-		self.gamerules:getPlayer().visible = true
 	end
-
 end
 
 function Game:keyForAction( action )
@@ -166,6 +164,8 @@ function Game:onLoadGame( params )
 
 		--self:copy_data( self.cell_data, self.cell_layer )
 	end	
+
+	self.total_loot = #self.gamerules.entity_manager:findAllEntitiesByName( "func_loot" )
 end
 
 function Game:onLoad( params )
@@ -370,6 +370,11 @@ function Game:onUpdate( params )
 		local player = self.gamerules:getPlayer()
 		self.gamerules:onUpdate( params )
 
+		if self.total_loot == player.loot_collected then
+			logging.verbose( "You collected all the loot" )
+			self.state = GAME_STATE_WIN
+		end
+
 		local cam_x, cam_y = self.gamerules:getCameraPosition()
 		if love.keyboard.isDown( self:keyForAction(ACTION_MOVE_MAP_UP) ) then cam_y = cam_y + self.config.move_speed*params.dt end
 		if love.keyboard.isDown( self:keyForAction(ACTION_MOVE_MAP_DOWN) ) then cam_y = cam_y - self.config.move_speed*params.dt end
@@ -434,7 +439,7 @@ function Game:onDraw( params )
 		love.graphics.setFont( self.fonts[ "text32" ] )
 		love.graphics.setColor( 255, 255, 255, 255 )
 
-		love.graphics.printf( "You collected all the treasure!", 0, 120, love.graphics.getWidth(), "center" )
+		love.graphics.printf( "You collected all the Orbs without being caught!", 0, 120, love.graphics.getWidth(), "center" )
 		love.graphics.printf( "Thanks for playing!", 0, 250, love.graphics.getWidth(), "center" )
 
 		love.graphics.setFont( self.fonts[ "text16" ] )
@@ -449,7 +454,7 @@ function Game:onDraw( params )
 		love.graphics.setFont( self.fonts[ "text32" ] )
 		love.graphics.setColor( 255, 0, 0, 255 )
 
-		love.graphics.printf( "Oh noes! You were eaten by a shark!", 0, 120, love.graphics.getWidth(), "center" )
+		love.graphics.printf( "You were caught by guards!", 0, 120, love.graphics.getWidth(), "center" )
 
 		love.graphics.setColor( 255, 255, 255, 255 )
 		love.graphics.printf( "Press <space> to try again", 0, 250, love.graphics.getWidth(), "center" )

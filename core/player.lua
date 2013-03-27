@@ -19,6 +19,7 @@ function Player:initialize()
 	self.light_level = 0
 
 	self.is_tagged = false -- tagged by an enemy
+	self.loot_collected = 0
 end
 
 function Player:onSpawn( params )
@@ -69,6 +70,7 @@ function Player:onUpdate( params )
 		local loot_dist = params.gamerules:calculateEntityDistance( loot, self )
 		if loot_dist < 16 then
 			params.gamerules:removeEntity( loot )
+			self.loot_collected = self.loot_collected + 1
 			break -- don't overlap loot entities we only find one at a time here
 		end
 	end
