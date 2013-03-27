@@ -58,11 +58,13 @@ function PathFollower:onUpdate( params )
 					self.world_y = cy
 
 					if self.current_path_step == #self.path then
+						logging.verbose( "reached the last step of the path. stopping here." )
 						self.path = nil
 						return			
 					end
 				
 					self.current_path_step = self.current_path_step + 1
+					logging.verbose( "reached step in the path" )
 					return
 				end
 
@@ -83,9 +85,7 @@ function PathFollower:onUpdate( params )
 					end
 					self.velocity.y = 0
 				end
-				
-				
-
+			
 				params.gamerules:moveEntityInDirection(self, dir, params.dt)
 			end
 		end

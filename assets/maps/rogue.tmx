@@ -189,5 +189,15 @@
     <property name="classname" value="func_loot"/>
    </properties>
   </object>
+  <object gid="6" x="384" y="320">
+   <properties>
+    <property name="classname" value="func_loot"/>
+   </properties>
+  </object>
+  <object gid="6" x="672" y="736">
+   <properties>
+    <property name="classname" value="func_loot"/>
+   </properties>
+  </object>
  </objectgroup>
 </map>

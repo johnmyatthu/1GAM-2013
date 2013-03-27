@@ -271,15 +271,18 @@ function Enemy:onUpdate( params )
 				-- we have to perform a trace from wx, wy to wx2, wy2
 				-- if any collision tiles are present, we must ignore it
 				
-				local tx, ty, hit = params.gamerules:collisionTrace( self.world_x, self.world_y, target.world_x, target.world_y )
-				if hit == 0 then
-					self.saw_player = 2
-					self.state = E_STATE_INVESTIGATE
-					self.path = nil
-					-- update view direction to follow the last seen point
-					self.view_direction.x = x
-					self.view_direction.y = y
-					self.trace_end = {x=tx, y=ty}
+				-- DEBUG: dont chase player
+				if true then
+					local tx, ty, hit = params.gamerules:collisionTrace( self.world_x, self.world_y, target.world_x, target.world_y )
+					if hit == 0 then
+						self.saw_player = 2
+						self.state = E_STATE_INVESTIGATE
+						self.path = nil
+						-- update view direction to follow the last seen point
+						self.view_direction.x = x
+						self.view_direction.y = y
+						self.trace_end = {x=tx, y=ty}
+					end
 				end
 				
 			end

@@ -64,11 +64,12 @@ function Player:onUpdate( params )
 	self.light_level = math.max( self.light_level, 0 )
 	self.light_level = math.min( self.light_level, 1 )
 
-	local loot = params.gamerules.entity_manager:findFirstEntityByName( "func_loot" )
-	if loot then
+	local loot_entities = params.gamerules.entity_manager:findAllEntitiesByName( "func_loot" )
+	for _, loot in pairs(loot_entities) do
 		local loot_dist = params.gamerules:calculateEntityDistance( loot, self )
 		if loot_dist < 16 then
 			params.gamerules:removeEntity( loot )
+			break -- don't overlap loot entities we only find one at a time here
 		end
 	end
 

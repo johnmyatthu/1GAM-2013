@@ -27,8 +27,6 @@ function Entity:initialize()
 	self.velocity = { x=0, y=0 }
 	self.damping = { x=1, y=1 }
 	self.scale = { x=1, y=1 }
-
-	self.moves = 0
 end
 
 function Entity:onRemove( params )
@@ -125,7 +123,7 @@ function Entity:onDraw( params )
 end
 
 function Entity:resetMoves( params )
-	self.moves = 0
+
 end
 
 function Entity:onCollide( params )
