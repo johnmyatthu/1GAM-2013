@@ -181,11 +181,9 @@ function AnimatedSprite:onDraw( params )
 	love.graphics.setColor( 255, 255, 255, 255 )
 
 	-- get my position in screen space
-	local x, y = params.gamerules:worldToScreen( self.world_x, self.world_y )
-	y = y + 32
-	x = x - 60
-
-	love.graphics.setColor( 255, 255, 255, 255 )
-	love.graphics.print( "velocity: " .. self.velocity.x .. ", " .. self.velocity.y, x, y )	
-	
+	--local x, y = params.gamerules:worldToScreen( self.world_x, self.world_y )
+	--y = y + 32
+	--x = x - 60
+	--love.graphics.setColor( 255, 255, 255, 255 )
+	--love.graphics.print( "velocity: " .. self.velocity.x .. ", " .. self.velocity.y, x, y )
 end

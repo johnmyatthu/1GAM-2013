@@ -66,7 +66,7 @@ end
 
 function Enemy:onSpawn( params )
 	self:loadSprite( "assets/sprites/critters.conf" )
-	self:playAnimation( "one" )
+	self:playAnimation( "left" )
 	PathFollower.onSpawn( self, params )
 
 	local target = params.gamerules.entity_manager:findFirstEntityByName( "Player" )
@@ -75,8 +75,6 @@ function Enemy:onSpawn( params )
 		self:setPath( path )
 		self.target = target
 		self.target_tile = {x=target.tile_x, y=target.tile_y}
-	else
-		logging.verbose( "Unable to find target." )
 	end
 end
 
@@ -115,6 +113,7 @@ function Enemy:onDraw( params )
 	end
 
 
+	--[[
 	-- get my position in screen space
 	local x, y = params.gamerules:worldToScreen( self.world_x, self.world_y )
 	y = y - 64
@@ -125,7 +124,7 @@ function Enemy:onDraw( params )
 
 	y = y - 24
 	love.graphics.print( "self.state = " .. tostring(self.state), x, y )
-
+	--]]
 
 end
 
@@ -219,7 +218,8 @@ function Enemy:onUpdate( params )
 		self.move_multiplier = self.persue_multiplier
 		if dist < 16 then
 			local target = params.gamerules.entity_manager:findFirstEntityByName( "Player" )
-			if target and not target.is_tagged then
+			dist = params.gamerules:calculateEntityDistance( target, self )
+			if dist < 8 and target and not target.is_tagged then
 				target.is_tagged = true
 			end
 			self.state = E_STATE_SCAN

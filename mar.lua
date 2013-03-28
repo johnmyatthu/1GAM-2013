@@ -373,7 +373,12 @@ function Game:onUpdate( params )
 		if self.total_loot == player.loot_collected then
 			logging.verbose( "You collected all the loot" )
 			self.state = GAME_STATE_WIN
+			self.actions[ " " ] = self.nextState
+		elseif player.is_tagged then
+			self.state = GAME_STATE_FAIL
+			self.actions[ " " ] = self.nextState
 		end
+
 
 		local cam_x, cam_y = self.gamerules:getCameraPosition()
 		if love.keyboard.isDown( self:keyForAction(ACTION_MOVE_MAP_UP) ) then cam_y = cam_y + self.config.move_speed*params.dt end
@@ -433,6 +438,8 @@ function Game:onDraw( params )
 	elseif self.state == GAME_STATE_WIN then
 		self.gamerules:drawWorld()
 		self.gamerules:drawEntities( params )
+		self.gamerules:drawLightmap( params )
+
 		love.graphics.setColor( 0, 0, 0, 64 )
 		love.graphics.rectangle( "fill", 0, 0, love.graphics.getWidth(), love.graphics.getHeight() )	
 
@@ -447,6 +454,8 @@ function Game:onDraw( params )
 	elseif self.state == GAME_STATE_FAIL then
 		self.gamerules:drawWorld()
 		self.gamerules:drawEntities( params )
+		self.gamerules:drawLightmap( params )
+
 		love.graphics.setColor( 0, 0, 0, 64 )
 		love.graphics.rectangle( "fill", 0, 0, love.graphics.getWidth(), love.graphics.getHeight() )	
 	

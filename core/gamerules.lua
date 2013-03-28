@@ -254,6 +254,8 @@ end
 
 function GameRules:loadMap( mapname )
 	
+
+	self.lights = {}
 	self.entity_manager.entity_list = {}
 
 
