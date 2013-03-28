@@ -35,7 +35,7 @@ function Enemy:initialize()
 	self.view_direction = {x=0, y=1}
 	self.view_distance = 460
 
-	self.view_angle = 100
+	self.view_angle = 80
 	self.rotation = 0
 
 	self.light_scale = 0.5
@@ -199,6 +199,29 @@ function Enemy:onUpdate( params )
 		end
 	elseif self.state == E_STATE_SCAN then
 		self.scan_time = self.scan_time - params.dt
+
+		local scan_delta = 1.0
+
+
+
+		--local npx, npy = self.waypoint.world_x, self.waypoint.world_y
+		--local len = core.util.vector.length( self.waypoint.world_x-self.world_x, self.waypoint.world_y-self.world_y )
+		--npx = npx/len
+		--npy = npy/len
+		--local player = params.gamerules.entity_manager:findFirstEntityByName( "Player" )
+		--local ang = math.deg(core.util.vector.angle( npx, npy, self.view_direction.x, self.view_direction.y))
+		if (self.scan_time / SCAN_TIME) >= 0.5 then
+			scan_delta = -scan_delta
+		end
+
+		local c45 = math.cos( math.rad(scan_delta) )
+		local s45 = math.sin( math.rad(scan_delta) )
+
+		local nx = self.view_direction.x * c45 - self.view_direction.y * s45
+		local ny = self.view_direction.x * s45 + self.view_direction.y * c45
+
+		self.view_direction.x = nx
+		self.view_direction.y = ny
 
 		if self.scan_time <= 0 then
 			local tx, ty, hit = params.gamerules:collisionTrace( self.world_x, self.world_y, self.waypoint.world_x, self.waypoint.world_y )
