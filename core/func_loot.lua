@@ -5,8 +5,6 @@ func_loot = class( "func_loot", AnimatedSprite )
 function func_loot:initialize()
 	AnimatedSprite:initialize(self)
 	self.collision_mask = 0
-
-
 end
 
 function func_loot:onSpawn( params )

@@ -10,7 +10,7 @@ local config = {}
 local fonts = {}
 local gameLogic = nil
 local gamerules = nil
-local game_state = KERNEL_STATE_RUN
+local game_state = KERNEL_STATE_LOGO
 
 local logo_intro = {
 	icon = love.graphics.newImage( "assets/logos/icon.png" ),
