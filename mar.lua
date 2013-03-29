@@ -94,7 +94,6 @@ function Game:nextState()
 		--self.source:stop()
 		--self.source:rewind()
 		--self.source:play()
-		logging.verbose( "time to play" )
 		self.state = GAME_STATE_PLAY
 		self:onLoadGame( {gamerules=self.gamerules} )
 		self.gamerules:prepareForGame()
@@ -102,7 +101,6 @@ function Game:nextState()
 		--self.source:stop()
 		--self.source:rewind()
 		--self.source:play()
-		logging.verbose( "time to play" )
 		self.state = GAME_STATE_PLAY
 		self:onLoadGame( {gamerules=self.gamerules} )
 		self.gamerules:prepareForGame()
@@ -425,10 +423,9 @@ function Game:onDraw( params )
 		love.graphics.rectangle( "fill", 0, 0, love.graphics.getWidth(), height )
 		love.graphics.setFont( self.fonts[ "text16" ] )
 		love.graphics.setColor( 255, 255, 255, 255 )
-		love.graphics.print( "Light Level: " .. self.gamerules:getPlayer().light_level, 10, 5 )
-
-
-		--love.graphics.print( "Treasure Saved: " .. tostring(self.gamerules:originalTotalChests()-self.gamerules:totalChestsRemaining()) .. " / " .. tostring(self.gamerules:originalTotalChests()), 540, 5 )	
+		--love.graphics.print( "Light Level: " .. self.gamerules:getPlayer().light_level, 10, 5 )
+		
+		love.graphics.print( "Orbs Collected: " .. tostring(player.loot_collected) .. " / " .. tostring(self.gamerules:totalOrbs()), 540, 5 )	
 
 		--love.graphics.print( "Total Entities: " .. self.gamerules.entity_manager:entityCount(), 10, 50 )
 	elseif self.state == GAME_STATE_WIN then
