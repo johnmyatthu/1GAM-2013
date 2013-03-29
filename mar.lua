@@ -135,15 +135,6 @@ function Game:onLoadGame( params )
 	self.gamerules:setPlayer( player )
 	self.gamerules:spawnEntity( player, nil, nil, nil )
 
-	if not self.helpscreen_loaded and self.state == GAME_STATE_HELP then
-		params.game = self
-		params.gamerules = self.gamerules
-		self.helpscreen:prepareToShow( params )	
-		self.helpscreen_loaded = true
-	end
-
-
-
 	self.cellsw = self.gamerules.map.width
 	self.cellsh = self.gamerules.map.height
 
@@ -169,7 +160,12 @@ function Game:onLoadGame( params )
 end
 
 function Game:onLoad( params )
-
+	if not self.helpscreen_loaded and self.state == GAME_STATE_HELP then
+		params.game = self
+		params.gamerules = self.gamerules
+		self.helpscreen:prepareToShow( params )	
+		self.helpscreen_loaded = true
+	end
 end
 
 

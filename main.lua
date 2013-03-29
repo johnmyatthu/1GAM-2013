@@ -10,7 +10,7 @@ local config = {}
 local fonts = {}
 local gameLogic = nil
 local gamerules = nil
-local game_state = KERNEL_STATE_LOGO
+local game_state = KERNEL_STATE_RUN
 
 local logo_intro = {
 	icon = love.graphics.newImage( "assets/logos/icon.png" ),
@@ -114,7 +114,7 @@ function love.load()
 	gameLogic = Game:new( gamerules, config, fonts )
 
 	-- pass control to the logic
-	core.util.callLogic( gameLogic, "onLoad", {} )
+	core.util.callLogic( gameLogic, "onLoad", { gamerules = gamerules } )
 
 	if game_state == KERNEL_STATE_LOGO then
 		gamerules:playSound( "menu_intro" )
@@ -123,7 +123,7 @@ end
 
 function love.draw()
 	if game_state == KERNEL_STATE_RUN then
-		core.util.callLogic( gameLogic, "onDraw", {} )
+		core.util.callLogic( gameLogic, "onDraw", { gamerules = gamerules } )
 	elseif game_state == KERNEL_STATE_LOGO then
 		logo_intro:draw()
 	end
