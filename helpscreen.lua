@@ -7,10 +7,15 @@ function HelpScreen:initialize( fonts )
 	self.fonts = fonts
 
 	self.keys = love.graphics.newImage( "assets/help.png" )
+
+	self.player = nil
+	self.orb = nil
+	self.enemy = nil
 end
 
 
 function HelpScreen:prepareToShow( params )
+
 end
 
 
