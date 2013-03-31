@@ -71,6 +71,7 @@ function Player:onUpdate( params )
 		if loot_dist < 16 then
 			params.gamerules:removeEntity( loot )
 			self.loot_collected = self.loot_collected + 1
+			params.gamerules:playSound( "menu_intro" )
 			break -- don't overlap loot entities we only find one at a time here
 		end
 	end

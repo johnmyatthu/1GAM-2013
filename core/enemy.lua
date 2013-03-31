@@ -97,6 +97,8 @@ function Enemy:onDraw( params )
 	love.graphics.setColor( 255, 0, 0, 255 )
 	love.graphics.line( startx, starty, endx, endy )
 
+
+	--[[
 	startx, starty = params.gamerules:worldToScreen( self.world_x, self.world_y )
 	if self.waypoint then
 		-- draw line to next waypoint
@@ -111,6 +113,7 @@ function Enemy:onDraw( params )
 		love.graphics.setColor( 255, 0, 255, 255 )
 		love.graphics.line( startx, starty, endx, endy )	
 	end
+	--]]
 
 
 	--[[
