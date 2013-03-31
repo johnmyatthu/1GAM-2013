@@ -11,7 +11,7 @@ import shutil
 PROJECT_PATH = "."
 
 # the generated love binary (runnable binary + package)
-PROJECT_NAME = "treasuretrove"
+PROJECT_NAME = "orbthief"
 
 # the generated love package
 PACKAGE_NAME = "%s.love" % PROJECT_NAME
