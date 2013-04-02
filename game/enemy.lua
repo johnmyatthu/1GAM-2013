@@ -13,9 +13,6 @@ Enemy = class( "Enemy", PathFollower )
 function Enemy:initialize()
 	PathFollower.initialize(self)
 
-	-- random values to get the ball rolling
-	self.attack_damage = 2
-
 	self.target = nil
 	self.target_tile = { x=0, y=0 }
 
@@ -36,11 +33,6 @@ function Enemy:initialize()
 	self.view_distance = 460
 
 	self.view_angle = 80
-	self.rotation = 0
-
-	self.light_scale = 0.5
-	self.light_radius = 0.4
-	self.light_intensity = 0.75
 
 	self.normal_move_speed = 32
 	self.persue_multiplier = 2.0
@@ -273,48 +265,6 @@ function Enemy:onUpdate( params )
 	end
 
 	self.next_attack_time = self.next_attack_time - params.dt
-	local target = params.gamerules.entity_manager:findFirstEntityByName( "Player" )
-	if target then
-		-- get a vector from me to the target
-		local dx, dy = (target.world_x - self.world_x), (target.world_y - self.world_y)
-		--logging.verbose( "dx: " .. dx .. ", dy: " ..  dy )
-		--local len = math.sqrt( (dx*dx) + (dy*dy) )
-		local distance = core.util.vector.length( dx, dy )
-		local x = dx/distance
-		local y = dy/distance
-
-		--logging.verbose( "x: " .. x .. ", y: " ..  y )
-
-		-- so now we dot the vector we have with the view_diraction of the enemy
-		dx, dy = (x - self.view_direction.x), (y - self.view_direction.y)
-		local dp = (x * self.view_direction.x) + (y * self.view_direction.y)
-		local delta_len = core.util.vector.length( dx, dy )
-		if dp > 0 then
-			local angle = math.deg(core.util.vector.angle( x, y, self.view_direction.x, self.view_direction.y) )
-			if distance < self.view_distance and angle < self.view_angle and target.light_level > MIN_PLAYER_LIGHT_LEVEL then
-				--self.saw_player = 2
-
-				-- we have to perform a trace from wx, wy to wx2, wy2
-				-- if any collision tiles are present, we must ignore it
-				
-				-- DEBUG: dont chase player
-				if true then
-					local tx, ty, hit = params.gamerules:collisionTrace( self.world_x, self.world_y, target.world_x, target.world_y )
-					if hit == 0 then
-						self.saw_player = 2
-						self.state = E_STATE_INVESTIGATE
-						self.path = nil
-						-- update view direction to follow the last seen point
-						self.view_direction.x = x
-						self.view_direction.y = y
-						self.trace_end = {x=tx, y=ty}
-					end
-				end
-				
-			end
-		end
-	end
-
 
 
 	dir = {x = 0, y = 0}

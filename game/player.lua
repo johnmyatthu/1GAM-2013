@@ -1,25 +1,14 @@
 require "core"
 
-local LIGHT_LEVEL_DIVISOR = 100
-
 Player = class("Player", AnimatedSprite)
 function Player:initialize()
 	AnimatedSprite.initialize(self)
 	self.health = 100
 	self.collision_mask = 1
-	self.attack_delay = 1 -- in seconds
-	self.attack_damage = 1
 
 	self.dir = {x=0, y=0}
 
 	self.visible = true
-	self.light_scale = 0.5
-	self.light_intensity = 0 --0.15
-
-	self.light_level = 0
-
-	self.is_tagged = false -- tagged by an enemy
-	self.loot_collected = 0
 end
 
 function Player:onSpawn( params )
@@ -45,35 +34,6 @@ function Player:onUpdate( params )
 	if tile or not params.gamerules:isTileWithinMap(tx, ty) then
 		self.velocity.x = 0
 		self.velocity.y = 0
-	end
-
-
-	local lights = params.gamerules.entity_manager:findAllEntitiesByName( "func_light" )
-
-	local min = 99999999
-
-	for _, light in pairs(lights) do
-		if light ~= self.light and light.intensity > 0 then
-			local dist = params.gamerules:calculateEntityDistance( light, self ) / light.radius
-			if dist < min then
-				min = dist
-			end
-		end	
-	end
-
-	self.light_level = 1.0 - (min/LIGHT_LEVEL_DIVISOR)
-	self.light_level = math.max( self.light_level, 0 )
-	self.light_level = math.min( self.light_level, 1 )
-
-	local loot_entities = params.gamerules.entity_manager:findAllEntitiesByName( "func_loot" )
-	for _, loot in pairs(loot_entities) do
-		local loot_dist = params.gamerules:calculateEntityDistance( loot, self )
-		if loot_dist < 16 then
-			params.gamerules:removeEntity( loot )
-			self.loot_collected = self.loot_collected + 1
-			params.gamerules:playSound( "collect" )
-			break -- don't overlap loot entities we only find one at a time here
-		end
 	end
 
 	AnimatedSprite.onUpdate(self, params)

@@ -20,11 +20,6 @@ function HelpScreen:prepareToShow( params )
 	self.player.world_y = 176
 	self.player:onSpawn( params )
 
-	self.orb = params.gamerules.entity_factory:createClass( "func_loot" )
-	self.orb.world_x = 650
-	self.orb.world_y = 256
-	self.orb:onSpawn( params )
-
 	self.enemy = params.gamerules.entity_factory:createClass( "Enemy" )
 	self.enemy.world_x = 650
 	self.enemy.world_y = 336

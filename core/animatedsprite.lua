@@ -12,8 +12,6 @@ function AnimatedSprite:initialize()
 	self.animations = nil
 	self.spritesheet = nil
 	self.animation_index_from_name = {}
-
-	self.light_radius = 2
 end
 
 
@@ -121,10 +119,6 @@ function AnimatedSprite:playAnimation( name )
 end
 
 function AnimatedSprite:onSpawn( params )
-	self.light = params.gamerules.entity_factory:createClass( "func_light" )
-	params.gamerules:spawnEntity( self.light, nil, nil, nil )
-	params.gamerules:addLight( self.light )
-
 	Entity.onSpawn( self, params )
 end	
 
@@ -150,22 +144,7 @@ end
 
 -- params:
 --	gamerules: the instance of the active gamerules class
-function AnimatedSprite:onDraw( params )
-
-	self.light.world_x = self.world_x
-	self.light.world_y = self.world_y
-	if self.light_intensity ~= nil then
-		self.light.intensity = self.light_intensity
-	end
-
-	if self.light_scale ~= nil then
-		self.light.scale_factor = self.light_scale
-	end
-
-	if self.light_radius ~= nil then
-		self.light.radius = self.light_radius
-	end
-	
+function AnimatedSprite:onDraw( params )	
 	Entity.onDraw(self, params)
 
 	love.graphics.setColor( self.color.r, self.color.g, self.color.b, self.color.a )

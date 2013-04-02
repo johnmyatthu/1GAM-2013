@@ -1,5 +1,6 @@
 module( ..., package.seeall )
 require "core"
+require "game"
 local Pathfinder = require "lib.jumper.jumper.pathfinder"
 loader = require "lib.AdvTiledLoader.Loader"
 Tile = require "lib.AdvTiledLoader.Tile"
@@ -30,13 +31,9 @@ function GameRules:initialize()
 	self.entity_factory:registerClass( "WorldEntity", core.WorldEntity )
 	self.entity_factory:registerClass( "AnimatedSprite", core.AnimatedSprite )
 	self.entity_factory:registerClass( "PathFollower", core.PathFollower )
-	self.entity_factory:registerClass( "func_spawn", core.func_spawn )
-	self.entity_factory:registerClass( "Enemy", core.Enemy )
-	self.entity_factory:registerClass( "Bullet", core.Bullet )
-	self.entity_factory:registerClass( "Player", core.Player )
-	self.entity_factory:registerClass( "func_light", core.func_light )
-	self.entity_factory:registerClass( "func_waypoint", core.func_waypoint )
-	self.entity_factory:registerClass( "func_loot", core.func_loot )
+	self.entity_factory:registerClass( "Enemy", game.Enemy )
+	self.entity_factory:registerClass( "Player", game.Player )
+
 
 	self.sounds = {}
 	self.sound_data = {}

@@ -2,7 +2,7 @@
 	"map" : "rogue.tmx",
 	"move_speed" : 100,
 	"spawn" : [0, 0],
-	"game" : "mar",
+	"game" : "april",
 
 	"fonts" :
 	{

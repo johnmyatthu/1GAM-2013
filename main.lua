@@ -1,4 +1,5 @@
 require "core"
+require "game"
 
 local CONFIGURATION_FILE = "settings.json"
 
