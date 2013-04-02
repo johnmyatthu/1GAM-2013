@@ -1,5 +1,5 @@
 function love.conf(t)
-	t.title = "1GAM - March 2013"
+	t.title = "1GAM - April 2013"
 	t.author = "Adam Petrone"
 	t.url = nil
 	t.screen.width = 800

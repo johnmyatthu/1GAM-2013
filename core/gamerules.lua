@@ -11,7 +11,7 @@ require "core.entitymanager"
 
 local MAP_COLLISION_LAYER_NAME = "Collision"
 local MAP_GROUND_LAYER_NAME = "Ground"
-local MAP_FOG_LAYER_NAME = "Fog"
+
 
 local LIGHT_RADIUS = 4
 local LIGHT_SCALE_FACTOR = 2
@@ -292,6 +292,9 @@ function GameRules:loadMap( mapname )
 
 			-- the spawn function accepts tile coordinates, but the objects are in "map" (world) coordinates
 			-- so just convert these
+
+			-- for whatever reason, tiled exports these objects off by one tile in the Y direction
+			v.y = v.y - 32
 			local tx, ty = self:tileCoordinatesFromWorld( v.x, v.y )
 
 			self:spawnEntityAtTileWithProperties( nil, tx, ty, properties )
@@ -525,6 +528,8 @@ function GameRules:spawnEntityAtTileWithProperties( layer, tile_x, tile_y, prope
 		if classname == "info_player_spawn" then
 			-- yadda, yadda, yadda; make this not a HACK
 			self.spawn = { x = tile_x, y = tile_y }
+
+			logging.verbose("spawn is at: " .. tile_x .. ", " .. tile_y )
 
 			if layer then
 				layer:set( tile_x, tile_y, nil )

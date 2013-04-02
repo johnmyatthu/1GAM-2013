@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<map version="1.0" orientation="orthogonal" width="20" height="20" tilewidth="32" tileheight="32">
+ <tileset firstgid="1" name="gametiles" tilewidth="32" tileheight="32">
+  <image source="gametiles.png" width="128" height="128"/>
+ </tileset>
+ <layer name="Ground" width="20" height="20">
+  <data encoding="base64" compression="zlib">
+   eJxjY2BgYBvFo3gUj+JRPIpJxABmswlh
+  </data>
+ </layer>
+ <layer name="Collision" width="20" height="20">
+  <data encoding="base64" compression="zlib">
+   eJxjYmBgYKIyphYYNW/UvFHzRs0bNY+65lETAwDifwCZ
+  </data>
+ </layer>
+ <objectgroup name="Objects" width="20" height="20">
+  <object gid="3" x="64" y="96">
+   <properties>
+    <property name="classname" value="info_player_spawn"/>
+   </properties>
+  </object>
+ </objectgroup>
+</map>
