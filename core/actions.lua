@@ -52,8 +52,8 @@ function ActionMap:get_action( key )
 end
 
 function ActionMap:on_key_pressed( key )
-	if self.actions[ key ] then
-		local info = self.actions[ key ]
+	local info = self.actions[ key ]
+	if info and info.action and info.instance then
 		info.action( info.instance )
 	end	
 end
