@@ -23,9 +23,7 @@ function Game:initialize( gamerules, config, fonts )
 	action_table[ "toggle_collision_layer" ] = {instance=self, action=self.toggleDrawCollisions}
 	
 	self.actionmap = core.actions.ActionMap( self.config, action_table )
-	logging.verbose( "initializing action map: " .. tostring(self.actionmap) )
 
-	self.total_loot = 0
 	self.state = GAME_STATE_HELP
 	
 	if self.state == GAME_STATE_HELP then
@@ -120,7 +118,12 @@ function Game:onLoadGame( params )
 		--self:copy_data( self.cell_data, self.cell_layer )
 	end	
 
-	self.total_loot = #self.gamerules.entity_manager:findAllEntitiesByName( "func_loot" )
+
+		local enemy = self.gamerules.entity_factory:createClass( "Enemy" )
+		enemy.world_x, enemy.world_y = self.gamerules:worldCoordinatesFromTileCenter( 4, 4 )
+		print( enemy.world_x )
+		self.gamerules:spawnEntity( enemy, nil, nil, nil )
+
 end
 
 function Game:onLoad( params )
@@ -330,16 +333,6 @@ function Game:onUpdate( params )
 		local player = self.gamerules:getPlayer()
 		self.gamerules:onUpdate( params )
 
-		if self.total_loot == player.loot_collected then
-			logging.verbose( "You collected all the loot" )
-			self.state = GAME_STATE_WIN
-			self.actionmap:set_action( " ", self, self.nextState )
-		elseif player.is_tagged then
-			self.state = GAME_STATE_FAIL
-			self.actionmap:set_action( " ", self, self.nextState )
-		end
-
-
 		local cam_x, cam_y = self.gamerules:getCameraPosition()
 		if love.keyboard.isDown( self:keyForAction(core.actions.MOVE_MAP_UP) ) then cam_y = cam_y + self.config.move_speed*params.dt end
 		if love.keyboard.isDown( self:keyForAction(core.actions.MOVE_MAP_DOWN) ) then cam_y = cam_y - self.config.move_speed*params.dt end
@@ -388,9 +381,8 @@ function Game:onDraw( params )
 		love.graphics.rectangle( "fill", 0, 0, love.graphics.getWidth(), height )
 		love.graphics.setFont( self.fonts[ "text16" ] )
 		love.graphics.setColor( 255, 255, 255, 255 )
-		--love.graphics.print( "Light Level: " .. self.gamerules:getPlayer().light_level, 10, 5 )
 		
-		love.graphics.print( "Orbs Collected: " .. tostring(player.loot_collected) .. " / " .. tostring(self.gamerules:totalOrbs()), 540, 5 )	
+		--love.graphics.print( "Orbs Collected: " .. tostring(player.loot_collected) .. " / " .. tostring(self.gamerules:totalOrbs()), 540, 5 )	
 
 		--love.graphics.print( "Total Entities: " .. self.gamerules.entity_manager:entityCount(), 10, 50 )
 	elseif self.state == GAME_STATE_WIN then

@@ -529,7 +529,7 @@ function GameRules:spawnEntityAtTileWithProperties( layer, tile_x, tile_y, prope
 			-- yadda, yadda, yadda; make this not a HACK
 			self.spawn = { x = tile_x, y = tile_y }
 
-			logging.verbose("spawn is at: " .. tile_x .. ", " .. tile_y )
+			--logging.verbose("spawn is at: " .. tile_x .. ", " .. tile_y )
 
 			if layer then
 				layer:set( tile_x, tile_y, nil )

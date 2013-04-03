@@ -16,18 +16,12 @@ function Enemy:initialize()
 	self.target = nil
 	self.target_tile = { x=0, y=0 }
 
-	-- time between attacks
-	self.attack_delay = 0.5
-
-	self.next_attack_time = 0
-
 	self.hit_color_cooldown_seconds = 0.1
 	self.time_until_color_restore = 0
 
 	self.collision_mask = 0
 	self.health = 1
 
-	self.obstruction = nil
 
 	self.view_direction = {x=0, y=1}
 	self.view_distance = 460
@@ -39,16 +33,9 @@ function Enemy:initialize()
 	self.move_speed = self.normal_move_speed
 	self.move_multiplier = 1.0
 
-	self.waypoint = nil
-	self.first_waypoint = 0
-
 	self.state = E_STATE_WAYPOINT -- can be 'waypoint' or 'scan'
 	-- waypoint state will be actively moving towards a waypoint
 	-- scan state will be paused at a waypoint looking around
-
-	self.scan_time = SCAN_TIME
-	self.saw_player = 0
-	self.trace_end = nil
 
 end
 
@@ -60,23 +47,9 @@ function Enemy:onSpawn( params )
 	self:loadSprite( "assets/sprites/critters.conf" )
 	self:playAnimation( "left" )
 	PathFollower.onSpawn( self, params )
-
-	local target = params.gamerules.entity_manager:findFirstEntityByName( "Player" )
-	if target and target.light_level > 0.2 then
-		local path, cost = params.gamerules:getPath( self.tile_x, self.tile_y, target.tile_x, target.tile_y )
-		self:setPath( path )
-		self.target = target
-		self.target_tile = {x=target.tile_x, y=target.tile_y}
-	end
 end
 
 function Enemy:onDraw( params )
-
-	if self.saw_player > 0 then
-		self.color = {r=255, g=0, b=0, a=255}
-	else
-		self.color = {r=255, g=255, b=255, a=255}
-	end
 
 	AnimatedSprite.onDraw( self, params )
 
@@ -154,117 +127,10 @@ function Enemy:findWaypoint( params, name )
 			return
 		end
 	end
-
-	--logging.verbose( "Unable to find waypoint: " .. name )
 end
 
 function Enemy:onUpdate( params )
-	
 	self.move_speed = self.normal_move_speed * self.move_multiplier
-	-- if params.gamestate ~= core.GAME_STATE_DEFEND then
-	-- 	return
-	-- end
-	if not self.waypoint then
-		-- first task: find a waypoint
-		self:findWaypoint( params, self.first_waypoint )
-		self:updateDirectionForWaypoint( self.waypoint )
-	end
-
-	if self.saw_player > 0 then
-		self.saw_player = self.saw_player - params.dt
-		if self.saw_player <= 0 then
-			self.saw_player = 0
-
-		end
-	end
-
-	-- move towards waypoint
-	if self.waypoint and self.state == E_STATE_WAYPOINT then
-		local dist = params.gamerules:calculateEntityDistance( self.waypoint, self )
-		if dist < 32 then
-			-- enter scan state
-			self.state = E_STATE_SCAN
-
-			-- find the next waypoint here
-			self:findWaypoint( params, self.waypoint.next_waypoint )
-
-			-- update scan time
-			self.scan_time = SCAN_TIME
-			self.move_multiplier = 1.0			
-		end
-	elseif self.state == E_STATE_SCAN then
-		self.scan_time = self.scan_time - params.dt
-
-		local scan_delta = 1.0
-
-
-
-		--local npx, npy = self.waypoint.world_x, self.waypoint.world_y
-		--local len = core.util.vector.length( self.waypoint.world_x-self.world_x, self.waypoint.world_y-self.world_y )
-		--npx = npx/len
-		--npy = npy/len
-		--local player = params.gamerules.entity_manager:findFirstEntityByName( "Player" )
-		--local ang = math.deg(core.util.vector.angle( npx, npy, self.view_direction.x, self.view_direction.y))
-		if (self.scan_time / SCAN_TIME) >= 0.5 then
-			scan_delta = -scan_delta
-		end
-
-		local c45 = math.cos( math.rad(scan_delta) )
-		local s45 = math.sin( math.rad(scan_delta) )
-
-		local nx = self.view_direction.x * c45 - self.view_direction.y * s45
-		local ny = self.view_direction.x * s45 + self.view_direction.y * c45
-
-		self.view_direction.x = nx
-		self.view_direction.y = ny
-
-		if self.scan_time <= 0 then
-			local tx, ty, hit = params.gamerules:collisionTrace( self.world_x, self.world_y, self.waypoint.world_x, self.waypoint.world_y )
-			self.move_multiplier = 1.0
-			if hit == 0 then
-				-- hit nothing
-				self.state = E_STATE_WAYPOINT
-				self:updateDirectionForWaypoint( self.waypoint )
-			elseif self.path == nil then
-				-- find a path to the waypoint
-				self.path = params.gamerules:getPath( self.tile_x, self.tile_y, self.waypoint.tile_x, self.waypoint.tile_y )
-				self.state = E_STATE_FIND_WAYPOINT
-			end
-		end
-	elseif self.state == E_STATE_INVESTIGATE then
-		local dist = core.util.vector.length( self.world_x-self.trace_end.x, self.world_y-self.trace_end.y )
-		self.move_multiplier = self.persue_multiplier
-		if dist < 16 then
-			local target = params.gamerules.entity_manager:findFirstEntityByName( "Player" )
-			dist = params.gamerules:calculateEntityDistance( target, self )
-			if dist < 8 and target and not target.is_tagged then
-				target.is_tagged = true
-			end
-			self.state = E_STATE_SCAN
-			self:findWaypoint( params, self.waypoint.next_waypoint )
-			self.scan_time = SCAN_TIME
-		end
-	elseif self.state == E_STATE_FIND_WAYPOINT then
-		if self.path then
-			local tile = self.path[ self.current_path_step ]
-			if tile then
-				-- update view direction for this tile
-				local world_x, world_y = params.gamerules:worldCoordinatesFromTileCenter( tile.x, tile.y )
-				self:updateDirectionForWorldPosition( world_x, world_y )
-			end
-		else
-			self.state = E_STATE_SCAN
-			self.scan_time = SCAN_TIME
-			self:findWaypoint( params, self.waypoint.next_waypoint )
-		end
-	end
-
-	self.time_until_color_restore = self.time_until_color_restore - params.dt
-	if self.time_until_color_restore <= 0 then
-		self.color = { r=255, g=255, b=255, a=255 }
-	end
-
-	self.next_attack_time = self.next_attack_time - params.dt
 
 
 	dir = {x = 0, y = 0}
@@ -307,10 +173,3 @@ function Enemy:onUpdate( params )
 
 	PathFollower.onUpdate( self, params )
 end
-
---[[
-function Enemy:onDraw( params )
-	PathFollower.onDraw( self, params )
-	self:drawHealthBar( params )
-end
---]]
