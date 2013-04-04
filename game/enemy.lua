@@ -7,7 +7,6 @@ local E_STATE_FIND_WAYPOINT = 3
 
 -- seconds
 local SCAN_TIME = 2
-local MIN_PLAYER_LIGHT_LEVEL = 0.03
 
 Enemy = class( "Enemy", PathFollower )
 function Enemy:initialize()
@@ -62,7 +61,6 @@ function Enemy:onDraw( params )
 	love.graphics.setColor( 255, 0, 0, 255 )
 	love.graphics.line( startx, starty, endx, endy )
 
-
 	--[[
 	startx, starty = params.gamerules:worldToScreen( self.world_x, self.world_y )
 	if self.waypoint then
@@ -112,6 +110,60 @@ function Enemy:updateDirectionForWaypoint( target )
 	end
 
 	self:updateDirectionForWorldPosition( target.world_x, target.world_y )
+end
+
+
+
+function Enemy:runBoidsRules( params, boids )
+
+	-- Rule #1: Tend towards the center of others
+	-- Rule #2: Maintain a minimum distance from others
+	-- Rule #3: Boids tr to match velocity with nearby others
+	local cm = {x=0, y=0}
+	local min_dist = {x = 0, y = 0}
+	local cv = {x=0, y=0}
+
+	local vp = {x=0, y=0}
+	local player = params.gamerules.entity_manager:findFirstEntityByName( "Player" )
+
+	for _,boid in pairs(boids) do
+		if boid ~= self then
+			cm.x = cm.x + boid.world_x
+			cm.y = cm.y + boid.world_y
+
+			local dx, dy = (boid.world_x - self.world_x), (boid.world_y - self.world_y)
+			local distance = math.abs(core.util.vector.length( dx, dy ))
+			if distance < 48 then
+				min_dist.x = min_dist.x - dx
+				min_dist.y = min_dist.y - dy
+			end
+
+			cv.x = cv.x + boid.velocity.x
+			cv.y = cv.y + boid.velocity.y
+		end
+	end
+
+
+	if player then
+		cm.x = (player.world_x - self.world_x)
+		cm.y = (player.world_y - self.world_y)
+	else
+		-- compute average position
+		cm.x = (cm.x / #boids)
+		cm.y = (cm.y / #boids)
+
+		cm.x = cm.x - self.world_x
+		cm.y = cm.y - self.world_y		
+	end
+
+
+	cv.x = (cv.x / #boids)
+	cv.y = (cv.y / #boids)
+
+	local weight = 0.35
+
+	self.velocity.x = (cm.x * weight) + (min_dist.x) + (cv.x)
+	self.velocity.y = (cm.y * weight) + (min_dist.y) + (cv.y)
 end
 
 

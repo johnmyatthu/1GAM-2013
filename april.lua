@@ -126,7 +126,9 @@ function Game:onLoadGame( params )
 	self:createEnemy( 8, 9 )
 	self:createEnemy( 3, 12 )
 	self:createEnemy( 4, 7 )
-
+	self:createEnemy( 2, 15 )
+	self:createEnemy( 8, 9 )
+	self:createEnemy( 6, 14 )
 end
 
 function Game:createEnemy( tx, ty )
@@ -339,16 +341,14 @@ function Game:onUpdate( params )
 	
 
 	params.gamestate = self.state
+	params.gamerules = self.gamerules
 
 	if self.state == GAME_STATE_PLAY then
 		local player = self.gamerules:getPlayer()
 
-
-		-- update velocity?
 		for _,boid in pairs(boids) do
-
+			boid:runBoidsRules( params, boids )
 		end
-
 
 		self.gamerules:onUpdate( params )
 
