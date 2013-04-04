@@ -7,6 +7,7 @@ local player = nil
 local mouse_tile = {x = 0, y = 0}
 local target_tile = {x = 0, y = 0}
 
+local boids = {}
 
 -- Game class
 Game = class( "Game" )
@@ -24,12 +25,14 @@ function Game:initialize( gamerules, config, fonts )
 	
 	self.actionmap = core.actions.ActionMap( self.config, action_table )
 
-	self.state = GAME_STATE_HELP
+	self.state = GAME_STATE_PLAY
 	
 	if self.state == GAME_STATE_HELP then
 		self.actionmap:set_action( " ", self, self.nextState )
 		love.mouse.setVisible( true )
 	else
+		self:onLoadGame( {gamerules=self.gamerules} )
+		self.gamerules:prepareForGame()		
 		love.mouse.setVisible( false )
 	end
 
@@ -92,7 +95,7 @@ function Game:onLoadGame( params )
 	-- load the map
 	self.gamerules:loadMap( self.config.map )	
 	local player = self.gamerules.entity_factory:createClass( "Player" )
-
+	logging.verbose( "creating player" )
 	self:warpPlayerToSpawn( player )
 	self.gamerules:setPlayer( player )
 	self.gamerules:spawnEntity( player, nil, nil, nil )
@@ -119,11 +122,19 @@ function Game:onLoadGame( params )
 	end	
 
 
-		local enemy = self.gamerules.entity_factory:createClass( "Enemy" )
-		enemy.world_x, enemy.world_y = self.gamerules:worldCoordinatesFromTileCenter( 4, 4 )
-		print( enemy.world_x )
-		self.gamerules:spawnEntity( enemy, nil, nil, nil )
+	self:createEnemy( 5, 5 )
+	self:createEnemy( 8, 9 )
+	self:createEnemy( 3, 12 )
+	self:createEnemy( 4, 7 )
 
+end
+
+function Game:createEnemy( tx, ty )
+	local enemy = self.gamerules.entity_factory:createClass( "Enemy" )
+	enemy.world_x, enemy.world_y = self.gamerules:worldCoordinatesFromTileCenter( tx, ty )
+	self.gamerules:spawnEntity( enemy, nil, nil, nil )
+
+	table.insert( boids, enemy )
 end
 
 function Game:onLoad( params )
@@ -331,6 +342,14 @@ function Game:onUpdate( params )
 
 	if self.state == GAME_STATE_PLAY then
 		local player = self.gamerules:getPlayer()
+
+
+		-- update velocity?
+		for _,boid in pairs(boids) do
+
+		end
+
+
 		self.gamerules:onUpdate( params )
 
 		local cam_x, cam_y = self.gamerules:getCameraPosition()

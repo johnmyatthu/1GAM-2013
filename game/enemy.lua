@@ -133,43 +133,5 @@ function Enemy:onUpdate( params )
 	self.move_speed = self.normal_move_speed * self.move_multiplier
 
 
-	dir = {x = 0, y = 0}
-	if (self.path == nil) and self.waypoint and (self.state ~= E_STATE_SCAN) then
-		dir.x = self.view_direction.x * self.move_speed * self.move_multiplier
-		dir.y = self.view_direction.y * self.move_speed * self.move_multiplier
-	elseif (self.path == nil) then
-		if self.velocity.x ~= 0 then
-			if self.velocity.x > 0 then
-				dir.x = self.move_speed
-			else
-				dir.x = -self.move_speed
-			end
-		end
-		if self.velocity.y ~= 0 then
-			if self.velocity.y > 0 then
-				dir.y = self.move_speed
-			else
-				dir.y = -self.move_speed
-			end
-		end
-	else
-		dir.x = 0
-		dir.y = 0
-		self.velocity.x = 0
-		self.velocity.y = 0		
-	end
-
-	if self.path == nil and (self.state ~= E_STATE_FIND_WAYPOINT) then
-		if params.gamerules:moveEntityInDirection( self, dir, params.dt ) then
-			self.velocity.x = 0
-			self.velocity.y = 0
-			--logging.verbose( "hit tile: " .. dir.x .. ", " .. dir.y )
-			self.state = E_STATE_SCAN
-			self:findWaypoint( params, self.waypoint.next_waypoint )
-			self.scan_time = SCAN_TIME
-		end
-	end
-
-
 	PathFollower.onUpdate( self, params )
 end
