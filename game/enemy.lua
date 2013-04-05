@@ -160,6 +160,15 @@ function Enemy:runBoidsRules( params, boids )
 	cv.x = (cv.x / #boids)
 	cv.y = (cv.y / #boids)
 
+
+	if math.abs(cm.x) < 64 then
+		cm.x = 0
+	end
+
+	if math.abs(cm.y) < 64 then
+		cm.y = 0
+	end
+
 	local weight = 0.35
 
 	self.velocity.x = (cm.x * weight) + (min_dist.x) + (cv.x)
