@@ -774,24 +774,20 @@ function GameRules:handleMovePlayerCommand( command, player )
 
 	-- could offset by sprite's half bounds to ensure they don't intersect with tiles
 	
-	-- for now, just collide with tiles that exist on the collision layer.
-	if self.map then
-		local tile = nil
-
-		-- try the x direction
-		local tx, ty = self:tileCoordinatesFromWorld( nwx, player.world_y )
-		tile = self:getCollisionTile( tx, ty )
-		if not tile then
-			player.world_x = nwx -- X direction is clear
-		end
-
-		-- try the y direction
-		tx, ty = self:tileCoordinatesFromWorld( player.world_x, nwy )
-		tile = self:getCollisionTile( tx, ty )
-		if not tile then
-			player.world_y = nwy -- Y direction is clear
-		end
+	-- wrap around window edges
+	if nwx < 0 then
+		nwx = love.graphics.getWidth() - nwx
+	elseif nwx > love.graphics.getWidth() then
+		nwx = nwx - love.graphics.getWidth()
 	end
+	if nwy < 0 then
+		nwy = love.graphics.getHeight() - nwy
+	elseif nwy > love.graphics.getHeight() then
+		nwy = nwy - love.graphics.getHeight()
+	end
+
+	player.world_x = nwx
+	player.world_y = nwy
 	
 	if command.up or command.down or command.left or command.right then
 		player:setDirectionFromMoveCommand( command )

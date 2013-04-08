@@ -120,15 +120,6 @@ function Game:onLoadGame( params )
 
 		--self:copy_data( self.cell_data, self.cell_layer )
 	end	
-
-
-	self:createEnemy( 5, 5 )
-	self:createEnemy( 8, 9 )
-	self:createEnemy( 3, 12 )
-	self:createEnemy( 4, 7 )
-	self:createEnemy( 2, 15 )
-	self:createEnemy( 8, 9 )
-	self:createEnemy( 6, 14 )
 end
 
 function Game:createEnemy( tx, ty )
@@ -368,7 +359,7 @@ function Game:onUpdate( params )
 		dt=params.dt }
 		
 		self.gamerules:handleMovePlayerCommand( command, player )
-		self.gamerules:snapCameraToPlayer( player )
+		--self.gamerules:snapCameraToPlayer( player )
 		self:updatePlayerDirection()
 	elseif self.state == GAME_STATE_HELP then
 		params.game = self
@@ -387,7 +378,7 @@ function Game:onDraw( params )
 	params.gamestate = self.state
 
 	if self.state == GAME_STATE_PLAY then
-		self.gamerules:drawWorld()
+		--self.gamerules:drawWorld()
 		-- draw entities here
 		self.gamerules:drawEntities( params )
 
