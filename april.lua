@@ -33,7 +33,7 @@ function Game:initialize( gamerules, config, fonts )
 	else
 		self:onLoadGame( {gamerules=self.gamerules} )
 		self.gamerules:prepareForGame()		
-		love.mouse.setVisible( false )
+		love.mouse.setVisible( true )
 	end
 
 
@@ -119,12 +119,14 @@ function Game:onLoadGame( params )
 		logging.verbose( "neighbors: " .. #n )
 
 		--self:copy_data( self.cell_data, self.cell_layer )
-	end	
+	end
+
+	self:createEnemy( 100, 200 )
 end
 
-function Game:createEnemy( tx, ty )
+function Game:createEnemy( wx, wy )
 	local enemy = self.gamerules.entity_factory:createClass( "Enemy" )
-	enemy.world_x, enemy.world_y = self.gamerules:worldCoordinatesFromTileCenter( tx, ty )
+	enemy.world_x, enemy.world_y = wx, wy
 	self.gamerules:spawnEntity( enemy, nil, nil, nil )
 
 	table.insert( boids, enemy )
@@ -337,9 +339,9 @@ function Game:onUpdate( params )
 	if self.state == GAME_STATE_PLAY then
 		local player = self.gamerules:getPlayer()
 
-		for _,boid in pairs(boids) do
-			boid:runBoidsRules( params, boids )
-		end
+		--for _,boid in pairs(boids) do
+		--	boid:runBoidsRules( params, boids )
+		--end
 
 		self.gamerules:onUpdate( params )
 
