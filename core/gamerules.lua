@@ -176,6 +176,20 @@ function GameRules:removeCollision( entity )
 	end
 end
 
+function GameRules:findEntityAtMouse()
+	local mx, my = love.mouse.getPosition()
+
+	for _,e in pairs(self.entity_manager:allEntities()) do
+		local dx, dy = (mx-e.world_x), (my-e.world_y)
+		local dist = math.sqrt(dx*dx + dy*dy)
+		if dist < 16 then
+			return e
+		end
+	end
+
+	return nil
+end
+
 function GameRules:updateCollision( params )
 	if self.grid then
 		local colliding = self.grid:getCollidingPairs( self.entity_manager:allEntities() )

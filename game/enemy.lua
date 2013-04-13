@@ -43,8 +43,8 @@ function Enemy:onCollide( params )
 end
 
 function Enemy:onSpawn( params )
-	self:loadSprite( "assets/sprites/critters.conf" )
-	self:playAnimation( "left" )
+	self:loadSprite( "assets/sprites/items.conf" )
+	self:playAnimation( "idle" )
 	PathFollower.onSpawn( self, params )
 end
 

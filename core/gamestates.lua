@@ -9,3 +9,6 @@ GAME_STATE_WIN = 3
 
 -- player failed
 GAME_STATE_FAIL = 4
+
+-- editor
+GAME_STATE_EDITOR = 5

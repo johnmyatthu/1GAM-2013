@@ -9,6 +9,9 @@ local target_tile = {x = 0, y = 0}
 
 local boids = {}
 
+
+local EDIT_TILES = 0
+
 -- Game class
 Game = class( "Game" )
 function Game:initialize( gamerules, config, fonts )
@@ -25,8 +28,9 @@ function Game:initialize( gamerules, config, fonts )
 	
 	self.actionmap = core.actions.ActionMap( self.config, action_table )
 
-	self.state = GAME_STATE_PLAY
-	
+	self.state = GAME_STATE_EDITOR
+	self.edit_state = EDIT_TILES
+
 	if self.state == GAME_STATE_HELP then
 		self.actionmap:set_action( " ", self, self.nextState )
 		love.mouse.setVisible( true )
@@ -130,6 +134,8 @@ function Game:createEnemy( wx, wy )
 	self.gamerules:spawnEntity( enemy, nil, nil, nil )
 
 	table.insert( boids, enemy )
+
+	return enemy
 end
 
 function Game:onLoad( params )
@@ -139,162 +145,6 @@ function Game:onLoad( params )
 		self.helpscreen:prepareToShow( params )	
 		self.helpscreen_loaded = true
 	end
-end
-
-
-function Game:clone_data( layer )
-	local data = {}
-
-	for x = 1, self.cellsw do
-		for y = 1, self.cellsh do
-			if not data[x] then
-				data[x] = {}
-			end
-			if not data[x][y] then
-				data[x][y] = {}
-			end
-
-			data[x][y] = nil
-
-			local t = layer:get(x, y)
-			if t then
-				data[x][y] = 1
-			end
-		end
-	end
-
---[[
-	for x, y, tile in layer:iterate() do
-		if not data[x] then
-			data[x] = {}
-		end
-		if not data[x][y] then
-			data[x][y] = {}
-		end
-		logging.verbose( "huzzah!" )
-		data[x][y] = 1
-	end
---]]
-
-	return data
-end
-
-
-
-function Game:copy_data( data, layer )
-	for x = 1, self.cellsw do
-		for y = 1, self.cellsh do
-			local cell = nil
-			if data[x] and data[x][y] then
-				cell = self.cell	
-			end
-
-			layer:set( x, y, cell )
-		end
-	end
-end
-
-function Game:inWidthRange(x)
-	return x ~= nil and x >= 1 and x < self.cellsw
-end
-
-function Game:inHeightRange(x)	
-	return y ~= nil and y >= 1 and y < self.cellsh
-end
-
-function Game:cell_at( data, x, y )
-	if data[x] and data[x][y] then
-	--if self:inWidthRange(x) and self.inHeightRange(y) then
-		return data[x][y]
-	end
-
-	--logging.verbose( "not in range: " .. x .. ", " .. y )
-
-	return nil
-end
-
--- get the 8 neighbors of cell at x, y in data
-function Game:neighbors( data, x, y )
-	local neighbors = {}
-	local n = nil
-	-- upper left
-		n = self:cell_at(data, x-1, y-1)
-		if n then
-			table.insert( neighbors, n )
-		end
-
-	-- top center
-		n = self:cell_at(data, x, y-1)
-		if n then
-			table.insert( neighbors, n )
-		end	
-
-	-- upper right
-		n = self:cell_at(data, x+1, y-1)
-		if n then
-			table.insert( neighbors, n )
-		end
-
-	-- left
-		n = self:cell_at(data, x-1, y)
-		if n then
-			table.insert( neighbors, n )
-		end	
-
-	-- right
-		n = self:cell_at(data, x+1, y)
-		if n then
-			table.insert( neighbors, n )
-		end
-
-	-- lower left
-		n = self:cell_at(data, x-1, y+1)
-		if n then
-			table.insert( neighbors, n )
-		end
-
-	-- bottom center
-		n = self:cell_at(data, x, y+1)
-		if n then
-			table.insert( neighbors, n )
-		end
-
-	-- lower right
-		n = self:cell_at(data, x+1, y+1)
-		if n then
-			table.insert( neighbors, n )
-		end
-
-	return neighbors
-end
-
-
-function Game:evaluate_ca()
-	-- make a copy of the data
-	local last = core.util.deepcopy( self.cell_data )
-	local next_data = core.util.deepcopy( self.cell_data )
-
-	for x = 1, self.cellsw do
-		for y = 1, self.cellsh do
-			local neighbors = self:neighbors( last, x, y )
-			local neighbors_count = #neighbors
-
-			if last[x][y] then -- alive cell
-				if neighbors_count < 2 or neighbors_count > 3 then
-					-- cell dies due to overcrowding or over-population
-					next_data[x][y] = nil
-				end
-			else -- dead cell
-				-- a cell can be born
-				if neighbors_count == 3 then
-					next_data[x][y] = 1
-				end
-			end
-		end
-	end
-
-	self:copy_data( next_data, self.cell_layer )
-	self.cell_data = next_data
 end
 
 
@@ -366,10 +216,22 @@ function Game:onUpdate( params )
 	elseif self.state == GAME_STATE_HELP then
 		params.game = self
 		self.helpscreen:onUpdate( params )
+	elseif self.state == GAME_STATE_EDITOR then
+		if self.drag_entity then
+			self:snapEntityToGrid(self.drag_entity)
+		end
 	end
 
 end
 
+
+function Game:snapEntityToGrid( ent )
+	local mx, my = love.mouse.getPosition()
+	local gridsize = 16
+
+	ent.world_x = math.ceil(mx/gridsize) * gridsize
+	ent.world_y = math.ceil(my/gridsize) * gridsize	
+end
 
 
 function Game:onDraw( params )
@@ -431,6 +293,10 @@ function Game:onDraw( params )
 	elseif self.state == GAME_STATE_HELP then
 		params.game = self
 		self.helpscreen:onDraw( params )
+	elseif self.state == GAME_STATE_EDITOR then
+		self.gamerules:drawEntities( params )
+
+
 	end
 
 	
@@ -458,18 +324,29 @@ function Game:onKeyPressed( params )
 end
 
 function Game:onKeyReleased( params )
-	--self:evaluate_ca()
 end
 
 function Game:onMousePressed( params )
 	if params.button == "l" then
 		local mx, my = love.mouse.getPosition()
+
+		-- see if we clicked an entity
+		local ent = self.gamerules:findEntityAtMouse()
+		if ent then
+			self.drag_entity = ent
+		else
+			-- create a new one
+			ent = self:createEnemy( mx, my )
+			self:snapEntityToGrid( ent )
+		end
 	end
 end
 
 function Game:onMouseReleased( params )
 	if params.button == "l" then
-		self.fire = false
+		if self.drag_entity then
+			self.drag_entity = nil
+		end
 	end
 end
 
