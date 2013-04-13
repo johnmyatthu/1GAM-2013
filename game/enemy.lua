@@ -18,7 +18,7 @@ function Enemy:initialize()
 	self.hit_color_cooldown_seconds = 0.1
 	self.time_until_color_restore = 0
 
-	self.collision_mask = 0
+	self.collision_mask = 3
 	self.health = 1
 
 
@@ -43,8 +43,8 @@ function Enemy:onCollide( params )
 end
 
 function Enemy:onSpawn( params )
-	self:loadSprite( "assets/sprites/items.conf" )
-	self:playAnimation( "idle" )
+	self:loadSprite( "assets/sprites/blocks.conf" )
+	self:playAnimation( "1" )
 	PathFollower.onSpawn( self, params )
 end
 

@@ -7,9 +7,6 @@ local player = nil
 local mouse_tile = {x = 0, y = 0}
 local target_tile = {x = 0, y = 0}
 
-local boids = {}
-
-
 local EDIT_TILES = 0
 
 -- Game class
@@ -133,9 +130,18 @@ function Game:createEnemy( wx, wy )
 	enemy.world_x, enemy.world_y = wx, wy
 	self.gamerules:spawnEntity( enemy, nil, nil, nil )
 
-	table.insert( boids, enemy )
-
 	return enemy
+end
+
+
+function Game:launchBall( x, y, vx, vy )
+	local ball = self.gamerules.entity_factory:createClass( "Ball" )
+	ball.world_x, ball.world_y = x, y
+	ball.velocity.x = vx
+	ball.velocity.y = vy
+	self.gamerules:spawnEntity( ball, nil, nil, nil )
+
+	return ball	
 end
 
 function Game:onLoad( params )
@@ -174,24 +180,11 @@ end
 
 
 function Game:onUpdate( params )
-	--[[
-	self.next_ca = self.next_ca - params.dt
-	if self.next_ca <= 0 then
-		self.next_ca = self.ca_interval
-		self:evaluate_ca()
-	end
-	--]]
-	
-
 	params.gamestate = self.state
 	params.gamerules = self.gamerules
 
 	if self.state == GAME_STATE_PLAY then
 		local player = self.gamerules:getPlayer()
-
-		--for _,boid in pairs(boids) do
-		--	boid:runBoidsRules( params, boids )
-		--end
 
 		self.gamerules:onUpdate( params )
 
@@ -339,6 +332,9 @@ function Game:onMousePressed( params )
 			ent = self:createEnemy( mx, my )
 			self:snapEntityToGrid( ent )
 		end
+	elseif params.button == "m" then
+		self.state = GAME_STATE_PLAY
+		self:launchBall( 200, 200, 0, 20 )
 	end
 end
 
@@ -349,6 +345,7 @@ function Game:onMouseReleased( params )
 		end
 	end
 end
+
 
 function Game:onJoystickPressed( params )
 end

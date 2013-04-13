@@ -33,7 +33,7 @@ function GameRules:initialize()
 	self.entity_factory:registerClass( "PathFollower", core.PathFollower )
 	self.entity_factory:registerClass( "Enemy", game.Enemy )
 	self.entity_factory:registerClass( "Player", game.Player )
-
+	self.entity_factory:registerClass( "Ball", game.Ball )
 
 	self.sounds = {}
 	self.sound_data = {}
