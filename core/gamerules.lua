@@ -195,9 +195,24 @@ function GameRules:updateCollision( params )
 		local colliding = self.grid:getCollidingPairs( self.entity_manager:allEntities() )
 		table.foreach( colliding,
 		function(_, v) 
-			if (v[1].collision_mask > 0) and (v[2].collision_mask > 0) and (bit.band(v[1].collision_mask,v[2].collision_mask) > 0) then 
-				v[1]:onCollide( {gamerules=self, other=v[2]} )	
-				v[2]:onCollide( {gamerules=self, other=v[1]} )
+			if (v[1].collision_mask > 0) and (v[2].collision_mask > 0) and (bit.band(v[1].collision_mask,v[2].collision_mask) > 0) then
+				local vec = {x=0,y=0}
+				local normal = {x=0, y=0}
+
+				vec.x = v[2].world_x - v[1].world_x
+				vec.y = v[2].world_y - v[1].world_y
+
+				normal.x = -(vec.x/(math.abs(vec.x)))
+				normal.y = -(vec.y/(math.abs(vec.y)))
+
+				v[1]:onCollide( {gamerules=self, other=v[2], v=vec, normal=normal} )	
+
+				vec.x = v[1].world_x - v[2].world_x
+				vec.y = v[1].world_y - v[2].world_y
+
+				normal.x = -(vec.x/(math.abs(vec.x)))
+				normal.y = -(vec.y/(math.abs(vec.y)))			
+				v[2]:onCollide( {gamerules=self, other=v[1], v=vec, normal=normal} )
 
 			end	end	)
 	end

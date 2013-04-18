@@ -317,6 +317,10 @@ function Game:onKeyPressed( params )
 end
 
 function Game:onKeyReleased( params )
+	if params.key == "m" then
+		self.state = GAME_STATE_PLAY
+		self:launchBall( 200, 200, 0, 20 )		
+	end	
 end
 
 function Game:onMousePressed( params )
@@ -332,9 +336,6 @@ function Game:onMousePressed( params )
 			ent = self:createEnemy( mx, my )
 			self:snapEntityToGrid( ent )
 		end
-	elseif params.button == "m" then
-		self.state = GAME_STATE_PLAY
-		self:launchBall( 200, 200, 0, 20 )
 	end
 end
 
