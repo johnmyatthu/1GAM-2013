@@ -202,16 +202,25 @@ function GameRules:updateCollision( params )
 				vec.x = v[2].world_x - v[1].world_x
 				vec.y = v[2].world_y - v[1].world_y
 
-				normal.x = -(vec.x/(math.abs(vec.x)))
-				normal.y = -(vec.y/(math.abs(vec.y)))
+				if vec.x < vec.y then
+					normal.x = 1
+				else
+					normal.y = 1
+				end
 
 				v[1]:onCollide( {gamerules=self, other=v[2], v=vec, normal=normal} )	
+
+				normal.x = 0
+				normal.y = 0
 
 				vec.x = v[1].world_x - v[2].world_x
 				vec.y = v[1].world_y - v[2].world_y
 
-				normal.x = -(vec.x/(math.abs(vec.x)))
-				normal.y = -(vec.y/(math.abs(vec.y)))			
+				if vec.x < vec.y then
+					normal.x = 1
+				else
+					normal.y = 1
+				end		
 				v[2]:onCollide( {gamerules=self, other=v[1], v=vec, normal=normal} )
 
 			end	end	)
@@ -740,9 +749,12 @@ end
 
 function GameRules:onUpdate(params)
 	params.gamerules = self
-	self.entity_manager:eventForEachEntity( "onUpdate", params )
 
 	self:updateCollision(params)
+
+	self.entity_manager:eventForEachEntity( "onUpdate", params )
+
+	
 end
 
 function GameRules:findMinimumDisplacementVector( a, b )

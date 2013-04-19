@@ -93,6 +93,7 @@ end
 
 
 function Game:onLoadGame( params )
+
 	-- load the map
 	self.gamerules:loadMap( self.config.map )	
 	local player = self.gamerules.entity_factory:createClass( "Player" )
@@ -210,11 +211,11 @@ function Game:onUpdate( params )
 		params.game = self
 		self.helpscreen:onUpdate( params )
 	elseif self.state == GAME_STATE_EDITOR then
+
+	end
 		if self.drag_entity then
 			self:snapEntityToGrid(self.drag_entity)
 		end
-	end
-
 end
 
 
@@ -319,7 +320,7 @@ end
 function Game:onKeyReleased( params )
 	if params.key == "m" then
 		self.state = GAME_STATE_PLAY
-		self:launchBall( 200, 200, 0, 20 )		
+		self:launchBall( 200, 200, 20, 20 )		
 	end	
 end
 
