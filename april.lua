@@ -25,7 +25,7 @@ function Game:initialize( gamerules, config, fonts )
 	
 	self.actionmap = core.actions.ActionMap( self.config, action_table )
 
-	self.state = GAME_STATE_EDITOR
+	self.state = GAME_STATE_PLAY
 	self.edit_state = EDIT_TILES
 
 	if self.state == GAME_STATE_HELP then
@@ -105,23 +105,6 @@ function Game:onLoadGame( params )
 	self.cellsw = self.gamerules.map.width
 	self.cellsh = self.gamerules.map.height
 
-	self.cell_layer = self.gamerules.map.layers["cells"]
-	if self.cell_layer then
-
-		self.cell = self.cell_layer:get(0,0)
-		-- empty all grid cells
-		-- for x,y, tile in self.cell_layer:iterate() do
-		-- 	self.cell_layer:set(x, y, nil)
-		-- end
-
-		-- create a snapshot
-		self.cell_data = self:clone_data( self.cell_layer )
-
-		local n = self:neighbors( self.cell_data, 4, 4 )
-		logging.verbose( "neighbors: " .. #n )
-
-		--self:copy_data( self.cell_data, self.cell_layer )
-	end
 
 	self:createEnemy( 100, 200 )
 end
@@ -205,7 +188,7 @@ function Game:onUpdate( params )
 		dt=params.dt }
 		
 		self.gamerules:handleMovePlayerCommand( command, player )
-		--self.gamerules:snapCameraToPlayer( player )
+		self.gamerules:snapCameraToPlayer( player )
 		self:updatePlayerDirection()
 	elseif self.state == GAME_STATE_HELP then
 		params.game = self
@@ -236,7 +219,7 @@ function Game:onDraw( params )
 	params.gamestate = self.state
 
 	if self.state == GAME_STATE_PLAY then
-		--self.gamerules:drawWorld()
+		self.gamerules:drawWorld()
 		-- draw entities here
 		self.gamerules:drawEntities( params )
 
@@ -289,11 +272,7 @@ function Game:onDraw( params )
 		self.helpscreen:onDraw( params )
 	elseif self.state == GAME_STATE_EDITOR then
 		self.gamerules:drawEntities( params )
-
-
 	end
-
-	
 end
 
 function Game:updatePlayerDirection()
