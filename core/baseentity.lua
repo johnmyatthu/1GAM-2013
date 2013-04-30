@@ -84,8 +84,9 @@ function Entity:onSpawn( params )
 end
 
 function Entity:onUpdate( params )
-	self.world_x = self.world_x + self.velocity.x * params.dt
-	self.world_y = self.world_y + self.velocity.y * params.dt
+	params.gamerules:moveEntityInDirection( self, self.velocity, params.dt )
+	--self.world_x = self.world_x + self.velocity.x * params.dt
+	--self.world_y = self.world_y + self.velocity.y * params.dt
 	self.velocity.x = self.velocity.x * self.damping.x
 	self.velocity.y = self.velocity.y * self.damping.y
 

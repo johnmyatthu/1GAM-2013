@@ -15,7 +15,7 @@ end
 function Ball:onCollide( params )
 
 	--logging.verbose( params.other.class )
-
+	--[[
 	local normal = params.normal
 
 
@@ -32,6 +32,17 @@ function Ball:onCollide( params )
 		self.world_y = self.world_y + params.v.y
 		self.velocity.y = -self.velocity.y
 	end
+	--]]
+	if params.tile then
+		if params.normal.x ~= 0 then
+			self.velocity.x = -self.velocity.x
+		end
+
+		if params.normal.y ~= 0 then
+			self.velocity.y = -self.velocity.y
+		end
+	end
+
 	AnimatedSprite.onCollide( self, params )
 end
 

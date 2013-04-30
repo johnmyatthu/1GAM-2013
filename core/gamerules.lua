@@ -768,26 +768,47 @@ end
 function GameRules:moveEntityInDirection( entity, direction, dt )
 	-- get the next world position of the entity
 	local nwx, nwy = entity.world_x, entity.world_y
+	local w,h = entity:size()
+	local sxo = 0
+	local syo = 0
+
+	if direction.x > 0 then
+		sxo = (w/2)
+	elseif direction.x < 0 then
+		sxo = -(w/2)
+	end
+
+	if direction.y > 0 then
+		syo = (h/2)
+	elseif direction.y < 0 then
+		syo = -(h/2)
+	end
 
 	nwx = entity.world_x + (direction.x * dt)
 	nwy = entity.world_y + (direction.y * dt)
 
+
 	local tile = nil
+	local cd = {x=0, y=0}
 
 	-- for now, just collide with tiles that exist on the collision layer.
 	if self.map then
 		-- try the x direction
-		local tx, ty = self:tileCoordinatesFromWorld( nwx, entity.world_y )
+		local tx, ty = self:tileCoordinatesFromWorld( nwx+sxo, entity.world_y )
 		local tileX = self:getCollisionTile( tx, ty )
-		if not tileX then
+		if not tileX then			
 			entity.world_x = nwx -- X direction is clear
+		else
+			cd.x = 1
 		end
 
 		-- try the y direction
-		tx, ty = self:tileCoordinatesFromWorld( entity.world_x, nwy )
+		tx, ty = self:tileCoordinatesFromWorld( entity.world_x, nwy+syo )
 		local tileY = self:getCollisionTile( tx, ty )
 		if not tileY then
 			entity.world_y = nwy -- Y direction is clear
+		else
+			cd.y = 1
 		end
 
 		tile = tileX or tileY
@@ -799,6 +820,10 @@ function GameRules:moveEntityInDirection( entity, direction, dt )
 
 	if self.map then
 		entity.tile_x, entity.tile_y = self:tileCoordinatesFromWorld( entity.world_x, entity.world_y )
+	end
+
+	if tile then
+		entity:onCollide( {gamerules=self, other=nil, tile=tile, normal=cd} )
 	end
 
 	return tile
