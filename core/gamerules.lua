@@ -862,7 +862,7 @@ function GameRules:moveEntityInDirection( entity, direction, dt )
 		--entity:setDirectionFromMoveCommand( command )
 	end
 
-
+	
 
 	-- local cpairs = self.grid:getCollidingPairs( {entity} )
 	-- self:actOnCollidingPairs( cpairs, {gamerules=self} )

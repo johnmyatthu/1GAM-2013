@@ -14,38 +14,20 @@ end
 
 function Ball:collision( params )
 
-	--logging.verbose( params.other.class )
-	--[[
-	local normal = params.normal
-
-
-	logging.verbose( "I hit something. normal : " .. normal.x .. ", " .. normal.y )
-	logging.verbose( "I hit something. vec : " .. params.v.x .. ", " .. params.v.y )
-	
-	
-	if normal.x ~= 0 then
-		self.world_x = self.world_x + params.v.x
-		self.velocity.x = -self.velocity.x
-	end
-
-	if normal.y ~= 0 then
-		self.world_y = self.world_y + params.v.y
-		self.velocity.y = -self.velocity.y
-	end
-	--]]
 
 	local dx = params.dx
 	local dy = params.dy
 
 
-	if params.tile or params.other then
-		if dx ~= 0 then
-			self.velocity.x = -self.velocity.x
-		end
+	if params.tile then
 
-		if dy ~= 0 then
-			self.velocity.y = -self.velocity.y
-		end
+	elseif params.other then
+		self.world_x = self.world_x + dx
+		self.world_y = self.world_y + dy		
+		self.velocity.x = params.other.velocity.x
+		self.velocity.y = params.other.velocity.y
+		self.damping.x = 0.99
+		self.damping.y = 0.99
 	end
 
 	AnimatedSprite.collision( self, params )

@@ -102,7 +102,7 @@ function Game:onLoadGame( params )
 	self.cellsw = self.gamerules.map.width
 	self.cellsh = self.gamerules.map.height
 
-
+	self:launchBall( 200, 200, 0, 0 )
 	--self:createEnemy( 100, 200 )
 end
 
@@ -198,7 +198,8 @@ function Game:onUpdate( params )
 		elseif command.right then
 			direction.x = player_speed
 		end
-		self.gamerules:moveEntityInDirection( player, direction, params.dt )
+		player.velocity = direction
+		--self.gamerules:moveEntityInDirection( player, direction, params.dt )
 
 		self.gamerules:snapCameraToPlayer( player )
 		self:updatePlayerDirection()
@@ -311,7 +312,7 @@ end
 function Game:onKeyReleased( params )
 	if params.key == "m" then
 		self.state = GAME_STATE_PLAY
-		local ball = self:launchBall( 200, 200, 40, 40 )
+		local ball = self:launchBall( 200, 200, 0, 0 )
 		ball.name = "Ball"
 	end	
 end
