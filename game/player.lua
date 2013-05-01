@@ -34,13 +34,24 @@ function Player:respondsToEvent( event_name, params )
 	return true
 end
 
+function Player:jump()
+	if self:isOnGround() then
+		self.velocity.y = -50
+	else
+		logging.verbose( "not on the ground" )
+	end
+end
+
 function Player:collision( params )
-	if params.dx ~= 0 or params.dy ~= 0 then
+	if params.other then
+		self.world_x, self.world_y = self.world_x + params.dx, self.world_y + params.dy
+		if params.dy ~= 0 then
+			self.velocity.y = 0
+		end
+
 		if params.dy < 0 then
 			self.underBlocks[ params.other ] = true
 		end
-	else
-		logging.verbose( "wtf" )
 	end
 end
 
@@ -49,7 +60,14 @@ function Player:endCollision( entity )
 end
 
 function Player:isOnGround()
-	return #self.underBlocks > 0
+
+	for _,_ in pairs(self.underBlocks) do
+		return true
+	end
+
+	return false
+
+	-- return #self.underBlocks > 0
 end
 
 function Player:onDraw( params )

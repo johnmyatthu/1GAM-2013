@@ -13,16 +13,11 @@ function Ball:initialize()
 end
 
 function Ball:collision( params )
-
-
-	local dx = params.dx
-	local dy = params.dy
-
 	if params.other then
-		self.world_x = self.world_x + dx
-		self.world_y = self.world_y + dy
-		self.damping.x = 0.99
-		self.damping.y = 0.99
+		local dx = params.dx
+		local dy = params.dy		
+		-- self.world_x = self.world_x + dx
+		-- self.world_y = self.world_y + dy
 	end
 
 	AnimatedSprite.collision( self, params )

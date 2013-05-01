@@ -188,7 +188,8 @@ function Game:onUpdate( params )
 		local player_speed = 70
 		local direction = { x=0, y=0 }
 		if command.up then
-			direction.y = -player_speed
+			--direction.y = -player_speed
+			player:jump()
 		elseif command.down then
 			direction.y = player_speed
 		end
