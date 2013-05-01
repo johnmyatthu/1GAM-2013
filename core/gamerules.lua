@@ -34,6 +34,8 @@ function GameRules:initialize()
 	self.entity_factory:registerClass( "WorldEntity", core.WorldEntity )
 	self.entity_factory:registerClass( "AnimatedSprite", core.AnimatedSprite )
 	self.entity_factory:registerClass( "PathFollower", core.PathFollower )
+	self.entity_factory:registerClass( "CollisionTile", core.CollisionTile )
+
 	self.entity_factory:registerClass( "Enemy", game.Enemy )
 	self.entity_factory:registerClass( "Player", game.Player )
 	self.entity_factory:registerClass( "Ball", game.Ball )
@@ -312,6 +314,8 @@ function GameRules:loadMap( mapname )
 	self.collision_layer = self.map.layers[ MAP_COLLISION_LAYER_NAME ]
 	self.basic_collision_tile = nil
 
+	local hw = self.map.tileWidth/2
+	local hh = self.map.tileHeight/2
 	-- use collision map for path finding
 	for y=1, self.map.height do
 		local row = {}
@@ -319,6 +323,12 @@ function GameRules:loadMap( mapname )
 			local tile = self.collision_layer( x, y )
 			if tile then
 				self.basic_collision_tile = tile
+
+
+				local ct = self.entity_factory:createClass("CollisionTile")
+				ct:setPosition(x*self.map.tileWidth+hw, y*self.map.tileHeight+hh)
+				ct:setSize(self.map.tileWidth, self.map.tileHeight)
+				bump.addStatic(ct)
 				break
 			end
 		end
@@ -862,7 +872,7 @@ function GameRules:moveEntityInDirection( entity, direction, dt )
 		--entity:setDirectionFromMoveCommand( command )
 	end
 
-	
+
 
 	-- local cpairs = self.grid:getCollidingPairs( {entity} )
 	-- self:actOnCollidingPairs( cpairs, {gamerules=self} )

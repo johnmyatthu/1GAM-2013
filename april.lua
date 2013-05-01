@@ -185,7 +185,7 @@ function Game:onUpdate( params )
 		dt=params.dt }
 		
 		--self.gamerules:handleMovePlayerCommand( command, player )
-		local player_speed = 150
+		local player_speed = 70
 		local direction = { x=0, y=0 }
 		if command.up then
 			direction.y = -player_speed
@@ -198,7 +198,22 @@ function Game:onUpdate( params )
 		elseif command.right then
 			direction.x = player_speed
 		end
-		player.velocity = direction
+
+		player.velocity.x = player.velocity.x + direction.x
+		if player.velocity.x > 190 then
+			player.velocity.x = 190
+		elseif player.velocity.x < -190 then
+			player.velocity.x = -190			
+		end
+
+		player.velocity.y = player.velocity.y + direction.y
+		if player.velocity.y > 190 then
+			player.velocity.y = 190
+		elseif player.velocity.y < -190 then
+			player.velocity.y = -190
+		end
+
+		player.damping = {x=0.94, y=0.94}
 		--self.gamerules:moveEntityInDirection( player, direction, params.dt )
 
 		self.gamerules:snapCameraToPlayer( player )

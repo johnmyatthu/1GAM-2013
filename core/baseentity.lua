@@ -41,6 +41,14 @@ function Entity:size()
 	return self.frame_width, self.frame_height
 end
 
+function Entity:setPosition(x,y)
+	self.world_x, self.world_y = x,y
+end
+
+function Entity:setSize(w,h)
+	self.frame_width, self.frame_height = w,h
+end
+
 function Entity:drawHealthBar( params )
 	-- get screen coordinates for this entity
 	local sx, sy = params.gamerules:worldToScreen( self.world_x, self.world_y )

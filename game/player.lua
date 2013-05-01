@@ -9,6 +9,8 @@ function Player:initialize()
 	self.dir = {x=0, y=0}
 
 	self.visible = true
+
+	self.underBlocks = {}
 end
 
 function Player:onSpawn( params )
@@ -18,22 +20,11 @@ function Player:onSpawn( params )
 end
 
 function Player:onUpdate( params )
-	local nwx = self.world_x + self.velocity.x * params.dt
-	local nwy = self.world_y + self.velocity.y * params.dt
+	-- self.world_x = self.world_x + self.velocity.x * params.dt
+	-- self.world_y = self.world_y + self.velocity.y * params.dt
 
-	-- could offset by sprite's half bounds to ensure they don't intersect with tiles
-	local tx, ty = params.gamerules:tileCoordinatesFromWorld( nwx, nwy )
-	local tile = params.gamerules:getCollisionTile( tx, ty )
-	
-	-- could offset by sprite's half bounds to ensure they don't intersect with tiles
-	local tile = nil
-	local tx, ty = params.gamerules:tileCoordinatesFromWorld( nwx, nwy )
-	tile = params.gamerules:getCollisionTile( tx, ty )
-
-	-- for now, just collide with tiles that exist on the collision layer.
-	if tile or not params.gamerules:isTileWithinMap(tx, ty) then
-		self.velocity.x = 0
-		self.velocity.y = 0
+	if not self:isOnGround() then
+		self.velocity.y = self.velocity.y + 9.8
 	end
 
 	AnimatedSprite.onUpdate(self, params)
@@ -41,6 +32,24 @@ end
 
 function Player:respondsToEvent( event_name, params )
 	return true
+end
+
+function Player:collision( params )
+	if params.dx ~= 0 or params.dy ~= 0 then
+		if params.dy < 0 then
+			self.underBlocks[ params.other ] = true
+		end
+	else
+		logging.verbose( "wtf" )
+	end
+end
+
+function Player:endCollision( entity )
+	self.underBlocks[ entity ] = nil
+end
+
+function Player:isOnGround()
+	return #self.underBlocks > 0
 end
 
 function Player:onDraw( params )
