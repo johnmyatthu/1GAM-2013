@@ -131,7 +131,17 @@ function Entity:resetMoves( params )
 
 end
 
-function Entity:onCollide( params )
+--[[ params:
+	gamerules
+	other: the other entity we've collided with
+	dx: displacement x
+	dy: displacement y
+	tile: a tile, if collided with a tile
+--]]
+function Entity:collision( entity, dx, dy )
+end
+
+function Entity:endCollision( entity )
 end
 
 function Entity:onHit( params )

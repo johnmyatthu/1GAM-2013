@@ -5,7 +5,7 @@ local Pathfinder = require "lib.jumper.jumper.pathfinder"
 loader = require "lib.AdvTiledLoader.Loader"
 Tile = require "lib.AdvTiledLoader.Tile"
 require "lib.luabit.bit"
-local SH = require( "lib.broadphase.spatialhash" )
+
 require "core.entityfactory"
 require "core.entitymanager"
 
@@ -55,22 +55,29 @@ function GameRules:initialize()
 
 	self.light_layer = love.graphics.newCanvas()
 
-	self.lights = {}
-
-	bump.initialize(64)
+	self.lights = {}	
 end
 
 function bump.collision(item1, item2, dx, dy)
-  print(item1.name, "collision with", item2.name, "displacement vector:", dx, dy)
+	--print(item1.name, "collision with", item2.name, "displacement vector:", dx, dy)
+	item1:collision( {gamerules=nil, other=item2, dx=dx, dy=dy} )
+	item2:collision( {gamerules=nil, other=item1, dx=-dx, dy=-dy})
 end
 
 function bump.endCollision(item1, item2)
-  print(item1.name, "stopped colliding with", item2.name)
+	--print(item1.name, "stopped colliding with", item2.name)
+	item2:endCollision(item1)
+	item1:endCollision(item2)  
 end
 
-function bump.getBBox(item)
-  return item.l, item.t, item.w, item.h
+-- for compatability with bump
+function bump.getBBox(entity)
+	-- world_x, world_y is the center of the entity
+	-- bump assumes the parameters: left, top, width, height
+	local w,h = entity:size()
+	return entity.world_x-(w/2), entity.world_y-(h/2), w, h
 end
+
 
 function bump.shouldCollide(item1, item2)
   return true -- we could add certain conditions here - for example, make objects of the same group not collide
@@ -135,16 +142,23 @@ function GameRules:dataForKeyLevel( key, level )
 end
 
 
+
+
+
+
+
 function GameRules:initCollision()
-	local grid_width = self.map.width
-	local grid_height = self.map.height
-	self.grid = SH:new( grid_width, grid_height, 64 )
+	-- local grid_width = self.map.width
+	-- local grid_height = self.map.height
+	-- self.grid = SH:new( grid_width, grid_height, 64 )
+	bump.initialize(64)
 end
 
 function GameRules:addCollision( entity )
-	if self.grid then
-		self.grid:addShape( entity )
-	end
+	-- if self.grid then
+	-- 	self.grid:addShape( entity )
+	-- end
+	bump.add(entity)
 end
 
 function GameRules:removeCollision( entity )
@@ -153,61 +167,77 @@ function GameRules:removeCollision( entity )
 		self.collision_layer:set( entity.tile_x, entity.tile_y, nil )
 	end
 
-	if self.grid then
-		self.grid:removeShape( entity )
-	end
+	-- if self.grid then
+	-- 	self.grid:removeShape( entity )
+	-- end
+	bump.remove(entity)
 end
 
 
 function GameRules:actOnCollidingPairs( colliding, params )
-	if self.grid then
-		table.foreach( colliding,
-		function(_, v) 
-			if (v[1].collision_mask > 0) and (v[2].collision_mask > 0) and (bit.band(v[1].collision_mask,v[2].collision_mask) > 0) then
-				local vec = {x=0,y=0}
-				local normal = {x=0, y=0}
+-- 	if self.grid then
+-- 		table.foreach( colliding,
+-- 		function(_, v) 
+-- 			if (v[1].collision_mask > 0) and (v[2].collision_mask > 0) and (bit.band(v[1].collision_mask,v[2].collision_mask) > 0) then
+-- 				local vec = {x=0,y=0}
+-- 				local normal = {x=0, y=0}
 
-				local w1, h1 = v[1]:size()
-				local w2, h2 = v[2]:size()
+-- 				local w1, h1 = v[1]:size()
+-- 				local w2, h2 = v[2]:size()
 
-				vec.x = v[2].world_x - v[1].world_x
-				vec.y = v[2].world_y - v[1].world_y
+-- 				vec.x = v[2].world_x - v[1].world_x
+-- 				vec.y = v[2].world_y - v[1].world_y
 
 
-				if vec.x > 0 then
-					normal.x = 1
-				end
+-- 				if vec.x > 0 then
+-- 					normal.x = 1
+-- 				end
 
-				if vec.y > 0 then
-					normal.y = 1
-				end
+-- 				if vec.y > 0 then
+-- 					normal.y = 1
+-- 				end
 
-				v[1]:onCollide( {gamerules=self, other=v[2], v=vec, normal=normal} )	
---[[
-				normal.x = 0
-				normal.y = 0
+-- 				v[1]:onCollide( {gamerules=self, other=v[2], v=vec, normal=normal} )	
+-- --[[
+-- 				normal.x = 0
+-- 				normal.y = 0
 
-				vec.x = v[1].world_x - (w2/2) - v[2].world_x - (w1/2)
-				vec.y = v[1].world_y - (h2/2) - v[2].world_y - (h1/2)
+-- 				vec.x = v[1].world_x - (w2/2) - v[2].world_x - (w1/2)
+-- 				vec.y = v[1].world_y - (h2/2) - v[2].world_y - (h1/2)
 
-				if vec.x < vec.y then
-					normal.x = 1
-				else
-					normal.y = 1
-				end
-				--]]	
-				v[2]:onCollide( {gamerules=self, other=v[1], v=vec, normal=normal} )
+-- 				if vec.x < vec.y then
+-- 					normal.x = 1
+-- 				else
+-- 					normal.y = 1
+-- 				end
+-- 				--]]	
+-- 				v[2]:onCollide( {gamerules=self, other=v[1], v=vec, normal=normal} )
 
-			end	end	)
-	end
+-- 			end	end	)
+-- 	end
 end
 
 function GameRules:updateCollision( params )
-	if self.grid then
-		local colliding = self.grid:getCollidingPairs( self.entity_manager:allEntities() )
-		--self:actOnCollidingPairs( colliding, params )
-	end
+	-- if self.grid then
+	-- 	local colliding = self.grid:getCollidingPairs( self.entity_manager:allEntities() )
+	-- 	--self:actOnCollidingPairs( colliding, params )
+	-- end
+
+  -- local updateEntity = function(entity) entity:update(dt, maxdt) end
+
+  -- bump.each(updateEntity, l,t,w,h)
+  -- bump.collide(l,t,w,h)	
+
+  bump.collide()
 end
+
+
+
+
+
+
+
+
 
 function GameRules:findEntityAtMouse()
 	local mx, my = love.mouse.getPosition()
@@ -265,7 +295,7 @@ end
 function GameRules:loadMap( mapname )
 	self.lights = {}
 	self.entity_manager.entity_list = {}
-	
+
 	loader.path = "assets/maps/"
 
 	-- try and load the map...
@@ -834,24 +864,24 @@ function GameRules:moveEntityInDirection( entity, direction, dt )
 
 
 
-	local cpairs = self.grid:getCollidingPairs( {entity} )
-	self:actOnCollidingPairs( cpairs, {gamerules=self} )
-	if self.map and (#cpairs == 0) then
-		entity.tile_x, entity.tile_y = self:tileCoordinatesFromWorld( entity.world_x, entity.world_y )
-	else
+	-- local cpairs = self.grid:getCollidingPairs( {entity} )
+	-- self:actOnCollidingPairs( cpairs, {gamerules=self} )
+	-- if self.map and (#cpairs == 0) then
+	-- 	entity.tile_x, entity.tile_y = self:tileCoordinatesFromWorld( entity.world_x, entity.world_y )
+	-- else
 
-		local min_value = 999
-		local min_collider = nil
+	-- 	local min_value = 999
+	-- 	local min_collider = nil
 
-		table.foreach( cpairs, reconcilePenetration )
+	-- 	table.foreach( cpairs, reconcilePenetration )
 
 
-		--entity.world_x = old_world_x
-		--entity.world_y = old_world_y
-	end
+	-- 	--entity.world_x = old_world_x
+	-- 	--entity.world_y = old_world_y
+	-- end
 
 	if tile then
-		entity:onCollide( {gamerules=self, other=nil, tile=tile, normal=cd} )
+		entity:collision( {gamerules=self, other=nil, tile=tile, dx=cd.x, dy=cd.y} )
 	end
 
 	return tile

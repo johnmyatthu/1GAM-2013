@@ -12,7 +12,7 @@ function Ball:initialize()
 	self.move_multiplier = 1.0
 end
 
-function Ball:onCollide( params )
+function Ball:collision( params )
 
 	--logging.verbose( params.other.class )
 	--[[
@@ -34,21 +34,21 @@ function Ball:onCollide( params )
 	end
 	--]]
 
+	local dx = params.dx
+	local dy = params.dy
 
-	
+
 	if params.tile or params.other then
-		if params.normal.x ~= 0 then
+		if dx ~= 0 then
 			self.velocity.x = -self.velocity.x
 		end
 
-		if params.normal.y ~= 0 then
+		if dy ~= 0 then
 			self.velocity.y = -self.velocity.y
 		end
-	elseif params.other then
-		logging.verbose( "I ran into something" )
 	end
 
-	AnimatedSprite.onCollide( self, params )
+	AnimatedSprite.collision( self, params )
 end
 
 function Ball:onSpawn( params )

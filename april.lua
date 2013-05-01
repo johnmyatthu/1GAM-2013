@@ -93,6 +93,7 @@ function Game:onLoadGame( params )
 	-- load the map
 	self.gamerules:loadMap( self.config.map )	
 	local player = self.gamerules.entity_factory:createClass( "Player" )
+	player.name = "Player"
 	logging.verbose( "creating player" )
 	self:warpPlayerToSpawn( player )
 	self.gamerules:setPlayer( player )
@@ -310,7 +311,8 @@ end
 function Game:onKeyReleased( params )
 	if params.key == "m" then
 		self.state = GAME_STATE_PLAY
-		self:launchBall( 200, 200, 0, 0 )		
+		local ball = self:launchBall( 200, 200, 40, 40 )
+		ball.name = "Ball"
 	end	
 end
 

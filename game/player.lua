@@ -43,10 +43,6 @@ function Player:respondsToEvent( event_name, params )
 	return true
 end
 
-function Player:onCollide( params )
-	AnimatedSprite.onCollide( self, params )
-end
-
 function Player:onDraw( params )
 	if self.visible then
 		AnimatedSprite.onDraw( self, params )

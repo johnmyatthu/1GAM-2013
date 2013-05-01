@@ -38,10 +38,6 @@ function Enemy:initialize()
 
 end
 
-function Enemy:onCollide( params )
-	Entity.onCollide( self, params )
-end
-
 function Enemy:onSpawn( params )
 	self:loadSprite( "assets/sprites/blocks.conf" )
 	self:playAnimation( "1" )
