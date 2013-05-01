@@ -9,6 +9,9 @@ local SH = require( "lib.broadphase.spatialhash" )
 require "core.entityfactory"
 require "core.entitymanager"
 
+local bump = require "lib.bump.bump"
+
+
 local MAP_COLLISION_LAYER_NAME = "Collision"
 local MAP_GROUND_LAYER_NAME = "Ground"
 
@@ -53,8 +56,25 @@ function GameRules:initialize()
 	self.light_layer = love.graphics.newCanvas()
 
 	self.lights = {}
+
+	bump.initialize(64)
 end
 
+function bump.collision(item1, item2, dx, dy)
+  print(item1.name, "collision with", item2.name, "displacement vector:", dx, dy)
+end
+
+function bump.endCollision(item1, item2)
+  print(item1.name, "stopped colliding with", item2.name)
+end
+
+function bump.getBBox(item)
+  return item.l, item.t, item.w, item.h
+end
+
+function bump.shouldCollide(item1, item2)
+  return true -- we could add certain conditions here - for example, make objects of the same group not collide
+end
 
 function GameRules:loadSounds( path )
 	logging.verbose( "Loading sounds..." )

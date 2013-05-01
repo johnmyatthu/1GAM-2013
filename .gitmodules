@@ -13,3 +13,6 @@
 [submodule "lib/broadphase"]
 	path = lib/broadphase
 	url = git://github.com/Yonaba/broad-phase-algorithms.git
+[submodule "lib/bump"]
+	path = lib/bump
+	url = git://github.com/kikito/bump.lua
