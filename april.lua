@@ -314,7 +314,7 @@ end
 function Game:onKeyReleased( params )
 	if params.key == "m" then
 		self.state = GAME_STATE_PLAY
-		self:launchBall( 200, 200, -90, 40 )		
+		self:launchBall( 200, 200, 0, 0 )		
 	end	
 end
 

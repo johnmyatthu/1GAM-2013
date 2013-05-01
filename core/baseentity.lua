@@ -121,6 +121,10 @@ function Entity:onDraw( params )
 
 	love.graphics.setColor(255, 255, 255, 255)
 	--]]
+	
+	-- local cx, cy = params.gamerules:getCameraPosition()
+	-- love.graphics.setColor( 255, 0, 0, 255 )
+	-- love.graphics.line( cx, cy, cx+self.world_x, cy+self.world_y )
 end
 
 function Entity:resetMoves( params )

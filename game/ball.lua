@@ -33,7 +33,10 @@ function Ball:onCollide( params )
 		self.velocity.y = -self.velocity.y
 	end
 	--]]
-	if params.tile then
+
+
+	
+	if params.tile or params.other then
 		if params.normal.x ~= 0 then
 			self.velocity.x = -self.velocity.x
 		end
@@ -41,6 +44,8 @@ function Ball:onCollide( params )
 		if params.normal.y ~= 0 then
 			self.velocity.y = -self.velocity.y
 		end
+	elseif params.other then
+		logging.verbose( "I ran into something" )
 	end
 
 	AnimatedSprite.onCollide( self, params )

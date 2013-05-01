@@ -190,40 +190,53 @@ function GameRules:findEntityAtMouse()
 	return nil
 end
 
-function GameRules:updateCollision( params )
+function GameRules:actOnCollidingPairs( colliding, params )
 	if self.grid then
-		local colliding = self.grid:getCollidingPairs( self.entity_manager:allEntities() )
 		table.foreach( colliding,
 		function(_, v) 
 			if (v[1].collision_mask > 0) and (v[2].collision_mask > 0) and (bit.band(v[1].collision_mask,v[2].collision_mask) > 0) then
 				local vec = {x=0,y=0}
 				local normal = {x=0, y=0}
 
+				local w1, h1 = v[1]:size()
+				local w2, h2 = v[2]:size()
+
 				vec.x = v[2].world_x - v[1].world_x
 				vec.y = v[2].world_y - v[1].world_y
+
+
+				if vec.x > 0 then
+					normal.x = 1
+				end
+
+				if vec.y > 0 then
+					normal.y = 1
+				end
+
+				v[1]:onCollide( {gamerules=self, other=v[2], v=vec, normal=normal} )	
+--[[
+				normal.x = 0
+				normal.y = 0
+
+				vec.x = v[1].world_x - (w2/2) - v[2].world_x - (w1/2)
+				vec.y = v[1].world_y - (h2/2) - v[2].world_y - (h1/2)
 
 				if vec.x < vec.y then
 					normal.x = 1
 				else
 					normal.y = 1
 				end
-
-				v[1]:onCollide( {gamerules=self, other=v[2], v=vec, normal=normal} )	
-
-				normal.x = 0
-				normal.y = 0
-
-				vec.x = v[1].world_x - v[2].world_x
-				vec.y = v[1].world_y - v[2].world_y
-
-				if vec.x < vec.y then
-					normal.x = 1
-				else
-					normal.y = 1
-				end		
+				--]]	
 				v[2]:onCollide( {gamerules=self, other=v[1], v=vec, normal=normal} )
 
 			end	end	)
+	end
+end
+
+function GameRules:updateCollision( params )
+	if self.grid then
+		local colliding = self.grid:getCollidingPairs( self.entity_manager:allEntities() )
+		--self:actOnCollidingPairs( colliding, params )
 	end
 end
 
@@ -764,14 +777,34 @@ function GameRules:findMinimumDisplacementVector( a, b )
 	return -dx, -dy
 end
 
+function reconcilePenetration( _, v )
+	-- logging.verbose( v[1] )
+	-- logging.verbose( v[2] )
+	local dx, dy = v[2].world_x - v[1].world_x, v[2].world_y - v[1].world_y
+	local d = GameRules.calculateEntityDistance( nil, v[1], v[2])
+	if d < 32 then
+		-- normalize
+		local len = core.util.vector.length(dx, dy)
+		local nx = dx/len
+		local ny = dy/len
+
+		local nd = (32-d)
+		dx = nx * nd
+		dy = ny * nd
+		v[2].world_x = v[2].world_x + dx
+		v[2].world_y = v[2].world_y + dy
+	end
+end
 
 function GameRules:moveEntityInDirection( entity, direction, dt )
 	-- get the next world position of the entity
 	local nwx, nwy = entity.world_x, entity.world_y
+	local old_world_x, old_world_y = entity.world_x, entity.world_y
 	local w,h = entity:size()
 	local sxo = 0
 	local syo = 0
 
+	-- offset based on entity size (bounds)
 	if direction.x > 0 then
 		sxo = (w/2)
 	elseif direction.x < 0 then
@@ -818,8 +851,22 @@ function GameRules:moveEntityInDirection( entity, direction, dt )
 		--entity:setDirectionFromMoveCommand( command )
 	end
 
-	if self.map then
+
+
+	local cpairs = self.grid:getCollidingPairs( {entity} )
+	self:actOnCollidingPairs( cpairs, {gamerules=self} )
+	if self.map and (#cpairs == 0) then
 		entity.tile_x, entity.tile_y = self:tileCoordinatesFromWorld( entity.world_x, entity.world_y )
+	else
+
+		local min_value = 999
+		local min_collider = nil
+
+		table.foreach( cpairs, reconcilePenetration )
+
+
+		--entity.world_x = old_world_x
+		--entity.world_y = old_world_y
 	end
 
 	if tile then
