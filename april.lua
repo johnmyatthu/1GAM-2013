@@ -32,8 +32,7 @@ function Game:initialize( gamerules, config, fonts )
 		self.actionmap:set_action( " ", self, self.nextState )
 		love.mouse.setVisible( true )
 	else
-		self:onLoadGame( {gamerules=self.gamerules} )
-		self.gamerules:prepareForGame()		
+		self:onLoadGame( {gamerules=self.gamerules} )	
 		love.mouse.setVisible( true )
 	end
 
@@ -57,21 +56,18 @@ function Game:nextState()
 		--self.source:play()
 		self.state = GAME_STATE_PLAY
 		self:onLoadGame( {gamerules=self.gamerules} )
-		self.gamerules:prepareForGame()
 	elseif self.state == GAME_STATE_WIN then
 		--self.source:stop()
 		--self.source:rewind()
 		--self.source:play()
 		self.state = GAME_STATE_PLAY
 		self:onLoadGame( {gamerules=self.gamerules} )
-		self.gamerules:prepareForGame()
 	elseif self.state == GAME_STATE_FAIL then
 		--self.source:stop()
 		--self.source:rewind()
 		--self.source:play()
 		self.state = GAME_STATE_PLAY
 		self:onLoadGame( {gamerules=self.gamerules} )
-		self.gamerules:prepareForGame()
 	end
 end
 

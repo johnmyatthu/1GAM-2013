@@ -95,15 +95,6 @@ function GameRules:loadSounds( path )
 end
 
 
-function GameRules:totalOrbs()
-	return self.num_orbs
-end
-
-function GameRules:orbsLeft()
-	return #self.entity_manager:findAllEntitiesByName( "func_loot" )
-end
-
-
 function GameRules:createSource( name )
 	local sound_data = self.sound_data[ name ]
 	return love.audio.newSource( sound_data["path"], sound_data["type"] )
@@ -130,31 +121,6 @@ function GameRules:loadData( path )
 	end
 end
 
-function GameRules:preparePlayerForNextWave( player )
-	local pd = self:dataForKeyLevel( "Player", self.level+1 )
-	if pd then
-		player.attack_damage = pd.attack_damage + (self.place_points / (self.point_base+1))
-		player.attack_delay = pd.attack_delay - ((self.place_points / 2000) * (self.level/5))
-	end
-end
-
-
-function GameRules:prepareForGame()
-end
-
-
-
-function GameRules:beatLastWave()
-	return self.level >= self.total_waves
-end
-
-function GameRules:updateScore( target )
-	-- this takes into account the target health and scales the bonus value based on that percentage
-	local health_percent = target.health / target.max_health
-	self.last_bonus = math.floor(health_percent * self.target_bonus)
-	self.total_score = self.total_score + self.last_bonus
-	self.place_points = self.place_points + self.wave_enemies
-end
 
 function GameRules:dataForKeyLevel( key, level )
 	--logging.verbose( "request: " .. key .. " level: " .. level )
@@ -168,10 +134,6 @@ function GameRules:dataForKeyLevel( key, level )
 	return nil
 end
 
-function GameRules:onEnemyDestroyed( entity )
-	self.enemies_destroyed = self.enemies_destroyed + 1
-	self.total_score = self.total_score + self.current_enemy_value
-end
 
 function GameRules:initCollision()
 	local grid_width = self.map.width
@@ -196,19 +158,6 @@ function GameRules:removeCollision( entity )
 	end
 end
 
-function GameRules:findEntityAtMouse()
-	local mx, my = love.mouse.getPosition()
-
-	for _,e in pairs(self.entity_manager:allEntities()) do
-		local dx, dy = (mx-e.world_x), (my-e.world_y)
-		local dist = math.sqrt(dx*dx + dy*dy)
-		if dist < 16 then
-			return e
-		end
-	end
-
-	return nil
-end
 
 function GameRules:actOnCollidingPairs( colliding, params )
 	if self.grid then
@@ -260,6 +209,21 @@ function GameRules:updateCollision( params )
 	end
 end
 
+function GameRules:findEntityAtMouse()
+	local mx, my = love.mouse.getPosition()
+
+	for _,e in pairs(self.entity_manager:allEntities()) do
+		local dx, dy = (mx-e.world_x), (my-e.world_y)
+		local dist = math.sqrt(dx*dx + dy*dy)
+		if dist < 16 then
+			return e
+		end
+	end
+
+	return nil
+end
+
+
 function GameRules:updateWalkableMap( )
 	local walkable_map = {}
 	if self.collision_layer then
@@ -299,12 +263,9 @@ function GameRules:updateWalkableMap( )
 end
 
 function GameRules:loadMap( mapname )
-	
-
 	self.lights = {}
 	self.entity_manager.entity_list = {}
-
-
+	
 	loader.path = "assets/maps/"
 
 	-- try and load the map...
