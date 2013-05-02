@@ -23,9 +23,6 @@ function Player:onUpdate( params )
 	-- self.world_x = self.world_x + self.velocity.x * params.dt
 	-- self.world_y = self.world_y + self.velocity.y * params.dt
 
-	if not self:isOnGround() then
-		self.velocity.y = self.velocity.y + 9.8
-	end
 
 	AnimatedSprite.onUpdate(self, params)
 end
@@ -34,23 +31,17 @@ function Player:respondsToEvent( event_name, params )
 	return true
 end
 
-function Player:jump()
-	if self:isOnGround() then
-		self.velocity.y = -50
-	else
-		logging.verbose( "not on the ground" )
-	end
-end
-
 function Player:collision( params )
 	if params.other then
-		self.world_x, self.world_y = self.world_x + params.dx, self.world_y + params.dy
-		if params.dy ~= 0 then
-			self.velocity.y = 0
-		end
+		if params.dx ~= 0 or params.dy ~= 0 then
+			self.world_x, self.world_y = self.world_x + params.dx, self.world_y + params.dy
+			if params.dy ~= 0 then
+				self.velocity.y = 0
+			end
 
-		if params.dy < 0 then
-			self.underBlocks[ params.other ] = true
+			if params.dy < 0 then
+				self.underBlocks[ params.other ] = true
+			end
 		end
 	end
 end

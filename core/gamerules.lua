@@ -61,13 +61,13 @@ function GameRules:initialize()
 end
 
 function bump.collision(item1, item2, dx, dy)
-	print(item1.name, "collision with", item2.name, "displacement vector:", dx, dy)
+	-- print(item1.name, "collision with", item2.name, "displacement vector:", dx, dy)
 	item1:collision( {gamerules=nil, other=item2, dx=dx, dy=dy} )
 	item2:collision( {gamerules=nil, other=item1, dx=-dx, dy=-dy})
 end
 
 function bump.endCollision(item1, item2)
-	print(item1.name, "stopped colliding with", item2.name)
+	-- print(item1.name, "stopped colliding with", item2.name)
 	item2:endCollision(item1)
 	item1:endCollision(item2)  
 end

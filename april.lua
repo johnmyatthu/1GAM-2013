@@ -103,6 +103,8 @@ function Game:onLoadGame( params )
 	self.cellsh = self.gamerules.map.height
 
 	self:launchBall( 200, 200, 0, 0 )
+	player.velocity.x = -50
+	player.velocity.y = -70
 	--self:createEnemy( 100, 200 )
 end
 
@@ -185,11 +187,11 @@ function Game:onUpdate( params )
 		dt=params.dt }
 		
 		--self.gamerules:handleMovePlayerCommand( command, player )
-		local player_speed = 70
+		local player_speed = 50
 		local direction = { x=0, y=0 }
+		local maximum_speed = 160
 		if command.up then
-			--direction.y = -player_speed
-			player:jump()
+			direction.y = -player_speed
 		elseif command.down then
 			direction.y = player_speed
 		end
@@ -200,21 +202,21 @@ function Game:onUpdate( params )
 			direction.x = player_speed
 		end
 
-		player.velocity.x = player.velocity.x + direction.x
-		if player.velocity.x > 190 then
-			player.velocity.x = 190
-		elseif player.velocity.x < -190 then
-			player.velocity.x = -190			
-		end
+		-- player.velocity.x = player.velocity.x + direction.x
+		-- if player.velocity.x > maximum_speed then
+		-- 	player.velocity.x = maximum_speed
+		-- elseif player.velocity.x < -maximum_speed then
+		-- 	player.velocity.x = -maximum_speed			
+		-- end
 
-		player.velocity.y = player.velocity.y + direction.y
-		if player.velocity.y > 190 then
-			player.velocity.y = 190
-		elseif player.velocity.y < -190 then
-			player.velocity.y = -190
-		end
+		-- player.velocity.y = player.velocity.y + direction.y
+		-- if player.velocity.y > maximum_speed then
+		-- 	player.velocity.y = maximum_speed
+		-- elseif player.velocity.y < -maximum_speed then
+		-- 	player.velocity.y = -maximum_speed
+		-- end
 
-		player.damping = {x=0.94, y=0.94}
+		-- player.damping = {x=0.8, y=0.8}
 		--self.gamerules:moveEntityInDirection( player, direction, params.dt )
 
 		self.gamerules:snapCameraToPlayer( player )
