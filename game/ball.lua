@@ -16,8 +16,8 @@ function Ball:collision( params )
 	if params.other then
 		local dx = params.dx
 		local dy = params.dy		
-		-- self.world_x = self.world_x + dx
-		-- self.world_y = self.world_y + dy
+		self.world_x = self.world_x + dx
+		self.world_y = self.world_y + dy
 	end
 
 	AnimatedSprite.collision( self, params )

@@ -187,7 +187,7 @@ function Game:onUpdate( params )
 		dt=params.dt }
 		
 		--self.gamerules:handleMovePlayerCommand( command, player )
-		local player_speed = 50
+		local player_speed = self.gamerules.data["player"].base_move_speed
 		local direction = { x=0, y=0 }
 		local maximum_speed = 160
 		if command.up then
@@ -202,19 +202,6 @@ function Game:onUpdate( params )
 			direction.x = player_speed
 		end
 
-		player.velocity.x = player.velocity.x + direction.x
-		if player.velocity.x > maximum_speed then
-			player.velocity.x = maximum_speed
-		elseif player.velocity.x < -maximum_speed then
-			player.velocity.x = -maximum_speed			
-		end
-
-		player.velocity.y = player.velocity.y + direction.y
-		if player.velocity.y > maximum_speed then
-			player.velocity.y = maximum_speed
-		elseif player.velocity.y < -maximum_speed then
-			player.velocity.y = -maximum_speed
-		end
 
 		player.damping = {x=0.8, y=0.8}
 		self.gamerules:moveEntityInDirection( player, direction, params.dt )
@@ -344,6 +331,8 @@ function Game:onMousePressed( params )
 		if ent then
 			self.drag_entity = ent
 		else
+			local cx, cy = self.gamerules:getCameraPosition()
+
 			-- create a new one
 			ent = self:createEnemy( mx, my )
 			self:snapEntityToGrid( ent )
