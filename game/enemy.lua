@@ -2,6 +2,8 @@ require "core"
 
 local E_STATE_CHASE = 0
 local E_STATE_BOMB = 1
+local E_STATE_EXPLODE = 2
+local E_STATE_REMOVE = 3
 
 -- seconds
 local SCAN_TIME = 2
@@ -31,7 +33,8 @@ function Enemy:initialize()
 	self.last_color = 0
 	self.next_tick = 0
 	self.next_flash = 0
-	self.next_rate = 0
+	self.next_rate = 1
+	self.flash_rate = 0
 end
 
 function Enemy:onSpawn( params )
@@ -109,12 +112,11 @@ function Enemy:collision( params )
 		self.velocity.x = 0
 		self.velocity.y = 0
 		self.last_color = 0
-		self.next_tick = 1
+		self.next_tick = 0
 		self.timeleft = params.gamerules.data["enemy"].bomb_time
 		self.bombtick = 1
-		self.next_rate = params.gamerules.data["enemy"].ticktable[ self.next_tick ]
-
-		logging.verbose( "bombtick: " .. self.bombtick )
+		self.next_rate = 1
+		self.flash_rate = params.gamerules.data["enemy"].ticktable[ self.next_rate ] 
 		self.state = E_STATE_BOMB
 	end
 
@@ -158,18 +160,22 @@ function Enemy:onUpdate( params )
 	if self.state == E_STATE_BOMB then
 		self.timeleft = self.timeleft - params.dt
 		self.bombtick = self.bombtick - params.dt
-		-- if self.bombtick <= 0 and self.next_tick < #params.gamerules.data["enemy"].ticktable then
-		-- 	self.bombtick = 1
-		-- 	self.next_rate = params.gamerules.data["enemy"].ticktable[ self.next_tick ]
-		-- 	logging.verbose( "next bomb tick: " .. self.next_tick )
-		-- 	self.next_tick = self.next_tick + 1
-		-- end
+		if self.bombtick <= 0 then
+			if self.next_rate < #params.gamerules.data["enemy"].ticktable then
+				self.bombtick = 1
+				self.next_rate = self.next_rate + 1
+				self.flash_rate = params.gamerules.data["enemy"].ticktable[ self.next_rate ]
+			else
+				self.state = E_STATE_EXPLODE
+				self.color = {r=0,g=0,b=0,a=255}
+				return
+			end
+		end
 
 		self.next_flash = self.next_flash - params.dt
 		if self.next_flash <= 0 then
 			self.next_tick = self.next_tick + 1
-			self.next_flash = self.next_rate
-			logging.verbose( "should flash: " .. self.next_tick )
+			self.next_flash = self.flash_rate
 		end
 
 		if (self.next_tick % 2) == 0 then
