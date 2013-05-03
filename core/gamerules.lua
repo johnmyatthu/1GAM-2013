@@ -325,15 +325,20 @@ function GameRules:loadMap( mapname )
 				self.basic_collision_tile = tile
 
 
-				local ct = self.entity_factory:createClass("CollisionTile")
-				ct:setPosition(x*self.map.tileWidth+hw, y*self.map.tileHeight+hh)
-				ct:setSize(self.map.tileWidth, self.map.tileHeight)
-				bump.addStatic(ct)
+
 				break
 			end
 		end
 	end	
 
+
+	for x, y, tile in self.collision_layer:iterate() do
+		local ct = self.entity_factory:createClass("CollisionTile")
+		--self:spawnEntity(ct, nil, nil, nil)
+		ct:setPosition(x*self.map.tileWidth+hw, y*self.map.tileHeight+hh)
+		ct:setSize(self.map.tileWidth, self.map.tileHeight)
+		bump.addStatic(ct)
+	end
 
 	local game_layer = self.map.layers[ "Game" ]
 	if game_layer then
