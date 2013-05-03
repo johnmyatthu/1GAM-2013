@@ -331,10 +331,11 @@ function Game:onMousePressed( params )
 		if ent then
 			self.drag_entity = ent
 		else
-			local cx, cy = self.gamerules:getCameraPosition()
+
+			local cx, cy = self.gamerules:screenToWorld(mx, my)
 
 			-- create a new one
-			ent = self:createEnemy( mx, my )
+			ent = self:createEnemy( cx, cy )
 			self:snapEntityToGrid( ent )
 		end
 	end

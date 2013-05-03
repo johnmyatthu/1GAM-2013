@@ -146,7 +146,13 @@ end
 	dy: displacement y
 	tile: a tile, if collided with a tile
 --]]
-function Entity:collision( entity, dx, dy )
+function Entity:collision( params )
+	if params.other then
+		local dx = params.dx
+		local dy = params.dy		
+		self.world_x = self.world_x + dx
+		self.world_y = self.world_y + dy
+	end	
 end
 
 function Entity:endCollision( entity )

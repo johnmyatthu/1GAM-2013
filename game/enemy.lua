@@ -41,14 +41,28 @@ end
 function Enemy:onSpawn( params )
 	self:loadSprite( "assets/sprites/blocks.conf" )
 	self:playAnimation( "1" )
+
+	self.target = params.gamerules.entity_manager:findFirstEntityByName("Player")
+
 	PathFollower.onSpawn( self, params )
 end
 
 function Enemy:onDraw( params )
 
+	local mettx, metty = self.target.world_x - self.world_x, self.target.world_y - self.world_y
+
+	local len = core.util.vector.length( mettx, metty )
+	mettx = mettx / len
+	metty = metty / len
+
+	self.velocity.x = (mettx) * params.gamerules.data["enemy"].chase_speed
+	self.velocity.y = (metty) * params.gamerules.data["enemy"].chase_speed
+
+
 	AnimatedSprite.onDraw( self, params )
 
-	--self.view_direction.x = math.cos(self.rotation) * self.view_distance
+	self.view_direction.x = mettx
+	self.view_direction.y = metty
 	--self.view_direction.y = math.sin(self.rotation) * self.view_distance
 
 	local startx, starty = params.gamerules:worldToScreen( self.world_x, self.world_y )
