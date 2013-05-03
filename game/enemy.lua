@@ -1,9 +1,7 @@
 require "core"
 
-local E_STATE_WAYPOINT = 0
-local E_STATE_SCAN = 1
-local E_STATE_INVESTIGATE = 2
-local E_STATE_FIND_WAYPOINT = 3
+local E_STATE_CHASE = 0
+local E_STATE_BOMB = 1
 
 -- seconds
 local SCAN_TIME = 2
@@ -32,10 +30,8 @@ function Enemy:initialize()
 	self.move_speed = self.normal_move_speed
 	self.move_multiplier = 1.0
 
-	self.state = E_STATE_WAYPOINT -- can be 'waypoint' or 'scan'
-	-- waypoint state will be actively moving towards a waypoint
-	-- scan state will be paused at a waypoint looking around
-
+	self.state = E_STATE_CHASE
+	self.timeleft = 0
 end
 
 function Enemy:onSpawn( params )
@@ -48,21 +44,23 @@ function Enemy:onSpawn( params )
 end
 
 function Enemy:onDraw( params )
+	if self.state == E_STATE_CHASE then
+		if self.target then
+			local mettx, metty = self.target.world_x - self.world_x, self.target.world_y - self.world_y
 
-	local mettx, metty = self.target.world_x - self.world_x, self.target.world_y - self.world_y
+			local len = core.util.vector.length( mettx, metty )
+			mettx = mettx / len
+			metty = metty / len
 
-	local len = core.util.vector.length( mettx, metty )
-	mettx = mettx / len
-	metty = metty / len
+			self.velocity.x = (mettx) * params.gamerules.data["enemy"].chase_speed
+			self.velocity.y = (metty) * params.gamerules.data["enemy"].chase_speed
 
-	self.velocity.x = (mettx) * params.gamerules.data["enemy"].chase_speed
-	self.velocity.y = (metty) * params.gamerules.data["enemy"].chase_speed
+			self.view_direction.x = mettx
+			self.view_direction.y = metty
+		end
+	elseif self.state == E_STATE_BOMB then
 
-
-	AnimatedSprite.onDraw( self, params )
-
-	self.view_direction.x = mettx
-	self.view_direction.y = metty
+	end
 	--self.view_direction.y = math.sin(self.rotation) * self.view_distance
 
 	local startx, starty = params.gamerules:worldToScreen( self.world_x, self.world_y )
@@ -101,9 +99,22 @@ function Enemy:onDraw( params )
 	y = y - 24
 	love.graphics.print( "self.state = " .. tostring(self.state), x, y )
 	--]]
-
+	AnimatedSprite.onDraw( self, params )
 end
 
+
+function Enemy:collision( params )
+	if params.other == self.target then
+		self.target = nil
+		self.velocity.x = 0
+		self.velocity.y = 0		
+		self.timeleft = params.gamerules.data["enemy"].bomb_time
+		self.state = E_STATE_BOMB
+	end
+
+
+	PathFollower.collision(self, params)
+end
 
 function Enemy:updateDirectionForWorldPosition( world_x, world_y )
 	local dx, dy = (world_x - self.world_x), (world_y - self.world_y)

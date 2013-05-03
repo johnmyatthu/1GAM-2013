@@ -20,6 +20,10 @@ local LIGHT_RADIUS = 4
 local LIGHT_SCALE_FACTOR = 2
 
 GameRules = class( "GameRules" )
+
+local s_gamerules = nil
+
+
 function GameRules:initialize()
 	self.camera_x = 0
 	self.camera_y = 0
@@ -58,12 +62,14 @@ function GameRules:initialize()
 	self.light_layer = love.graphics.newCanvas()
 
 	self.lights = {}	
+
+	s_gamerules = self
 end
 
 function bump.collision(item1, item2, dx, dy)
 	-- print(item1.name, "collision with", item2.name, "displacement vector:", dx, dy)
-	item1:collision( {gamerules=nil, other=item2, dx=dx, dy=dy} )
-	item2:collision( {gamerules=nil, other=item1, dx=-dx, dy=-dy})
+	item1:collision( {gamerules=s_gamerules, other=item2, dx=dx, dy=dy} )
+	item2:collision( {gamerules=s_gamerules, other=item1, dx=-dx, dy=-dy})
 end
 
 function bump.endCollision(item1, item2)
