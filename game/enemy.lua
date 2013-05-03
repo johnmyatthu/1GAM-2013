@@ -25,13 +25,13 @@ function Enemy:initialize()
 
 	self.view_angle = 80
 
-	self.normal_move_speed = 32
-	self.persue_multiplier = 2.0
-	self.move_speed = self.normal_move_speed
-	self.move_multiplier = 1.0
-
 	self.state = E_STATE_CHASE
+	self.bombtick = 0
 	self.timeleft = 0
+	self.last_color = 0
+	self.next_tick = 0
+	self.next_flash = 0
+	self.next_rate = 0
 end
 
 function Enemy:onSpawn( params )
@@ -107,8 +107,14 @@ function Enemy:collision( params )
 	if params.other == self.target then
 		self.target = nil
 		self.velocity.x = 0
-		self.velocity.y = 0		
+		self.velocity.y = 0
+		self.last_color = 0
+		self.next_tick = 1
 		self.timeleft = params.gamerules.data["enemy"].bomb_time
+		self.bombtick = 1
+		self.next_rate = params.gamerules.data["enemy"].ticktable[ self.next_tick ]
+
+		logging.verbose( "bombtick: " .. self.bombtick )
 		self.state = E_STATE_BOMB
 	end
 
@@ -134,69 +140,6 @@ function Enemy:updateDirectionForWaypoint( target )
 end
 
 
-
-function Enemy:runBoidsRules( params, boids )
-
-	-- Rule #1: Tend towards the center of others
-	-- Rule #2: Maintain a minimum distance from others
-	-- Rule #3: Boids tr to match velocity with nearby others
-	local cm = {x=0, y=0}
-	local min_dist = {x = 0, y = 0}
-	local cv = {x=0, y=0}
-
-	local vp = {x=0, y=0}
-	local player = params.gamerules.entity_manager:findFirstEntityByName( "Player" )
-
-	for _,boid in pairs(boids) do
-		if boid ~= self then
-			cm.x = cm.x + boid.world_x
-			cm.y = cm.y + boid.world_y
-
-			local dx, dy = (boid.world_x - self.world_x), (boid.world_y - self.world_y)
-			local distance = math.abs(core.util.vector.length( dx, dy ))
-			if distance < 48 then
-				min_dist.x = min_dist.x - dx
-				min_dist.y = min_dist.y - dy
-			end
-
-			cv.x = cv.x + boid.velocity.x
-			cv.y = cv.y + boid.velocity.y
-		end
-	end
-
-
-	if player then
-		cm.x = (player.world_x - self.world_x)
-		cm.y = (player.world_y - self.world_y)
-	else
-		-- compute average position
-		cm.x = (cm.x / #boids)
-		cm.y = (cm.y / #boids)
-
-		cm.x = cm.x - self.world_x
-		cm.y = cm.y - self.world_y		
-	end
-
-
-	cv.x = (cv.x / #boids)
-	cv.y = (cv.y / #boids)
-
-
-	if math.abs(cm.x) < 64 then
-		cm.x = 0
-	end
-
-	if math.abs(cm.y) < 64 then
-		cm.y = 0
-	end
-
-	local weight = 0.35
-
-	self.velocity.x = (cm.x * weight) + (min_dist.x) + (cv.x)
-	self.velocity.y = (cm.y * weight) + (min_dist.y) + (cv.y)
-end
-
-
 function Enemy:findWaypoint( params, name )
 	if name == nil then
 		logging.warning( "waypoint name is invalid!" )
@@ -212,8 +155,30 @@ function Enemy:findWaypoint( params, name )
 end
 
 function Enemy:onUpdate( params )
-	self.move_speed = self.normal_move_speed * self.move_multiplier
+	if self.state == E_STATE_BOMB then
+		self.timeleft = self.timeleft - params.dt
+		self.bombtick = self.bombtick - params.dt
+		-- if self.bombtick <= 0 and self.next_tick < #params.gamerules.data["enemy"].ticktable then
+		-- 	self.bombtick = 1
+		-- 	self.next_rate = params.gamerules.data["enemy"].ticktable[ self.next_tick ]
+		-- 	logging.verbose( "next bomb tick: " .. self.next_tick )
+		-- 	self.next_tick = self.next_tick + 1
+		-- end
 
+		self.next_flash = self.next_flash - params.dt
+		if self.next_flash <= 0 then
+			self.next_tick = self.next_tick + 1
+			self.next_flash = self.next_rate
+			logging.verbose( "should flash: " .. self.next_tick )
+		end
+
+		if (self.next_tick % 2) == 0 then
+			self.last_color = self.color
+			self.color = {r=255,g=0,b=0,a=255}
+		else
+			self.color = {r=255,g=255,b=255,a=255}
+		end		
+	end
 
 	PathFollower.onUpdate( self, params )
 end
