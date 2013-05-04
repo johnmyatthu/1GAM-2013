@@ -20,6 +20,7 @@ function Scorebox:collision( params )
 	if params.other then
 		if params.other.class.name == "Ball" then
 			if params.other.color_index == self.color_index then
+				params.gamerules.score = params.gamerules.score + params.gamerules.data["color_points"][ self.color_index ]
 				params.gamerules:removeEntity( self )
 			end
 		end

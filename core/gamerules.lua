@@ -58,10 +58,9 @@ function GameRules:initialize()
 	self.last_level = {}
 
 	love.audio.setVolume( 1.0 )
-	self.num_orbs = 3
 
 	self.light_layer = love.graphics.newCanvas()
-
+	self.score = 0
 	self.lights = {}	
 
 	s_gamerules = self

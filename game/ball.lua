@@ -14,16 +14,20 @@ function Ball:initialize()
 		{r=255, g=0, b=255, a=255}
 	}
 
+	self.bounces_left = 10
+
 end
 
 function Ball:collision( params )
 	if params.other then
-
 		if params.other.class.name ~= "Scorebox" or (params.other.class.name == "Scorebox" and self.color_index ~= params.other.color_index) then
+			self.bounces_left = self.bounces_left - 1
 			self.color_index = self.color_index + 1
 			if self.color_index > #self.color_table then
 				self.color_index = 1
 			end
+		elseif params.other.class.name == "Scorebox" then
+			self.bounces_left = 10
 		end
 	end
 

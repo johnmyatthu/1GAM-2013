@@ -25,8 +25,9 @@ function Game:initialize( gamerules, config, fonts )
 	
 	self.actionmap = core.actions.ActionMap( self.config, action_table )
 
-	self.state = GAME_STATE_PLAY
+	self.state = GAME_STATE_HELP
 	self.edit_state = EDIT_TILES
+	self.ball = nil
 
 	if self.state == GAME_STATE_HELP then
 		self.actionmap:set_action( " ", self, self.nextState )
@@ -36,11 +37,7 @@ function Game:initialize( gamerules, config, fonts )
 		love.mouse.setVisible( true )
 	end
 
-
-	self.cell_layer = nil
 	
-	self.ca_interval = 0.1
-	self.next_ca = self.ca_interval
 end
 
 
@@ -102,7 +99,6 @@ function Game:onLoadGame( params )
 	self.gamerules:loadMap( self.config.map )	
 	local player = self.gamerules.entity_factory:createClass( "Player" )
 	player.name = "Player"
-	logging.verbose( "creating player" )
 	self:warpPlayerToSpawn( player )
 	self.gamerules:setPlayer( player )
 	self.gamerules:spawnEntity( player, nil, nil, nil )
@@ -114,7 +110,7 @@ function Game:onLoadGame( params )
 	self.cellsw = self.gamerules.map.width
 	self.cellsh = self.gamerules.map.height
 
-	self:launchBall( 200, 200, sign(math.random())*self.gamerules.data["ball"].base_move_speed, sign(math.random())*self.gamerules.data["ball"].base_move_speed )
+	self.ball = self:launchBall( 200, 200, sign(math.random())*self.gamerules.data["ball"].base_move_speed, sign(math.random())*self.gamerules.data["ball"].base_move_speed )
 	-- player.velocity.x = -50
 	-- player.velocity.y = -70
 	--self:createEnemy( 100, 200 )
@@ -220,7 +216,14 @@ function Game:onUpdate( params )
 
 		--self.gamerules:snapCameraToPlayer( player )
 
-		self:updatePlayerDirection()
+		-- self:updatePlayerDirection()
+
+		local numboxes = self.gamerules.entity_manager:findAllEntitiesByName("Scorebox")
+		if numboxes == 0 then
+			self.state = GAME_STATE_WIN
+		elseif self.ball and self.ball.bounces_left <= 0 then
+			self.state = GAME_STATE_FAIL
+		end
 	elseif self.state == GAME_STATE_HELP then
 		params.game = self
 		self.helpscreen:onUpdate( params )
@@ -241,6 +244,15 @@ function Game:snapEntityToGrid( ent )
 	ent.world_y = math.ceil(my/gridsize) * gridsize	
 end
 
+
+function Game:drawTopBar( params )
+	love.graphics.setFont( self.fonts[ "text16" ] )
+	love.graphics.setColor( 255, 255, 255, 255 )
+	love.graphics.print( "Score: " .. tostring(params.gamerules.score), 20, 5 )	
+	if self.ball then
+		love.graphics.print( "Energy: " .. tostring(self.ball.bounces_left), 675, 5 )
+	end	
+end
 
 function Game:onDraw( params )
 	love.graphics.setBackgroundColor( 0, 0, 0, 255 )
@@ -264,7 +276,7 @@ function Game:onDraw( params )
 		love.graphics.setFont( self.fonts[ "text16" ] )
 		love.graphics.setColor( 255, 255, 255, 255 )
 		
-		--love.graphics.print( "Orbs Collected: " .. tostring(player.loot_collected) .. " / " .. tostring(self.gamerules:totalOrbs()), 540, 5 )	
+		self:drawTopBar(params)
 
 		--love.graphics.print( "Total Entities: " .. self.gamerules.entity_manager:entityCount(), 10, 50 )
 	elseif self.state == GAME_STATE_WIN then
@@ -274,29 +286,31 @@ function Game:onDraw( params )
 		love.graphics.setColor( 0, 0, 0, 64 )
 		love.graphics.rectangle( "fill", 0, 0, love.graphics.getWidth(), love.graphics.getHeight() )	
 
+		self:drawTopBar(params)
+
 		love.graphics.setFont( self.fonts[ "text32" ] )
 		love.graphics.setColor( 255, 255, 255, 255 )
 
-		love.graphics.printf( "You collected all the Orbs without being caught!", 0, 120, love.graphics.getWidth(), "center" )
+		love.graphics.printf( "You cleared the level!", 0, 120, love.graphics.getWidth(), "center" )
 		love.graphics.printf( "Thanks for playing!", 0, 250, love.graphics.getWidth(), "center" )
 
 		love.graphics.setFont( self.fonts[ "text16" ] )
-		love.graphics.printf( "This was created for #1GAM; OneGameAMonth.com March 2013", 0, 400, love.graphics.getWidth(), "center" )
+		love.graphics.printf( "This was created for #1GAM; OneGameAMonth.com April 2013", 0, 400, love.graphics.getWidth(), "center" )
+		love.graphics.printf( "This game is dedicated to my grandfather who passed away on April 18th of this month.", 50, 432, love.graphics.getWidth()-100, "center" )
 	elseif self.state == GAME_STATE_FAIL then
 		self.gamerules:drawWorld()
 		self.gamerules:drawEntities( params )
 
 		love.graphics.setColor( 0, 0, 0, 64 )
 		love.graphics.rectangle( "fill", 0, 0, love.graphics.getWidth(), love.graphics.getHeight() )	
-	
 
 		love.graphics.setFont( self.fonts[ "text32" ] )
 		love.graphics.setColor( 255, 0, 0, 255 )
 
-		love.graphics.printf( "You were caught by guards!", 0, 120, love.graphics.getWidth(), "center" )
+		love.graphics.printf( "You ran out of energy!", 0, 120, love.graphics.getWidth(), "center" )
 
 		love.graphics.setColor( 255, 255, 255, 255 )
-		love.graphics.printf( "Press <space> to try again", 0, 250, love.graphics.getWidth(), "center" )
+		-- love.graphics.printf( "Press <space> to try again", 0, 250, love.graphics.getWidth(), "center" )
 		love.graphics.printf( "Press <esc> to exit", 0, 300, love.graphics.getWidth(), "center" )
 	elseif self.state == GAME_STATE_HELP then
 		params.game = self

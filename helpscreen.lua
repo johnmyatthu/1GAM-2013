@@ -9,8 +9,6 @@ function HelpScreen:initialize( fonts )
 	self.keys = love.graphics.newImage( "assets/help.png" )
 
 	self.player = nil
-	self.orb = nil
-	self.enemy = nil
 end
 
 
@@ -19,11 +17,6 @@ function HelpScreen:prepareToShow( params )
 	self.player.world_x = 650
 	self.player.world_y = 176
 	self.player:onSpawn( params )
-
-	self.enemy = params.gamerules.entity_factory:createClass( "Enemy" )
-	self.enemy.world_x = 650
-	self.enemy.world_y = 336
-	self.enemy:onSpawn( params )
 end
 
 
@@ -31,14 +24,6 @@ function HelpScreen:onDraw( params )
 
 	if self.player then
 		self.player:onDraw( params )
-	end
-
-	if self.orb then
-		self.orb:onDraw( params )
-	end
-
-	if self.enemy then
-		self.enemy:onDraw( params )
 	end
 
 	love.graphics.setColor( 0, 0, 0, 128 )
@@ -51,11 +36,15 @@ function HelpScreen:onDraw( params )
 
 	love.graphics.printf( "This is you: ", -200, 165, love.graphics.getWidth(), "right" )
 
-	love.graphics.printf( "Collect these orbs: ", -200, 245, love.graphics.getWidth(), "right" )
+	love.graphics.printf( "Clear all blocks to win.", -200, 215, love.graphics.getWidth(), "right" )	
 
-	love.graphics.printf( "Guards can see you in the light\nSo stay in the darkness", -200, 335, love.graphics.getWidth(), "right" )	
+	love.graphics.printf( "Blocks can be destroyed\nwith another block of\nthe same color.", -200, 245, love.graphics.getWidth(), "right" )
 
-	love.graphics.printf( "Press <space> to begin!", -200, 460, love.graphics.getWidth(), "right" )	
+	love.graphics.printf( "A block can change color\nif it touches a block\n with a different color.", -200, 335, love.graphics.getWidth(), "right" )	
+
+	love.graphics.printf( "You will lose if the moving\nblock runs out of energy.\nHit blocks with matching\ncolors to restore energy.", -200, 425, love.graphics.getWidth(), "right" )	
+
+	love.graphics.printf( "Press <space> to begin!", -200, 560, love.graphics.getWidth(), "right" )	
 
 	love.graphics.print( "Movement", 75, 220 )
 
