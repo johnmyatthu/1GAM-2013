@@ -87,6 +87,14 @@ function Game:warpPlayerToSpawn( player )
 	player.tile_x, player.tile_y = self.gamerules:tileCoordinatesFromWorld( player.world_x, player.world_y )
 end
 
+function sign( x )
+	if x > 0 then
+		return 1
+	elseif x < 0 then
+		return -1
+	end
+end
+
 
 function Game:onLoadGame( params )
 
@@ -99,10 +107,14 @@ function Game:onLoadGame( params )
 	self.gamerules:setPlayer( player )
 	self.gamerules:spawnEntity( player, nil, nil, nil )
 
+
+	-- set camera to static position such that the map is centered
+	self.gamerules:setCameraPosition( 0, 0 )
+
 	self.cellsw = self.gamerules.map.width
 	self.cellsh = self.gamerules.map.height
 
-	self:launchBall( 200, 200, 0, 0 )
+	self:launchBall( 200, 200, sign(math.random())*self.gamerules.data["ball"].base_move_speed, sign(math.random())*self.gamerules.data["ball"].base_move_speed )
 	-- player.velocity.x = -50
 	-- player.velocity.y = -70
 	--self:createEnemy( 100, 200 )
@@ -206,7 +218,8 @@ function Game:onUpdate( params )
 		player.damping = {x=0.8, y=0.8}
 		self.gamerules:moveEntityInDirection( player, direction, params.dt )
 
-		self.gamerules:snapCameraToPlayer( player )
+		--self.gamerules:snapCameraToPlayer( player )
+
 		self:updatePlayerDirection()
 	elseif self.state == GAME_STATE_HELP then
 		params.game = self

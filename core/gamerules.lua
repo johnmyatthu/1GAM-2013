@@ -43,6 +43,7 @@ function GameRules:initialize()
 	self.entity_factory:registerClass( "Enemy", game.Enemy )
 	self.entity_factory:registerClass( "Player", game.Player )
 	self.entity_factory:registerClass( "Ball", game.Ball )
+	self.entity_factory:registerClass( "Scorebox", game.Scorebox )
 
 	self.sounds = {}
 	self.sound_data = {}
@@ -854,8 +855,8 @@ function GameRules:moveEntityInDirection( entity, direction, dt )
 
 
 	local tile = nil
-	local cd = {x=0, y=0}
-
+	local dx = 0
+	local dy = 0
 	-- for now, just collide with tiles that exist on the collision layer.
 	if self.map then
 		-- try the x direction
@@ -864,7 +865,7 @@ function GameRules:moveEntityInDirection( entity, direction, dt )
 		if not tileX then			
 			entity.world_x = nwx -- X direction is clear
 		else
-			cd.x = 1
+			dx = (tx*self.map.tileWidth) - entity.world_x
 		end
 
 		-- try the y direction
@@ -873,7 +874,7 @@ function GameRules:moveEntityInDirection( entity, direction, dt )
 		if not tileY then
 			entity.world_y = nwy -- Y direction is clear
 		else
-			cd.y = 1
+			dy = (ty*self.map.tileHeight) - entity.world_y
 		end
 
 		tile = tileX or tileY
@@ -884,7 +885,7 @@ function GameRules:moveEntityInDirection( entity, direction, dt )
 	end
 
 	if tile then
-		entity:collision( {gamerules=self, other=nil, dx=0, dy=0} )
+		entity:collision( {gamerules=self, other=nil, dx=dx*0.5, dy=dy*0.5} )
 	end
 
 	return tile

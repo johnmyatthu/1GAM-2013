@@ -4,6 +4,7 @@ local E_STATE_CHASE = 0
 local E_STATE_BOMB = 1
 local E_STATE_EXPLODE = 2
 local E_STATE_REMOVE = 3
+local E_STATE_REPEL = 4
 
 -- seconds
 local SCAN_TIME = 2
@@ -109,8 +110,8 @@ end
 function Enemy:collision( params )
 	if params.other == self.target then
 		self.target = nil
-		self.velocity.x = 0
-		self.velocity.y = 0
+		-- self.velocity.x = 0
+		-- self.velocity.y = 0
 		self.last_color = 0
 		self.next_tick = 0
 		self.timeleft = params.gamerules.data["enemy"].bomb_time
@@ -119,7 +120,6 @@ function Enemy:collision( params )
 		self.flash_rate = params.gamerules.data["enemy"].ticktable[ self.next_rate ] 
 		self.state = E_STATE_BOMB
 	end
-
 
 	PathFollower.collision(self, params)
 end
