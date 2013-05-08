@@ -12,7 +12,7 @@ function HelpScreen:initialize( fonts )
 end
 
 
-function HelpScreen:prepareToShow( params )
+function HelpScreen:onShow( params )
 	self.player = params.gamerules.entity_factory:createClass( "Player" )
 	self.player.world_x = 650
 	self.player.world_y = 176

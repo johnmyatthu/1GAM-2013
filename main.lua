@@ -13,6 +13,15 @@ local gameLogic = nil
 local gamerules = nil
 local game_state = KERNEL_STATE_RUN
 
+
+
+require "game.screens.help"
+require "game.screens.mainmenu"
+
+require "core.screencontrol"
+
+local screencontrol = ScreenControl()
+
 local logo_intro = {
 	icon = love.graphics.newImage( "assets/logos/icon.png" ),
 	logo = love.graphics.newImage( "assets/logos/logo.png" ),
@@ -109,10 +118,15 @@ function love.load()
 		end
 	end
 
+	-- load all screens
+	screencontrol:addScreen( "help", HelpScreen(fonts) )
+
+
+
 	-- load the game specified in the config
 	logging.verbose( "initializing game: " .. config.game )
 	require ( config.game )
-	gameLogic = Game:new( gamerules, config, fonts )
+	gameLogic = Game:new( gamerules, config, fonts, screencontrol )
 
 	-- pass control to the logic
 	core.util.callLogic( gameLogic, "onLoad", { gamerules = gamerules } )

@@ -1,7 +1,7 @@
 require "core"
 require "core.actions"
 require "game"
-require "helpscreen"
+require "game.screens.help"
 
 local player = nil
 local mouse_tile = {x = 0, y = 0}
@@ -11,13 +11,14 @@ local EDIT_TILES = 0
 
 -- Game class
 Game = class( "Game" )
-function Game:initialize( gamerules, config, fonts )
+function Game:initialize( gamerules, config, fonts, screencontrol )
 	-- supplied from the main love entry point
 	self.gamerules = gamerules
 	self.config = config
 	self.fonts = fonts
+	self.screencontrol = screencontrol
 
-	self.helpscreen = HelpScreen( fonts )
+	self.helpscreen = screencontrol:findScreen("help")
 
 
 	local action_table = {}
@@ -139,8 +140,9 @@ function Game:onLoad( params )
 	if not self.helpscreen_loaded and self.state == GAME_STATE_HELP then
 		params.game = self
 		params.gamerules = self.gamerules
-		self.helpscreen:prepareToShow( params )	
 		self.helpscreen_loaded = true
+
+		self.screencontrol:setActiveScreen( "help", params )
 	end
 end
 
@@ -295,8 +297,7 @@ function Game:onDraw( params )
 		love.graphics.printf( "Thanks for playing!", 0, 250, love.graphics.getWidth(), "center" )
 
 		love.graphics.setFont( self.fonts[ "text16" ] )
-		love.graphics.printf( "This was created for #1GAM; OneGameAMonth.com April 2013", 0, 400, love.graphics.getWidth(), "center" )
-		love.graphics.printf( "This game is dedicated to my grandfather who passed away on April 18th of this month.", 50, 432, love.graphics.getWidth()-100, "center" )
+		love.graphics.printf( "This was created for #1GAM; OneGameAMonth.com May 2013", 0, 400, love.graphics.getWidth(), "center" )
 	elseif self.state == GAME_STATE_FAIL then
 		self.gamerules:drawWorld()
 		self.gamerules:drawEntities( params )
