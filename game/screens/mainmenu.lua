@@ -17,16 +17,19 @@ function MainMenuScreen:initialize( fonts, screencontrol )
 	Screen.initialize(self, fonts, screencontrol)
 
 	self.selected_index = 1
-	self.options = {
-		{name="New Game", action=nil},
-		{name="Options", action=nil},
-		{name="Quit", action=MainMenuScreen.OnQuit}
-	}
+
 end
 
 function MainMenuScreen:onShow( params )
 	self.menu_activate = params.gamerules:playSound("menu_activate", false)
 	self.menu_select = params.gamerules:playSound("menu_select", false)
+	self.menu_back = params.gamerules:playSound("menu_back", false)
+
+	self.options = {
+		{name="New Game", action=nil, sound=self.menu_activate},
+		{name="Options", action=nil, sound=self.menu_back},
+		{name="Quit", action=MainMenuScreen.OnQuit, sound=nil}
+	}	
 end
 
 function MainMenuScreen:onHide( params )
@@ -61,19 +64,19 @@ function MainMenuScreen:onUpdate( params )
 end
 
 function MainMenuScreen:onKeyPressed( params )
+	local sound = nil
+	local selected_option = self.options[ self.selected_index ]
+
 	if params.key == "escape" then
 		love.event.push("quit")
 	elseif params.key == "return" then
-		local selected_option = self.options[ self.selected_index ]
+		
 		if selected_option.action then
 			selected_option.action(self, params)
 		end
 
-		-- don't play the activate sound if the user is quitting
-		if self.selected_index < #self.options then
-			self.menu_activate:rewind()
-			self.menu_activate:play()
-		end
+		sound = selected_option.sound
+		
 	elseif params.key == "up" or params.key == "down" then
 		local delta = 1
 		if params.key == "up" then
@@ -88,9 +91,13 @@ function MainMenuScreen:onKeyPressed( params )
 			self.selected_index = #self.options
 		end
 
+		sound = self.menu_select
+	end
 
-		self.menu_select:rewind()
-		self.menu_select:play()		
+	
+	if sound then
+		sound:rewind()
+		sound:play()
 	end
 end
 
