@@ -9,6 +9,7 @@ end
 
 function ScreenControl:addScreen( name, instance )
 	self.screens[ name ] = instance
+	instance.name = name
 end
 
 function ScreenControl:findScreen( name )
@@ -31,6 +32,6 @@ function ScreenControl:setActiveScreen( name, params )
 	return previous_active_screen
 end
 
-function ScreenControl:activeScreen()
+function ScreenControl:getActiveScreen()
 	return self.active_screen
 end

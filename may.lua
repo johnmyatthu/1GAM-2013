@@ -37,8 +37,6 @@ function Game:initialize( gamerules, config, fonts, screencontrol )
 		self:onLoadGame( {gamerules=self.gamerules} )	
 		love.mouse.setVisible( true )
 	end
-
-	
 end
 
 
