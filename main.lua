@@ -58,7 +58,7 @@ function love.load()
 
 
 
-	screencontrol:setActiveScreen("logo", {gamerules=gamerules, game=gameLogic})
+	screencontrol:setActiveScreen("mainmenu", {gamerules=gamerules, game=gameLogic})
 end
 
 function love.draw()
