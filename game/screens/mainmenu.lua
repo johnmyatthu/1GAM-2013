@@ -26,6 +26,10 @@ function MainMenuScreen:onUpdate( params )
 end
 
 function MainMenuScreen:onKeyPressed( params )
+	if params.key == "escape" then
+		love.event.push("quit")
+	end
+	
 	self.menu_select:rewind()
 	self.menu_select:play()
 end

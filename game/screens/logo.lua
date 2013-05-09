@@ -40,7 +40,7 @@ function LogoScreen:draw_image( img, width, height )
 end
 
 function LogoScreen:onShow( params )
-	self.sound = params.gamerules:playSound( "menu_intro" )
+	self.sound = params.gamerules:playSound( "menu_intro", true )
 end
 
 function LogoScreen:onHide( params )
@@ -74,6 +74,10 @@ function LogoScreen:onUpdate( params )
 		else
 			self.finished = true
 		end
+	end
+
+	if self.finished then
+		self:skipScreen( params )
 	end
 end
 
