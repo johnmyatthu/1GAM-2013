@@ -3,8 +3,8 @@ require "core"
 
 HelpScreen = class("HelpScreen")
 
-function HelpScreen:initialize( fonts, screencontrol )
-	Screen.initialize(self, fonts, screencontrol)
+function HelpScreen:initialize( params )
+	Screen.initialize(self, params)
 
 	self.keys = love.graphics.newImage( "assets/help.png" )
 

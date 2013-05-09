@@ -2,8 +2,8 @@ require "core"
 
 LogoScreen = class("LogoScreen", Screen )
 
-function LogoScreen:initialize( fonts, screencontrol )
-	Screen.initialize(self, fonts, screencontrol)
+function LogoScreen:initialize( params )
+	Screen.initialize(self, params)
 
 	self.icon = love.graphics.newImage( "assets/logos/icon.png" )
 	self.logo = love.graphics.newImage( "assets/logos/logo.png" )

@@ -13,10 +13,11 @@ function MainMenuScreen:OnQuit(params)
 	love.event.push("quit")
 end
 
-function MainMenuScreen:initialize( fonts, screencontrol )
-	Screen.initialize(self, fonts, screencontrol)
+function MainMenuScreen:initialize( params )
+	Screen.initialize(self, params)
 
 	self.selected_index = 1
+	self.last_menu = nil
 
 end
 
@@ -25,11 +26,23 @@ function MainMenuScreen:onShow( params )
 	self.menu_select = params.gamerules:playSound("menu_select", false)
 	self.menu_back = params.gamerules:playSound("menu_back", false)
 
-	self.options = {
-		{name="New Game", action=nil, sound=self.menu_activate},
-		{name="Options", action=nil, sound=self.menu_back},
-		{name="Quit", action=MainMenuScreen.OnQuit, sound=nil}
-	}	
+	self.menus = 
+	{
+		main =  {
+			{name="New Game", action=nil, target="newgame"},
+			{name="Options", action=nil, target="options"},
+			{name="Quit", action=MainMenuScreen.OnQuit}
+		},
+
+		options = {
+			{name="Sound Volume", action=nil, sound=nil}
+		}
+	}
+
+	self.options = self.menus.main
+
+
+
 end
 
 function MainMenuScreen:onHide( params )
@@ -65,18 +78,32 @@ end
 
 function MainMenuScreen:onKeyPressed( params )
 	local sound = nil
-	local selected_option = self.options[ self.selected_index ]
+
 
 	if params.key == "escape" then
-		love.event.push("quit")
+		if self.last_menu then
+			self.options = self.last_menu
+			self.selected_index = 1
+			self.last_menu = nil
+
+			sound = self.menu_back
+		end
+		--love.event.push("quit")
 	elseif params.key == "return" then
-		
+		local selected_option = self.options[ self.selected_index ]	
 		if selected_option.action then
 			selected_option.action(self, params)
 		end
 
-		sound = selected_option.sound
-		
+		sound = self.menu_activate
+
+		local target = selected_option.target
+		if target then
+			self.last_menu = self.options
+			self.options = self.menus[ target ]
+			self.selected_index = 1
+		end
+
 	elseif params.key == "up" or params.key == "down" then
 		local delta = 1
 		if params.key == "up" then

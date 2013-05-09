@@ -44,9 +44,14 @@ function love.load()
 
 
 	-- load all screens
-	screencontrol:addScreen( "logo", LogoScreen(fonts, screencontrol) )
-	screencontrol:addScreen( "help", HelpScreen(fonts, screencontrol) )
-	screencontrol:addScreen( "mainmenu", MainMenuScreen(fonts, screencontrol) )
+	local params = {
+		fonts = fonts,
+		screencontrol = screencontrol,
+		gamerules = gamerules
+	}
+	screencontrol:addScreen( "logo", LogoScreen( params ) )
+	screencontrol:addScreen( "help", HelpScreen( params ) )
+	screencontrol:addScreen( "mainmenu", MainMenuScreen( params ) )
 
 	-- load the game specified in the config
 	logging.verbose( "initializing game: " .. config.game )
@@ -55,7 +60,6 @@ function love.load()
 
 	-- pass control to the logic
 	core.util.callLogic( gameLogic, "onLoad", { gamerules = gamerules } )
-
 
 
 	screencontrol:setActiveScreen("mainmenu", {gamerules=gamerules, game=gameLogic})
