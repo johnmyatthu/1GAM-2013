@@ -17,24 +17,6 @@ require "game.screens"
 
 local screencontrol = ScreenControl()
 
-
-function escape_hit()
-	-- skip past the intro if user hits escape
-	local screen = screencontrol:getActiveScreen()
-
-	-- if screen and screen.name == "logo" then
-	-- 	logo_intro.finished = true
-	-- else
-	-- 	love.event.push( "quit" )
-	-- end
-
-	if game_state == KERNEL_STATE_LOGO then
-		logo_intro.finished = true
-	else
-		love.event.push( "quit" )
-	end
-end
-
 function load_config()
 	if love.filesystem.exists( CONFIGURATION_FILE ) then
 		config = json.decode( love.filesystem.read( CONFIGURATION_FILE ) )
@@ -60,12 +42,11 @@ function love.load()
 		end
 	end
 
+
 	-- load all screens
-	screencontrol:addScreen( "logo", LogoScreen(fonts) )
-	screencontrol:addScreen( "help", HelpScreen(fonts) )
-	screencontrol:addScreen( "mainmenu", MainMenuScreen(fonts) )
-
-
+	screencontrol:addScreen( "logo", LogoScreen(fonts, screencontrol) )
+	screencontrol:addScreen( "help", HelpScreen(fonts, screencontrol) )
+	screencontrol:addScreen( "mainmenu", MainMenuScreen(fonts, screencontrol) )
 
 	-- load the game specified in the config
 	logging.verbose( "initializing game: " .. config.game )
@@ -75,69 +56,51 @@ function love.load()
 	-- pass control to the logic
 	core.util.callLogic( gameLogic, "onLoad", { gamerules = gamerules } )
 
-	if game_state == KERNEL_STATE_LOGO then
-		gamerules:playSound( "menu_intro" )
-	end
+
+
+	screencontrol:setActiveScreen("logo", {gamerules=gamerules, game=gameLogic})
 end
 
 function love.draw()
-	if game_state == KERNEL_STATE_RUN then
-		core.util.callLogic( gameLogic, "onDraw", { gamerules = gamerules } )
-	elseif game_state == KERNEL_STATE_LOGO then
-		logo_intro:draw()
+	local active_screen = screencontrol:getActiveScreen()
+	if active_screen then
+		core.util.callLogic( active_screen, "onDraw", { gamerules = gamerules } )
 	end
 end
 
 function love.update(dt)
-	if game_state == KERNEL_STATE_RUN then
-		core.util.callLogic( gameLogic, "onUpdate", {dt=dt} )
-	elseif game_state == KERNEL_STATE_LOGO then
-		logo_intro:update(dt)
-		if logo_intro.finished then
-			game_state = KERNEL_STATE_RUN
-		end
+	local active_screen = screencontrol:getActiveScreen()
+	if active_screen then	
+		core.util.callLogic( active_screen, "onUpdate", {gamerules = gamerules, dt=dt} )
 	end
 end
 
 function love.keypressed( key, unicode )
-	if game_state == KERNEL_STATE_RUN then
-		core.util.callLogic( gameLogic, "onKeyPressed", {key=key, unicode=unicode} )
+	local active_screen = screencontrol:getActiveScreen()
+	if active_screen then	
+		core.util.callLogic( active_screen, "onKeyPressed", {gamerules = gamerules, key=key, unicode=unicode} )
 	end
 end
 
 function love.keyreleased(key )
-	if key == "escape" then
-		escape_hit()
-		return
-	elseif key == " " and game_state == KERNEL_STATE_LOGO then
-		escape_hit()
-		return
+	local active_screen = screencontrol:getActiveScreen()
+	if active_screen then	
+		core.util.callLogic( active_screen, "onKeyReleased", {gamerules = gamerules, key=key} )
 	end
-
-	core.util.callLogic( gameLogic, "onKeyReleased", {key=key} )
 end
 
 function love.mousepressed( x, y, button )
-	if game_state == KERNEL_STATE_RUN then	
-		core.util.callLogic( gameLogic, "onMousePressed", {x=x, y=y, button=button} )
-	end		
+	core.util.callLogic( gameLogic, "onMousePressed", {gamerules = gamerules, x=x, y=y, button=button} )
 end
 
 function love.mousereleased( x, y, button )
-	if game_state == KERNEL_STATE_RUN then	
-		core.util.callLogic( gameLogic, "onMouseReleased", {x=x, y=y, button=button} )	
-	end		
+	core.util.callLogic( gameLogic, "onMouseReleased", {gamerules = gamerules, x=x, y=y, button=button} )
 end
 
-
 function love.joystickpressed( joystick, button )
-	if game_state == KERNEL_STATE_RUN then	
-		core.util.callLogic( gameLogic, "onJoystickPressed", {joystick=joystick, button=button} )
-	end		
+	core.util.callLogic( gameLogic, "onJoystickPressed", {gamerules = gamerules, joystick=joystick, button=button} )
 end
 
 function love.joystickreleased( joystick, button )
-	if game_state == KERNEL_STATE_RUN then	
-		core.util.callLogic( gameLogic, "onJoystickReleased", {joystick=joystick, button=button} )
-	end		
+	core.util.callLogic( gameLogic, "onJoystickReleased", {gamerules = gamerules, joystick=joystick, button=button} )
 end

@@ -27,5 +27,6 @@
 	"keys" :
 	{
 		"c" : "toggle_collision_layer",
+		"escape" : "show_ingame_menu"
 	}
 }

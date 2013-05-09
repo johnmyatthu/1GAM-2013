@@ -8,6 +8,7 @@ function ScreenControl:initialize()
 end
 
 function ScreenControl:addScreen( name, instance )
+	logging.verbose( "adding screen: " .. name )
 	self.screens[ name ] = instance
 	instance.name = name
 end
@@ -22,6 +23,11 @@ end
 
 function ScreenControl:setActiveScreen( name, params )
 	local screen = self:findScreen(name)
+	if not screen then
+		logging.warning( "Unable to find screen named '" .. name .. "'!" )
+		return self.active_screen
+	end
+
 	local previous_active_screen = self.active_screen
 	if previous_active_screen then
 		previous_active_screen:onHide( params )

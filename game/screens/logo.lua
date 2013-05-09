@@ -2,8 +2,9 @@ require "core"
 
 LogoScreen = class("LogoScreen", Screen )
 
-function LogoScreen:initialize( fonts )
-	self.fonts = fonts
+function LogoScreen:initialize( fonts, screencontrol )
+	Screen.initialize(self, fonts, screencontrol)
+
 	self.icon = love.graphics.newImage( "assets/logos/icon.png" )
 	self.logo = love.graphics.newImage( "assets/logos/logo.png" )
 
@@ -19,6 +20,7 @@ function LogoScreen:initialize( fonts )
 	self.current_alpha = 0
 
 	self.finished = false
+	self.sound = nil
 end
 
 function LogoScreen:draw_image( img, width, height )
@@ -38,16 +40,16 @@ function LogoScreen:draw_image( img, width, height )
 end
 
 function LogoScreen:onShow( params )
+	self.sound = params.gamerules:playSound( "menu_intro" )
 end
 
 function LogoScreen:onHide( params )
+	if self.sound then
+		self.sound:stop()
+	end	
 end
 
 function LogoScreen:onDraw( params )
-	-- love.graphics.setFont( self.fonts["text16"] )
-	-- love.graphics.setColor( 255, 255, 255, 255 )
-	-- love.graphics.printf( "LogoScreen", 0, 50, love.graphics.getWidth(), "center" )
-
 	love.graphics.setColor( 255, 255, 255, self.current_alpha )
 	self:draw_image( self.icon, 20, 200 )
 	self:draw_image( self.logo, nil, nil )	
@@ -58,7 +60,7 @@ function LogoScreen:onUpdate( params )
 		return
 	end
 
-	self.fade_time = self.fade_time + timedelta
+	self.fade_time = self.fade_time + params.dt
 	local state = self.fade_states[ self.fade_state ]
 
 	-- interpolate states
@@ -73,4 +75,23 @@ function LogoScreen:onUpdate( params )
 			self.finished = true
 		end
 	end
+end
+
+
+function LogoScreen:skipScreen(params)
+	self.screencontrol:setActiveScreen("mainmenu", params)
+end
+
+function LogoScreen:onKeyPressed( params )
+	if params.key == "escape" or params.key == " " then
+		self:skipScreen(params)
+	end
+end
+
+function LogoScreen:onMousePressed( params )
+	self:skipScreen(params)
+end
+
+function LogoScreen:onJoystickPressed( params )
+	self.skipScreen(params)
 end

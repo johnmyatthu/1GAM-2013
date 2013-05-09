@@ -115,11 +115,14 @@ function GameRules:createSource( name )
 	return love.audio.newSource( sound_data["path"], sound_data["type"] )
 end
 
-function GameRules:playSound( name )
+function GameRules:playSound( name, play_sound )
 	if self.sounds then
 		local source = self.sounds[ name ]
 		love.audio.rewind( source )
-		love.audio.play( source )
+		
+		if play_sound then
+			love.audio.play( source )
+		end
 		return source
 	end
 

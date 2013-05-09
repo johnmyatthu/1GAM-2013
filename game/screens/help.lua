@@ -3,8 +3,8 @@ require "core"
 
 HelpScreen = class("HelpScreen")
 
-function HelpScreen:initialize( fonts )
-	self.fonts = fonts
+function HelpScreen:initialize( fonts, screencontrol )
+	Screen.initialize(self, fonts, screencontrol)
 
 	self.keys = love.graphics.newImage( "assets/help.png" )
 
@@ -17,6 +17,9 @@ function HelpScreen:onShow( params )
 	self.player.world_x = 650
 	self.player.world_y = 176
 	self.player:onSpawn( params )
+end
+
+function HelpScreen:onHide( params )
 end
 
 

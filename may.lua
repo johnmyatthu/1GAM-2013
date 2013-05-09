@@ -23,6 +23,7 @@ function Game:initialize( gamerules, config, fonts, screencontrol )
 
 	local action_table = {}
 	action_table[ "toggle_collision_layer" ] = {instance=self, action=self.toggleDrawCollisions}
+	action_table[ "show_ingame_menu" ] = {instance=self, action=self.showInGameMenu}
 	
 	self.actionmap = core.actions.ActionMap( self.config, action_table )
 
@@ -39,6 +40,11 @@ function Game:initialize( gamerules, config, fonts, screencontrol )
 	end
 end
 
+
+function Game:showInGameMenu()
+	logging.verbose( "show in game menu or ... quit" )
+	love.event.push( "quit" )
+end
 
 function Game:nextState()
 
@@ -341,40 +347,13 @@ function Game:onKeyPressed( params )
 end
 
 function Game:onKeyReleased( params )
-	if params.key == "m" then
-		self.state = GAME_STATE_PLAY
-		local ball = self:launchBall( 200, 200, 0, 0 )
-		ball.name = "Ball"
-	end	
 end
 
 function Game:onMousePressed( params )
-	if params.button == "l" then
-		local mx, my = love.mouse.getPosition()
-
-		-- see if we clicked an entity
-		local ent = self.gamerules:findEntityAtMouse()
-		if ent then
-			self.drag_entity = ent
-		else
-
-			local cx, cy = self.gamerules:screenToWorld(mx, my)
-
-			-- create a new one
-			ent = self:createEnemy( cx, cy )
-			self:snapEntityToGrid( ent )
-		end
-	end
 end
 
 function Game:onMouseReleased( params )
-	if params.button == "l" then
-		if self.drag_entity then
-			self.drag_entity = nil
-		end
-	end
 end
-
 
 function Game:onJoystickPressed( params )
 end
