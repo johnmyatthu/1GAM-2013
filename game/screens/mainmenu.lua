@@ -35,7 +35,7 @@ function MainMenuScreen:onShow( params )
 		},
 
 		options = {
-			{name="Sound Volume", action=nil, sound=nil}
+			{name="Sound Volume", action=nil}
 		}
 	}
 
@@ -78,7 +78,10 @@ end
 
 function MainMenuScreen:onKeyPressed( params )
 	local sound = nil
+	local play_sound = true
+	
 
+ 
 
 	if params.key == "escape" then
 		if self.last_menu then
@@ -90,7 +93,8 @@ function MainMenuScreen:onKeyPressed( params )
 		end
 		--love.event.push("quit")
 	elseif params.key == "return" then
-		local selected_option = self.options[ self.selected_index ]	
+		local selected_option = self.options[ self.selected_index ]
+		play_sound = (selected_option.target ~= nil)
 		if selected_option.action then
 			selected_option.action(self, params)
 		end
@@ -122,7 +126,7 @@ function MainMenuScreen:onKeyPressed( params )
 	end
 
 	
-	if sound then
+	if sound and play_sound then
 		sound:rewind()
 		sound:play()
 	end
