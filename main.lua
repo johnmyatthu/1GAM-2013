@@ -58,6 +58,8 @@ function love.load()
 	require ( config.game )
 	gameLogic = Game:new( gamerules, config, fonts, screencontrol )
 
+	screencontrol:addScreen( "game", gameLogic )
+
 	-- pass control to the logic
 	core.util.callLogic( gameLogic, "onLoad", { gamerules = gamerules } )
 

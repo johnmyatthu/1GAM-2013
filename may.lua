@@ -97,6 +97,12 @@ function sign( x )
 	end
 end
 
+function Game:onShow( params )
+end
+
+function Game:onHide( params )
+end
+
 
 function Game:onLoadGame( params )
 

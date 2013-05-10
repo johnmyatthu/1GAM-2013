@@ -13,6 +13,10 @@ function MainMenuScreen:OnQuit(params)
 	love.event.push("quit")
 end
 
+function MainMenuScreen:StartNewGame(params)
+	self.screencontrol:setActiveScreen("game", params)
+end
+
 function MainMenuScreen:initialize( params )
 	Screen.initialize(self, params)
 
@@ -29,7 +33,7 @@ function MainMenuScreen:onShow( params )
 	self.menus = 
 	{
 		main =  {
-			{name="New Game", action=nil, target="newgame"},
+			{name="New Game", action=MainMenuScreen.StartNewGame, target="newgame"},
 			{name="Options", action=nil, target="options"},
 			{name="Quit", action=MainMenuScreen.OnQuit}
 		},
