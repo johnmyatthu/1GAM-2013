@@ -42,8 +42,12 @@ end
 
 
 function Game:showInGameMenu()
-	logging.verbose( "show in game menu or ... quit" )
-	love.event.push( "quit" )
+	--logging.verbose( "show in game menu or ... quit" )
+	--love.event.push( "quit" )
+	local params = {
+		gamerules = self.gamerules
+	}
+	self.screencontrol:setActiveScreen("mainmenu", params)
 end
 
 function Game:nextState()

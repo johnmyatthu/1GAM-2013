@@ -83,9 +83,6 @@ end
 function MainMenuScreen:onKeyPressed( params )
 	local sound = nil
 	local play_sound = true
-	
-
- 
 
 	if params.key == "escape" then
 		if self.last_menu then
