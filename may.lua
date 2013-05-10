@@ -4,22 +4,15 @@ require "game"
 require "game.screens.help"
 
 local player = nil
-local mouse_tile = {x = 0, y = 0}
-local target_tile = {x = 0, y = 0}
-
-local EDIT_TILES = 0
 
 -- Game class
-Game = class( "Game" )
+Game = class( "Game", Screen )
 function Game:initialize( gamerules, config, fonts, screencontrol )
 	-- supplied from the main love entry point
-	self.gamerules = gamerules
+	Screen.initialize(self, {gamerules=gamerules, fonts=fonts, screencontrol=screencontrol} )
 	self.config = config
-	self.fonts = fonts
-	self.screencontrol = screencontrol
 
 	self.helpscreen = screencontrol:findScreen("help")
-
 
 	local action_table = {}
 	action_table[ "toggle_collision_layer" ] = {instance=self, action=self.toggleDrawCollisions}
@@ -28,58 +21,26 @@ function Game:initialize( gamerules, config, fonts, screencontrol )
 	self.actionmap = core.actions.ActionMap( self.config, action_table )
 
 	self.state = GAME_STATE_PLAY
-	self.edit_state = EDIT_TILES
-	self.ball = nil
 
-	if self.state == GAME_STATE_HELP then
-		self.actionmap:set_action( " ", self, self.nextState )
-		love.mouse.setVisible( true )
-	else
-		self:onLoadGame( {gamerules=self.gamerules} )	
-		love.mouse.setVisible( true )
-	end
+	self:onLoadGame( {gamerules=self.gamerules} )	
+	love.mouse.setVisible( true )
 end
 
 
 function Game:showInGameMenu()
-	local params = {
-		gamerules = self.gamerules
-	}
-	local active_screen = self.screencontrol:getActiveScreen()
-	logging.verbose(active_screen.name)
-	if active_screen.name == "game" then
-		self.screencontrol:setActiveScreen("mainmenu", params)
-	else
-		self.screencontrol:setActiveScreen("game", params)
-	end
+	-- local params = {
+	-- 	gamerules = self.gamerules
+	-- }
+	-- local active_screen = self.screencontrol:getActiveScreen()
+	-- logging.verbose(active_screen.name)
+	-- if active_screen.name == "game" then
+	-- 	self.screencontrol:setActiveScreen("mainmenu", params)
+	-- else
+	-- 	self.screencontrol:setActiveScreen("game", params)
+	-- end
+	love.event.push("quit")
 end
 
-function Game:nextState()
-
-	if self.actionmap and self.actionmap:get_action( " " ) then
-		self.actionmap:set_action(" ", nil, nil)
-	end
-
-	if self.state == GAME_STATE_HELP then
-		--self.source:stop()
-		--self.source:rewind()
-		--self.source:play()
-		self.state = GAME_STATE_PLAY
-		self:onLoadGame( {gamerules=self.gamerules} )
-	elseif self.state == GAME_STATE_WIN then
-		--self.source:stop()
-		--self.source:rewind()
-		--self.source:play()
-		self.state = GAME_STATE_PLAY
-		self:onLoadGame( {gamerules=self.gamerules} )
-	elseif self.state == GAME_STATE_FAIL then
-		--self.source:stop()
-		--self.source:rewind()
-		--self.source:play()
-		self.state = GAME_STATE_PLAY
-		self:onLoadGame( {gamerules=self.gamerules} )
-	end
-end
 
 function Game:keyForAction( action )
 	return self.actionmap:key_for_action( action )
@@ -129,7 +90,7 @@ function Game:onLoadGame( params )
 	self.cellsw = self.gamerules.map.width
 	self.cellsh = self.gamerules.map.height
 
-	self.ball = self:launchBall( 200, 200, sign(math.random())*self.gamerules.data["ball"].base_move_speed, sign(math.random())*self.gamerules.data["ball"].base_move_speed )
+
 	-- player.velocity.x = -50
 	-- player.velocity.y = -70
 	--self:createEnemy( 100, 200 )
@@ -238,12 +199,12 @@ function Game:onUpdate( params )
 
 		-- self:updatePlayerDirection()
 
-		local numboxes = self.gamerules.entity_manager:findAllEntitiesByName("Scorebox")
-		if numboxes == 0 then
-			self.state = GAME_STATE_WIN
-		elseif self.ball and self.ball.bounces_left <= 0 then
-			self.state = GAME_STATE_FAIL
-		end
+		-- local numboxes = self.gamerules.entity_manager:findAllEntitiesByName("Scorebox")
+		-- if numboxes == 0 then
+		-- 	self.state = GAME_STATE_WIN
+		-- elseif self.ball and self.ball.bounces_left <= 0 then
+		-- 	self.state = GAME_STATE_FAIL
+		-- end
 	elseif self.state == GAME_STATE_HELP then
 		params.game = self
 		self.helpscreen:onUpdate( params )
@@ -269,9 +230,6 @@ function Game:drawTopBar( params )
 	love.graphics.setFont( self.fonts[ "text16" ] )
 	love.graphics.setColor( 255, 255, 255, 255 )
 	love.graphics.print( "Score: " .. tostring(params.gamerules.score), 20, 5 )	
-	if self.ball then
-		love.graphics.print( "Energy: " .. tostring(self.ball.bounces_left), 675, 5 )
-	end	
 end
 
 function Game:onDraw( params )

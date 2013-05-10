@@ -57,3 +57,14 @@ end
 
 function HelpScreen:onUpdate( params )
 end
+
+function HelpScreen:skipScreen(params)
+
+	self.screencontrol:setActiveScreen(self.screencontrol.last_screen.name, params)
+end
+
+function HelpScreen:onKeyPressed( params )
+	if params.key == "escape" then
+		self:skipScreen(params)
+	end
+end
