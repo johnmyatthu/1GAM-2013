@@ -9,6 +9,11 @@ end
 function MainMenuScreen:OnOptions(params)
 end
 
+
+function MainMenuScreen:ShowHelp(params)
+	self.screencontrol.last_screen = self.screencontrol:setActiveScreen("help", params)
+end
+
 function MainMenuScreen:OnQuit(params)
 	love.event.push("quit")
 end
@@ -19,10 +24,8 @@ end
 
 function MainMenuScreen:initialize( params )
 	Screen.initialize(self, params)
-
 	self.selected_index = 1
 	self.last_menu = nil
-
 end
 
 function MainMenuScreen:onShow( params )
@@ -34,12 +37,12 @@ function MainMenuScreen:onShow( params )
 	{
 		main =  {
 			{name="New Game", action=MainMenuScreen.StartNewGame, target="newgame"},
-			{name="Options", action=nil, target="options"},
+			{name="Help", action=MainMenuScreen.ShowHelp},
 			{name="Quit", action=MainMenuScreen.OnQuit}
 		},
 
 		options = {
-			{name="Sound Volume", action=nil}
+			{name="Sound Volume", action=nil, value=1, scale=20, type="float"}
 		}
 	}
 

@@ -27,7 +27,7 @@ function Game:initialize( gamerules, config, fonts, screencontrol )
 	
 	self.actionmap = core.actions.ActionMap( self.config, action_table )
 
-	self.state = GAME_STATE_HELP
+	self.state = GAME_STATE_PLAY
 	self.edit_state = EDIT_TILES
 	self.ball = nil
 
@@ -42,12 +42,16 @@ end
 
 
 function Game:showInGameMenu()
-	--logging.verbose( "show in game menu or ... quit" )
-	--love.event.push( "quit" )
 	local params = {
 		gamerules = self.gamerules
 	}
-	self.screencontrol:setActiveScreen("mainmenu", params)
+	local active_screen = self.screencontrol:getActiveScreen()
+	logging.verbose(active_screen.name)
+	if active_screen.name == "game" then
+		self.screencontrol:setActiveScreen("mainmenu", params)
+	else
+		self.screencontrol:setActiveScreen("game", params)
+	end
 end
 
 function Game:nextState()
@@ -151,13 +155,13 @@ function Game:launchBall( x, y, vx, vy )
 end
 
 function Game:onLoad( params )
-	if not self.helpscreen_loaded and self.state == GAME_STATE_HELP then
-		params.game = self
-		params.gamerules = self.gamerules
-		self.helpscreen_loaded = true
+	-- if not self.helpscreen_loaded and self.state == GAME_STATE_HELP then
+	-- 	params.game = self
+	-- 	params.gamerules = self.gamerules
+	-- 	self.helpscreen_loaded = true
 
-		self.screencontrol:setActiveScreen( "help", params )
-	end
+	-- 	self.screencontrol:setActiveScreen( "help", params )
+	-- end
 end
 
 

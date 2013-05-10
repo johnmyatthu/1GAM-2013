@@ -5,6 +5,7 @@ ScreenControl = class("ScreenControl")
 function ScreenControl:initialize()
 	self.screens = {}
 	self.active_screen = nil
+	self.last_screen = nil
 end
 
 function ScreenControl:addScreen( name, instance )

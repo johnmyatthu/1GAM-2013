@@ -1,7 +1,7 @@
 require "core"
 
 
-HelpScreen = class("HelpScreen")
+HelpScreen = class("HelpScreen", Screen)
 
 function HelpScreen:initialize( params )
 	Screen.initialize(self, params)
