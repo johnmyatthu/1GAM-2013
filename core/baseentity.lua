@@ -92,6 +92,10 @@ function Entity:onSpawn( params )
 end
 
 function Entity:onUpdate( params )
+
+	--local pad = params.gamerules.bump.getCellSize()/params.dt * 0.5
+	--logging.verbose( "padding: " .. pad )
+
 	params.gamerules:moveEntityInDirection( self, self.velocity, params.dt )
 	--self.world_x = self.world_x + self.velocity.x * params.dt
 	--self.world_y = self.world_y + self.velocity.y * params.dt

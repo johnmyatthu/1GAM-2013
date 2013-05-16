@@ -66,6 +66,10 @@ function GameRules:initialize()
 	s_gamerules = self
 end
 
+function GameRules.getGameRules()
+	return s_gamerules
+end
+
 function bump.collision(item1, item2, dx, dy)
 	-- print(item1.name, "collision with", item2.name, "displacement vector:", dx, dy)
 	item1:collision( {gamerules=s_gamerules, other=item2, dx=dx, dy=dy} )
@@ -162,6 +166,7 @@ function GameRules:initCollision()
 	-- local grid_width = self.map.width
 	-- local grid_height = self.map.height
 	-- self.grid = SH:new( grid_width, grid_height, 64 )
+	self.bump = bump
 	bump.initialize(64)
 end
 
