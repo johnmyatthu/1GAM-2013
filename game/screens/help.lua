@@ -68,3 +68,9 @@ function HelpScreen:onKeyPressed( params )
 		self:skipScreen(params)
 	end
 end
+
+function HelpScreen:onJoystickPressed( params )
+	if params.button == 3 then
+		self:skipScreen(params)
+	end
+end

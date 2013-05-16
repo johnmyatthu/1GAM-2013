@@ -83,11 +83,13 @@ end
 function MainMenuScreen:onUpdate( params )
 end
 
-function MainMenuScreen:onKeyPressed( params )
+
+function MainMenuScreen:actionOnItem( action, params )
 	local sound = nil
 	local play_sound = true
+	logging.verbose( "action: " .. action )
 
-	if params.key == "escape" then
+	if action == "back" then
 		if self.last_menu then
 			self.options = self.last_menu
 			self.selected_index = 1
@@ -95,8 +97,8 @@ function MainMenuScreen:onKeyPressed( params )
 
 			sound = self.menu_back
 		end
-		--love.event.push("quit")
-	elseif params.key == "return" then
+		--love.event.push("quit")		
+	elseif action == "activate" then
 		local selected_option = self.options[ self.selected_index ]
 		play_sound = (selected_option.target ~= nil)
 		if selected_option.action then
@@ -110,14 +112,12 @@ function MainMenuScreen:onKeyPressed( params )
 			self.last_menu = self.options
 			self.options = self.menus[ target ]
 			self.selected_index = 1
-		end
-
-	elseif params.key == "up" or params.key == "down" then
+		end		
+	elseif action == "prev" or action == "next" then
 		local delta = 1
-		if params.key == "up" then
+		if action == "prev" then
 			delta = -1
 		end
-
 
 		self.selected_index = self.selected_index + delta
 		if self.selected_index > #self.options then
@@ -127,13 +127,32 @@ function MainMenuScreen:onKeyPressed( params )
 		end
 
 		sound = self.menu_select
+	
 	end
-
 	
 	if sound and play_sound then
 		sound:rewind()
 		sound:play()
+	end	
+end
+
+function MainMenuScreen:onKeyPressed( params )
+	local action = ""
+
+	if params.key == "escape" then
+		action = "back"
+	elseif params.key == "return" then
+		action = "activate"
+	elseif params.key == "up" or params.key == "down" then
+		
+		if params.key == "up" then
+			action = "prev"
+		else
+			action = "next"
+		end
 	end
+
+	self:actionOnItem( action, params )	
 end
 
 function MainMenuScreen:onKeyReleased( params )
@@ -146,6 +165,14 @@ function MainMenuScreen:onMouseReleased( params )
 end
 
 function MainMenuScreen:onJoystickPressed( params )
+	logging.verbose( "on joy stick pressed: " .. params.joystick .. ", button: " .. params.button )
+	local action = ""
+	if params.button == 2 then
+		action = "activate"
+	elseif params.button == 3 then
+		action = "back"
+	end
+	self:actionOnItem( action, params )
 end
 
 function MainMenuScreen:onJoystickReleased( params )

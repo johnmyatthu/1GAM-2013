@@ -8,7 +8,7 @@ function love.conf(t)
 	t.screen.fullscreen = false
 	t.screen.vsync = true
 	t.console = false
-	t.modules.joystick = false
+	t.modules.joystick = true
 	t.modules.audio = true
 	t.modules.keyboard = true
 	t.modules.event = true

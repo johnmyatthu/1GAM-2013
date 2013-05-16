@@ -75,6 +75,18 @@ function love.draw()
 end
 
 function love.update(dt)
+
+	for i=1, love.joystick.getNumJoysticks() do
+		for j=1, love.joystick.getNumHats(i) do
+
+			local direction = love.joystick.getHat( i, 1 )
+			if direction ~= "c" then
+				logging.verbose( "hat " .. j .. ", direction: " .. direction )
+			end
+
+		end
+	end
+
 	local active_screen = screencontrol:getActiveScreen()
 	if active_screen then	
 		core.util.callLogic( active_screen, "onUpdate", {gamerules = gamerules, dt=dt} )
@@ -96,17 +108,29 @@ function love.keyreleased(key )
 end
 
 function love.mousepressed( x, y, button )
-	core.util.callLogic( gameLogic, "onMousePressed", {gamerules = gamerules, x=x, y=y, button=button} )
+	local active_screen = screencontrol:getActiveScreen()
+	if active_screen then	
+		core.util.callLogic( active_screen, "onMousePressed", {gamerules = gamerules, x=x, y=y, button=button} )
+	end
 end
 
 function love.mousereleased( x, y, button )
-	core.util.callLogic( gameLogic, "onMouseReleased", {gamerules = gamerules, x=x, y=y, button=button} )
+	local active_screen = screencontrol:getActiveScreen()
+	if active_screen then	
+		core.util.callLogic( active_screen, "onMouseReleased", {gamerules = gamerules, x=x, y=y, button=button} )
+	end		
 end
 
 function love.joystickpressed( joystick, button )
-	core.util.callLogic( gameLogic, "onJoystickPressed", {gamerules = gamerules, joystick=joystick, button=button} )
+	local active_screen = screencontrol:getActiveScreen()
+	if active_screen then	
+		core.util.callLogic( active_screen, "onJoystickPressed", {gamerules = gamerules, joystick=joystick, button=button} )
+	end
 end
 
 function love.joystickreleased( joystick, button )
-	core.util.callLogic( gameLogic, "onJoystickReleased", {gamerules = gamerules, joystick=joystick, button=button} )
+	local active_screen = screencontrol:getActiveScreen()
+	if active_screen then	
+		core.util.callLogic( active_screen, "onJoystickReleased", {gamerules = gamerules, joystick=joystick, button=button} )
+	end
 end

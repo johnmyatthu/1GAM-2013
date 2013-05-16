@@ -329,6 +329,8 @@ function Game:onMouseReleased( params )
 end
 
 function Game:onJoystickPressed( params )
+--	logging.verbose( "on joy stick pressed: " .. params.joystick .. ", button: " .. params.button )
+
 end
 
 function Game:onJoystickReleased( params )
