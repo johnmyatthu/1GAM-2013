@@ -17,6 +17,29 @@ require "game.screens"
 
 local screencontrol = ScreenControl()
 
+JoystickState = class("JoystickState")
+function JoystickState:initialize(id)
+	self.joystick_id = id
+	self.last_direction = "c"
+	self.direction = "c"
+end
+
+
+function JoystickState:update(params)
+	-- assume only one hat
+	self.direction = love.joystick.getHat( self.joystick_id, 1 )
+	if self.direction ~= self.last_direction then
+		-- perform some action
+		self.last_direction = self.direction
+
+		logging.verbose( "direction: " .. self.direction )
+	end
+end
+
+local joystick_states = {}
+
+
+
 function load_config()
 	if love.filesystem.exists( CONFIGURATION_FILE ) then
 		config = json.decode( love.filesystem.read( CONFIGURATION_FILE ) )
@@ -42,6 +65,11 @@ function love.load()
 		end
 	end
 
+
+	-- initialize joysticks
+	for i=1, love.joystick.getNumJoysticks() do
+		joystick_states[i] = JoystickState(i)
+	end
 
 	-- load all screens
 	local params = {
@@ -74,18 +102,28 @@ function love.draw()
 	end
 end
 
+
+
+
 function love.update(dt)
 
-	for i=1, love.joystick.getNumJoysticks() do
-		for j=1, love.joystick.getNumHats(i) do
-
-			local direction = love.joystick.getHat( i, 1 )
-			if direction ~= "c" then
-				logging.verbose( "hat " .. j .. ", direction: " .. direction )
-			end
-
-		end
+	for j=1, #joystick_states do
+		local jss = joystick_states[j]
+		jss:update({dt=dt})
 	end
+
+	-- for i=1, love.joystick.getNumJoysticks() do
+	-- 	for j=1, love.joystick.getNumHats(i) do
+
+	-- 		local direction = love.joystick.getHat( i, j )
+	-- 		if direction ~= "c" then
+	-- 			logging.verbose( "hat " .. j .. ", direction: " .. direction )
+	-- 		end
+
+	-- 	end
+	-- end
+
+
 
 	local active_screen = screencontrol:getActiveScreen()
 	if active_screen then	
