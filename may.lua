@@ -5,6 +5,7 @@ require "game.screens.help"
 
 local player = nil
 
+
 -- Game class
 Game = class( "Game", Screen )
 function Game:initialize( gamerules, config, fonts, screencontrol )
@@ -158,7 +159,7 @@ function Game:onUpdate( params )
 	if self.state == GAME_STATE_PLAY then
 		local player = self.gamerules:getPlayer()
 
-		self.gamerules:onUpdate( params )
+		
 
 		--local cam_x, cam_y = self.gamerules:getCameraPosition()
 		-- if love.keyboard.isDown( self:keyForAction(core.actions.MOVE_MAP_UP) ) then cam_y = cam_y + self.config.move_speed*params.dt end
@@ -206,6 +207,9 @@ function Game:onUpdate( params )
 		-- elseif self.ball and self.ball.bounces_left <= 0 then
 		-- 	self.state = GAME_STATE_FAIL
 		-- end
+
+		self.gamerules:onUpdate( params )
+		
 	elseif self.state == GAME_STATE_HELP then
 		params.game = self
 		self.helpscreen:onUpdate( params )
