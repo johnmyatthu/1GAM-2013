@@ -803,11 +803,11 @@ end
 function GameRules:onUpdate(params)
 	params.gamerules = self
 
-	self:updateCollision(params)
-
+	-- call update on all entities
 	self.entity_manager:eventForEachEntity( "onUpdate", params )
 
-	
+	-- run collision callbacks on entities to resolve intersections
+	self:updateCollision(params)	
 end
 
 function GameRules:findMinimumDisplacementVector( a, b )
