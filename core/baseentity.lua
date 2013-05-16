@@ -114,6 +114,9 @@ function Entity:onUpdate( params )
 	end
 end
 
+function Entity:postFrameUpdate(params)
+end
+
 function Entity:__tostring()
 	return "class " .. self.class.name .. " at [ " .. self.tile_x .. ", " .. self.tile_y .. " ] | World [ " .. self.world_x .. ", " .. self.world_y .. " ]"
 end

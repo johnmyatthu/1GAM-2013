@@ -195,7 +195,8 @@ function Game:onUpdate( params )
 
 
 		player.damping = {x=0.8, y=0.8}
-		self.gamerules:moveEntityInDirection( player, direction, params.dt )
+		player.velocity = direction
+		--self.gamerules:moveEntityInDirection( player, direction, params.dt )
 
 		--self.gamerules:snapCameraToPlayer( player )
 
@@ -209,7 +210,7 @@ function Game:onUpdate( params )
 		-- end
 
 		self.gamerules:onUpdate( params )
-		
+
 	elseif self.state == GAME_STATE_HELP then
 		params.game = self
 		self.helpscreen:onUpdate( params )
@@ -260,6 +261,8 @@ function Game:onDraw( params )
 		love.graphics.setColor( 255, 255, 255, 255 )
 		
 		self:drawTopBar(params)
+
+		love.graphics.print( "Player is on ground? " .. tostring(player:isOnGround()), 10, 200 )
 
 		--love.graphics.print( "Total Entities: " .. self.gamerules.entity_manager:entityCount(), 10, 50 )
 	elseif self.state == GAME_STATE_WIN then

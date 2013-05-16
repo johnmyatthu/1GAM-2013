@@ -91,8 +91,8 @@ function love.load()
 	-- pass control to the logic
 	core.util.callLogic( gameLogic, "onLoad", { gamerules = gamerules } )
 
-
-	screencontrol:setActiveScreen("mainmenu", {gamerules=gamerules, game=gameLogic})
+	local first_screen = "game"
+	screencontrol:setActiveScreen(first_screen, {gamerules=gamerules, game=gameLogic})
 end
 
 function love.draw()
