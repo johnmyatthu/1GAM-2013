@@ -9,7 +9,6 @@ function Player:initialize()
 	self.dir = {x=0, y=0}
 
 	self.visible = true
-	self.item = nil
 end
 
 function Player:onSpawn( params )
@@ -44,6 +43,7 @@ end
 
 function Player:canPickupItem( gamerules, entity )
 	if not entity then return end
+	if entity == self then return end
 	return gamerules:calculateEntityDistance(entity, self) < 48
 end
 

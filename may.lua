@@ -270,7 +270,7 @@ end
 
 function Game:snapEntityToGrid( ent )
 	local mx, my = love.mouse.getPosition()
-	local gridsize = 16
+	local gridsize = 32
 
 	ent.world_x = math.ceil(mx/gridsize) * gridsize
 	ent.world_y = math.ceil(my/gridsize) * gridsize	
@@ -446,39 +446,29 @@ end
 function Game:onMousePressed( params )
 	if params.button == "l" then
 		local player = self.gamerules:getPlayer()
-		if player.item == nil then
-			local item = self.gamerules:findEntityAtMouse()
-			if item then
-				local used_slots = self:inventoryUsedSlots(params)
-				if player:canPickupItem(self.gamerules, item) and (used_slots < INVENTORY_MAX_SLOTS) then
-					local target_slot = self:inventoryFindUnusedSlot()
-					logging.verbose( target_slot )
-					if target_slot > 0 then
-						self.inventory[ target_slot ] = item
-						
-						logging.verbose( "picked up item: " .. tostring(item))
-						self.gamerules:removeCollision(item)
-						item.visible = false
-					end
-				else
-					logging.verbose( "reached max used slots: " .. tostring(used_slots))
+		local item = self.gamerules:findEntityAtMouse()
+		if item then
+			local used_slots = self:inventoryUsedSlots(params)
+			if player:canPickupItem(self.gamerules, item) and (used_slots < INVENTORY_MAX_SLOTS) then
+				local target_slot = self:inventoryFindUnusedSlot()
+				if target_slot > 0 then
+					self.inventory[ target_slot ] = item
+					self.gamerules:removeCollision(item)
+					item.visible = false
 				end
+			end
+		else
+			-- place item from inventory
+			item = self.inventory[self.selected_item]
 
+			if item ~= 0 then
+				local mx, my = love.mouse.getPosition()
+				item.world_x, item.world_y = self.gamerules:screenToWorld(mx, my)
+				self:snapEntityToGrid(item)
 
-
-
-			else
-				-- place item from inventory
-				item = self.inventory[self.selected_item]
-
-				if item ~= 0 then
-					local mx, my = love.mouse.getPosition()
-					item.world_x, item.world_y = self.gamerules:screenToWorld(mx, my)
-					item.visible = true
-					self.gamerules:addCollision(item)
-					self.inventory[self.selected_item] = 0
-					--self:nextItem()
-				end
+				item.visible = true
+				self.gamerules:addCollision(item)
+				self.inventory[self.selected_item] = 0
 			end
 		end
 	elseif params.button == "m" then
