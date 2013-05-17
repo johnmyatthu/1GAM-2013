@@ -27,6 +27,8 @@
 	"keys" :
 	{
 		"c" : "toggle_collision_layer",
-		"escape" : "show_ingame_menu"
+		"escape" : "show_ingame_menu",
+		"e" : "next_inventory_item",
+		"q" : "prev_inventory_item"
 	}
 }

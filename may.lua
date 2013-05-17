@@ -36,6 +36,8 @@ function Game:initialize( gamerules, config, fonts, screencontrol )
 	local action_table = {}
 	action_table[ "toggle_collision_layer" ] = {instance=self, action=self.toggleDrawCollisions}
 	action_table[ "show_ingame_menu" ] = {instance=self, action=self.showInGameMenu}
+	action_table[ "next_inventory_item" ] = {instance=self, action=self.nextItem}
+	action_table[ "prev_inventory_item" ] = {instance=self, action=self.prevItem}
 	
 	self.actionmap = core.actions.ActionMap( self.config, action_table )
 
@@ -53,6 +55,20 @@ function Game:initialize( gamerules, config, fonts, screencontrol )
 
 end
 
+
+function Game:nextItem()
+	self.selected_item = self.selected_item + 1
+	if self.selected_item > INVENTORY_MAX_SLOTS then
+		self.selected_item = 1
+	end
+end
+
+function Game:prevItem()
+	self.selected_item = self.selected_item - 1
+	if self.selected_item < 1 then
+		self.selected_item = INVENTORY_MAX_SLOTS
+	end	
+end
 
 function Game:showInGameMenu()
 	-- local params = {
@@ -278,9 +294,9 @@ function Game:drawInventory( params )
 	--love.graphics.rectangle("line", x, y, inventory_width, INVENTORY_SLOT_SIZE)
 	for i=1, INVENTORY_MAX_SLOTS do
 		local item = self.inventory[i]
+
+
 		if item then
-
-
 			local wx, wy = item.world_x, item.world_y
 			local tx, ty = params.gamerules:screenToWorld(x, y)
 			item.world_x, item.world_y = tx+16, ty+16
@@ -288,15 +304,14 @@ function Game:drawInventory( params )
 			item:onDraw( params )
 			item.visible = false
 			item.world_x, item.world_y = wx, wy
-
-
-			if self.selected_item == i then
-				love.graphics.setColor(255, 255, 255, 128)
-				love.graphics.rectangle("line", x, y, INVENTORY_SLOT_SIZE, INVENTORY_SLOT_SIZE)
-			end
-
-			x = x + INVENTORY_SLOT_SIZE
 		end
+
+		if self.selected_item == i then
+			love.graphics.setColor(255, 255, 255, 128)
+			love.graphics.rectangle("line", x, y, INVENTORY_SLOT_SIZE, INVENTORY_SLOT_SIZE)
+		end		
+
+		x = x + INVENTORY_SLOT_SIZE		
 	end
 end
 
@@ -408,23 +423,34 @@ function Game:onKeyReleased( params )
 end
 
 function Game:onMousePressed( params )
-	local player = self.gamerules:getPlayer()
-	if player.item == nil then
-		local item = self.gamerules:findEntityAtMouse()
-		if not item then
-			return
-		end
+	if params.button == "l" then
+		local player = self.gamerules:getPlayer()
+		if player.item == nil then
+			local item = self.gamerules:findEntityAtMouse()
+			if item then
+				if player:canPickupItem(self.gamerules, item) and (#self.inventory < INVENTORY_MAX_SLOTS) then
+					table.insert(self.inventory, item)
+				end
 
-		if player:canPickupItem(self.gamerules, item) and (#self.inventory < INVENTORY_MAX_SLOTS) then
-			player.item = item
-			table.insert(self.inventory, player.item)
-		end
+				logging.verbose( "picked up item: " .. tostring(item))
+				self.gamerules:removeCollision(item)
+				item.visible = false
+			else
+				-- place item from inventory
+				item = self.inventory[self.selected_item]
 
-		if player.item then
-			logging.verbose( "picked up item: " .. tostring(player.item))
-			self.gamerules:removeCollision(player.item)
-			player.item.visible = false
+				if item then
+					local mx, my = love.mouse.getPosition()
+					item.world_x, item.world_y = self.gamerules:screenToWorld(mx, my)
+					item.visible = true
+					self.gamerules:addCollision(item)
+					self.inventory[self.selected_item] = nil
+					--self:nextItem()
+				end
+			end
 		end
+	elseif params.button == "m" then
+
 	end
 end
 
