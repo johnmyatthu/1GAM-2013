@@ -3,8 +3,26 @@ require "core.actions"
 require "game"
 require "game.screens.help"
 
+InputState = class("InputState")
+function InputState:initialize()
+	self.mouse = {}
+	self.mouse.prev = {x=0,y=0}
+	self.mouse.curr = {x=0,y=0}
+	self.mouse.delta = {x=0,y=0}
+end
+
+function InputState:update(dt)
+	self.mouse.prev.x, self.mouse.prev.y = self.mouse.curr.x, self.mouse.curr.y
+	self.mouse.curr.x, self.mouse.curr.y = love.mouse.getPosition() 
+
+	self.mouse.delta.x, self.mouse.delta.y = (self.mouse.curr.x-self.mouse.prev.x), (self.mouse.curr.y-self.mouse.prev.y)
+end
+
+
 local player = nil
 
+local INVENTORY_MAX_SLOTS = 4
+local INVENTORY_SLOT_SIZE = 32
 
 -- Game class
 Game = class( "Game", Screen )
@@ -25,6 +43,14 @@ function Game:initialize( gamerules, config, fonts, screencontrol )
 
 	self:onLoadGame( {gamerules=self.gamerules} )	
 	love.mouse.setVisible( true )
+
+
+	self.input = InputState()
+	self.highlighted_item = nil
+
+	self.inventory = {}
+	self.selected_item = 1
+
 end
 
 
@@ -156,10 +182,13 @@ function Game:onUpdate( params )
 	params.gamestate = self.state
 	params.gamerules = self.gamerules
 
+	self.input:update(params.dt)
+
 	if self.state == GAME_STATE_PLAY then
 		local player = self.gamerules:getPlayer()
 
-		
+		--local sx, sy = self.gamerules:worldToScreen(self.mouse.curr.x, self.mouse.curr.y)
+		self.highlighted_item = self.gamerules:findEntityAtMouse( false )
 
 		--local cam_x, cam_y = self.gamerules:getCameraPosition()
 		-- if love.keyboard.isDown( self:keyForAction(core.actions.MOVE_MAP_UP) ) then cam_y = cam_y + self.config.move_speed*params.dt end
@@ -238,6 +267,39 @@ function Game:drawTopBar( params )
 	love.graphics.print( "Score: " .. tostring(params.gamerules.score), 20, 5 )	
 end
 
+function Game:drawInventory( params )
+	local inventory_width = (INVENTORY_MAX_SLOTS * INVENTORY_SLOT_SIZE)
+	local x = (love.graphics.getWidth()/2) - (inventory_width/2)
+	local y = love.graphics.getHeight()-INVENTORY_SLOT_SIZE
+	love.graphics.setColor(32, 32, 32, 192)
+	love.graphics.rectangle("fill", x, y, inventory_width, INVENTORY_SLOT_SIZE)
+
+	love.graphics.setColor(0,0,0,255)
+	--love.graphics.rectangle("line", x, y, inventory_width, INVENTORY_SLOT_SIZE)
+	for i=1, INVENTORY_MAX_SLOTS do
+		local item = self.inventory[i]
+		if item then
+
+
+			local wx, wy = item.world_x, item.world_y
+			local tx, ty = params.gamerules:screenToWorld(x, y)
+			item.world_x, item.world_y = tx+16, ty+16
+			item.visible = true
+			item:onDraw( params )
+			item.visible = false
+			item.world_x, item.world_y = wx, wy
+
+
+			if self.selected_item == i then
+				love.graphics.setColor(255, 255, 255, 128)
+				love.graphics.rectangle("line", x, y, INVENTORY_SLOT_SIZE, INVENTORY_SLOT_SIZE)
+			end
+
+			x = x + INVENTORY_SLOT_SIZE
+		end
+	end
+end
+
 function Game:onDraw( params )
 	love.graphics.setBackgroundColor( 0, 0, 0, 255 )
 	love.graphics.clear()
@@ -260,11 +322,27 @@ function Game:onDraw( params )
 		love.graphics.setFont( self.fonts[ "text16" ] )
 		love.graphics.setColor( 255, 255, 255, 255 )
 		
-		self:drawTopBar(params)
+		self:drawTopBar( params )
 
-		love.graphics.print( "Player is on ground? " .. tostring(player:isOnGround()), 10, 200 )
+		--love.graphics.print( "Player is on ground? " .. tostring(player:isOnGround()), 10, 200 )
 
 		--love.graphics.print( "Total Entities: " .. self.gamerules.entity_manager:entityCount(), 10, 50 )
+
+
+		if self.highlighted_item and (self.highlighted_item ~= player) then
+			local x,y = self.highlighted_item.world_x, self.highlighted_item.world_y
+
+			if player:canPickupItem(self.gamerules, self.highlighted_item) then
+				love.graphics.setColor( 0, 255, 32, 255 )
+			else
+				love.graphics.setColor( 192, 0, 0, 255 )
+			end
+			love.graphics.rectangle("line", x-16, y-16, 32, 32)
+		end
+
+
+		self:drawInventory( params )
+
 	elseif self.state == GAME_STATE_WIN then
 		self.gamerules:drawWorld()
 		self.gamerules:drawEntities( params )
@@ -330,6 +408,24 @@ function Game:onKeyReleased( params )
 end
 
 function Game:onMousePressed( params )
+	local player = self.gamerules:getPlayer()
+	if player.item == nil then
+		local item = self.gamerules:findEntityAtMouse()
+		if not item then
+			return
+		end
+
+		if player:canPickupItem(self.gamerules, item) and (#self.inventory < INVENTORY_MAX_SLOTS) then
+			player.item = item
+			table.insert(self.inventory, player.item)
+		end
+
+		if player.item then
+			logging.verbose( "picked up item: " .. tostring(player.item))
+			self.gamerules:removeCollision(player.item)
+			player.item.visible = false
+		end
+	end
 end
 
 function Game:onMouseReleased( params )

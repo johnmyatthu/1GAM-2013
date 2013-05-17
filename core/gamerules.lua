@@ -179,9 +179,9 @@ end
 
 function GameRules:removeCollision( entity )
 
-	if self.collision_layer then
-		self.collision_layer:set( entity.tile_x, entity.tile_y, nil )
-	end
+	--if self.collision_layer then
+	--	self.collision_layer:set( entity.tile_x, entity.tile_y, nil )
+	--end
 
 	-- if self.grid then
 	-- 	self.grid:removeShape( entity )
@@ -250,19 +250,18 @@ end
 
 
 
-
-
-
-
-
-function GameRules:findEntityAtMouse()
+function GameRules:findEntityAtMouse( find_invisible )
 	local mx, my = love.mouse.getPosition()
 
 	for _,e in pairs(self.entity_manager:allEntities()) do
 		local dx, dy = (mx-e.world_x), (my-e.world_y)
 		local dist = math.sqrt(dx*dx + dy*dy)
 		if dist < 16 then
-			return e
+			if find_invisible then
+				return e
+			elseif e.visible then
+				return e		
+			end
 		end
 	end
 
@@ -799,6 +798,7 @@ function GameRules:removeEntity(entity)
 	self.entity_manager:removeEntity( entity )
 	self:removeCollision(entity)
 end
+
 
 function GameRules:onUpdate(params)
 	params.gamerules = self

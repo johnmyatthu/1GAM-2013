@@ -9,8 +9,7 @@ function Player:initialize()
 	self.dir = {x=0, y=0}
 
 	self.visible = true
-	self.last_y = self.world_y
-	self.last_delta_y = 1
+	self.item = nil
 end
 
 function Player:onSpawn( params )
@@ -20,19 +19,11 @@ function Player:onSpawn( params )
 end
 
 function Player:onUpdate( params )
-	-- self.world_x = self.world_x + self.velocity.x * params.dt
-	-- self.world_y = self.world_y + self.velocity.y * params.dt
-
-	-- if not self:isOnGround() then
-	-- 	self.velocity.y = self.velocity.y + (400 * params.dt)
-	-- 	self.last_delta_y = 1
-	-- end
-	-- self.last_y = self.world_y
 	AnimatedSprite.onUpdate(self, params)
 end
 
 function Player:postFrameUpdate(params)
-	self.last_delta_y = (self.world_y - self.last_y)
+	AnimatedSprite.postFrameUpdate(self, params)
 end
 
 function Player:respondsToEvent( event_name, params )
@@ -50,16 +41,10 @@ end
 function Player:endCollision( entity )
 end
 
-function Player:jump()
-	if self:isOnGround() then
-		self.velocity.y = self.velocity.y - 300
-		self.world_y = self.world_y - 10
-	end
-end
 
-function Player:isOnGround()
-	return self.last_delta_y == 0
-	-- return #self.underBlocks > 0
+function Player:canPickupItem( gamerules, entity )
+	if not entity then return end
+	return gamerules:calculateEntityDistance(entity, self) < 48
 end
 
 function Player:onDraw( params )

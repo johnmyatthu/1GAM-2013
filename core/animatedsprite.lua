@@ -147,17 +147,19 @@ end
 function AnimatedSprite:onDraw( params )	
 	Entity.onDraw(self, params)
 
-	love.graphics.setColor( self.color.r, self.color.g, self.color.b, self.color.a )
-	if self.animations then
-		local x, y = params.gamerules:worldToScreen( (self.world_x - (self.frame_width/2)), self.world_y - (self.frame_height/2) )
+	if self.visible then
+		love.graphics.setColor( self.color.r, self.color.g, self.color.b, self.color.a )
+		if self.animations then
+			local x, y = params.gamerules:worldToScreen( (self.world_x - (self.frame_width/2)), self.world_y - (self.frame_height/2) )
 
-		local animation = self.animations[ self.current_animation ][ self.current_direction ]
-		if animation then
-			animation:draw(x, y)
+			local animation = self.animations[ self.current_animation ][ self.current_direction ]
+			if animation then
+				animation:draw(x, y)
+			end
 		end
-	end
 
-	love.graphics.setColor( 255, 255, 255, 255 )
+		love.graphics.setColor( 255, 255, 255, 255 )
+	end
 
 	-- get my position in screen space
 	--local x, y = params.gamerules:worldToScreen( self.world_x, self.world_y )

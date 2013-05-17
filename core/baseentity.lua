@@ -17,6 +17,7 @@ function Entity:initialize()
 
 	self.color = { r=255, g=255, b=255, a=255 }
 	self.collision_mask = 0
+	self.visible = true
 
 	self.health = 100 -- current health for this entity
 	self.max_health = 100 -- maximum health for this entity
