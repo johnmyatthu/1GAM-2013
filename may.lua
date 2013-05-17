@@ -346,7 +346,7 @@ function Game:onDraw( params )
 		
 		self:drawTopBar( params )
 
-		love.graphics.print( "Camera Position: " .. tostring(camx) .. ", " .. tostring(camy), 10, 100 )
+		--love.graphics.print( "Camera Position: " .. tostring(camx) .. ", " .. tostring(camy), 10, 100 )
 
 		--love.graphics.print( "Total Entities: " .. self.gamerules.entity_manager:entityCount(), 10, 50 )
 
