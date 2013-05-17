@@ -10,7 +10,7 @@ function Player:initialize()
 
 	self.visible = true
 	self.last_y = self.world_y
-	self.last_delta_y = 0
+	self.last_delta_y = 1
 end
 
 function Player:onSpawn( params )
@@ -23,8 +23,11 @@ function Player:onUpdate( params )
 	-- self.world_x = self.world_x + self.velocity.x * params.dt
 	-- self.world_y = self.world_y + self.velocity.y * params.dt
 
-	self.velocity.y = self.velocity.y + (800 * params.dt)
-	self.last_y = self.world_y
+	-- if not self:isOnGround() then
+	-- 	self.velocity.y = self.velocity.y + (400 * params.dt)
+	-- 	self.last_delta_y = 1
+	-- end
+	-- self.last_y = self.world_y
 	AnimatedSprite.onUpdate(self, params)
 end
 
@@ -45,7 +48,13 @@ function Player:collision( params )
 end
 
 function Player:endCollision( entity )
-	
+end
+
+function Player:jump()
+	if self:isOnGround() then
+		self.velocity.y = self.velocity.y - 300
+		self.world_y = self.world_y - 10
+	end
 end
 
 function Player:isOnGround()

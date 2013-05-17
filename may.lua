@@ -194,9 +194,9 @@ function Game:onUpdate( params )
 		end
 
 
-		player.damping = {x=0.8, y=0.8}
-		player.velocity = direction
-		--self.gamerules:moveEntityInDirection( player, direction, params.dt )
+		--player.damping = {x=0.8, y=0.8}
+		self.velocity = direction
+		self.gamerules:moveEntityInDirection( player, direction, params.dt )
 
 		--self.gamerules:snapCameraToPlayer( player )
 
