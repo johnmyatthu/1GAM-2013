@@ -50,7 +50,7 @@ function Game:initialize( gamerules, config, fonts, screencontrol )
 	self.input = InputState()
 	self.highlighted_item = nil
 
-	self.inventory = {}
+	self.inventory = {0, 0, 0, 0}
 	self.selected_item = 1
 
 end
@@ -296,7 +296,7 @@ function Game:drawInventory( params )
 		local item = self.inventory[i]
 
 
-		if item then
+		if item ~= 0 then
 			local wx, wy = item.world_x, item.world_y
 			local tx, ty = params.gamerules:screenToWorld(x, y)
 			item.world_x, item.world_y = tx+16, ty+16
@@ -422,29 +422,61 @@ end
 function Game:onKeyReleased( params )
 end
 
+
+function Game:inventoryUsedSlots(params)
+	local used_slots = 0
+	for _,i in pairs(self.inventory) do
+		if i ~= 0 then
+			used_slots = used_slots + 1
+		end
+	end
+
+	return used_slots
+end
+
+function Game:inventoryFindUnusedSlot()
+	for index,i in ipairs(self.inventory) do
+		if i == 0 then
+			return index
+		end
+	end
+	return -1
+end
+
 function Game:onMousePressed( params )
 	if params.button == "l" then
 		local player = self.gamerules:getPlayer()
 		if player.item == nil then
 			local item = self.gamerules:findEntityAtMouse()
 			if item then
-				if player:canPickupItem(self.gamerules, item) and (#self.inventory < INVENTORY_MAX_SLOTS) then
-					table.insert(self.inventory, item)
+				local used_slots = self:inventoryUsedSlots(params)
+				if player:canPickupItem(self.gamerules, item) and (used_slots < INVENTORY_MAX_SLOTS) then
+					local target_slot = self:inventoryFindUnusedSlot()
+					logging.verbose( target_slot )
+					if target_slot > 0 then
+						self.inventory[ target_slot ] = item
+						
+						logging.verbose( "picked up item: " .. tostring(item))
+						self.gamerules:removeCollision(item)
+						item.visible = false
+					end
+				else
+					logging.verbose( "reached max used slots: " .. tostring(used_slots))
 				end
 
-				logging.verbose( "picked up item: " .. tostring(item))
-				self.gamerules:removeCollision(item)
-				item.visible = false
+
+
+
 			else
 				-- place item from inventory
 				item = self.inventory[self.selected_item]
 
-				if item then
+				if item ~= 0 then
 					local mx, my = love.mouse.getPosition()
 					item.world_x, item.world_y = self.gamerules:screenToWorld(mx, my)
 					item.visible = true
 					self.gamerules:addCollision(item)
-					self.inventory[self.selected_item] = nil
+					self.inventory[self.selected_item] = 0
 					--self:nextItem()
 				end
 			end
