@@ -268,6 +268,12 @@ function Game:onUpdate( params )
 end
 
 
+function Game:snapCoordinatesToGrid( x, y, gridsize )
+	x = math.ceil(x/gridsize) * gridsize
+	y = math.ceil(y/gridsize) * gridsize
+	return x, y
+end
+
 function Game:snapEntityToGrid( ent )
 	local mx, my = love.mouse.getPosition()
 	local gridsize = 32
@@ -352,7 +358,14 @@ function Game:onDraw( params )
 			else
 				love.graphics.setColor( 192, 0, 0, 255 )
 			end
+			
 			love.graphics.rectangle("line", x-16, y-16, 32, 32)
+		else
+			local mx, my = love.mouse.getPosition()
+			local x,y = self.gamerules:screenToWorld(mx, my)
+			x,y = self:snapCoordinatesToGrid(x,y, 32)
+			love.graphics.setColor( 0, 128, 255, 255 )
+			love.graphics.rectangle("line", x-32, y-32, 32, 32)
 		end
 
 
@@ -464,7 +477,10 @@ function Game:onMousePressed( params )
 			if item ~= 0 then
 				local mx, my = love.mouse.getPosition()
 				item.world_x, item.world_y = self.gamerules:screenToWorld(mx, my)
-				self:snapEntityToGrid(item)
+				--self:snapEntityToGrid(item)
+				item.world_x, item.world_y = self:snapCoordinatesToGrid(item.world_x, item.world_y, 32)
+				item.world_x = item.world_x - 16
+				item.world_y = item.world_y - 16
 
 				item.visible = true
 				self.gamerules:addCollision(item)

@@ -8,11 +8,6 @@
    eJxjZ2BgYKcDZqMhHrVj1I5RO0btGLVj1A5K7KA1BgCosgt3
   </data>
  </layer>
- <layer name="Collision" width="25" height="19" visible="0">
-  <data encoding="base64" compression="zlib">
-   eJxjYmBgYKIDpiUYtWPUjlE7Ru0YtWPUDkrsoDUGAHhKAKk=
-  </data>
- </layer>
  <objectgroup name="Objects" width="25" height="19">
   <object gid="3" x="352" y="320">
    <properties>
@@ -68,4 +63,14 @@
    </properties>
   </object>
  </objectgroup>
+ <layer name="house" width="25" height="19">
+  <data encoding="base64" compression="zlib">
+   eJxjYBgFo2AUjIKhA9jR8FAFbEhsWvljuNiBDIZqnAMAk0QASw==
+  </data>
+ </layer>
+ <layer name="Collision" width="25" height="19" visible="0">
+  <data encoding="base64" compression="zlib">
+   eJxjYmBgYKIDpiUYtWPUjlE7Ro4dtCxbBiqs6OGPUTvw20FrDACYSgC5
+  </data>
+ </layer>
 </map>
