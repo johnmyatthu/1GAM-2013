@@ -243,7 +243,7 @@ function Game:onUpdate( params )
 		self.velocity = direction
 		self.gamerules:moveEntityInDirection( player, direction, params.dt )
 
-		--self.gamerules:snapCameraToPlayer( player )
+		self.gamerules:snapCameraToPlayer( player )
 
 		-- self:updatePlayerDirection()
 
@@ -301,7 +301,6 @@ function Game:drawInventory( params )
 	for i=1, INVENTORY_MAX_SLOTS do
 		local item = self.inventory[i]
 
-
 		if item ~= 0 then
 			local wx, wy = item.world_x, item.world_y
 			local tx, ty = params.gamerules:screenToWorld(x, y)
@@ -313,7 +312,7 @@ function Game:drawInventory( params )
 		end
 
 		if self.selected_item == i then
-			love.graphics.setColor(255, 255, 255, 128)
+			love.graphics.setColor(255, 255, 255, 255)
 			love.graphics.rectangle("line", x, y, INVENTORY_SLOT_SIZE, INVENTORY_SLOT_SIZE)
 		end		
 
@@ -327,6 +326,8 @@ function Game:onDraw( params )
 
 	local player = self.gamerules:getPlayer()
 	params.gamestate = self.state
+
+	local camx, camy = self.gamerules:getCameraPosition()
 
 	if self.state == GAME_STATE_PLAY then
 		self.gamerules:drawWorld()
@@ -345,13 +346,14 @@ function Game:onDraw( params )
 		
 		self:drawTopBar( params )
 
-		--love.graphics.print( "Player is on ground? " .. tostring(player:isOnGround()), 10, 200 )
+		love.graphics.print( "Camera Position: " .. tostring(camx) .. ", " .. tostring(camy), 10, 100 )
 
 		--love.graphics.print( "Total Entities: " .. self.gamerules.entity_manager:entityCount(), 10, 50 )
 
 
 		if self.highlighted_item and (self.highlighted_item ~= player) then
 			local x,y = self.highlighted_item.world_x, self.highlighted_item.world_y
+			x, y = self.gamerules:worldToScreen(x,y)
 
 			if player:canPickupItem(self.gamerules, self.highlighted_item) then
 				love.graphics.setColor( 0, 255, 32, 255 )
@@ -362,8 +364,9 @@ function Game:onDraw( params )
 			love.graphics.rectangle("line", x-16, y-16, 32, 32)
 		else
 			local mx, my = love.mouse.getPosition()
-			local x,y = self.gamerules:screenToWorld(mx, my)
-			x,y = self:snapCoordinatesToGrid(x,y, 32)
+			mx,my = self.gamerules:screenToWorld(mx,my)
+			local x,y = self:snapCoordinatesToGrid(mx,my, 32)
+			x,y = self.gamerules:worldToScreen(x,y)
 			love.graphics.setColor( 0, 128, 255, 255 )
 			love.graphics.rectangle("line", x-32, y-32, 32, 32)
 		end
@@ -477,7 +480,7 @@ function Game:onMousePressed( params )
 			if item ~= 0 then
 				local mx, my = love.mouse.getPosition()
 				item.world_x, item.world_y = self.gamerules:screenToWorld(mx, my)
-				--self:snapEntityToGrid(item)
+				
 				item.world_x, item.world_y = self:snapCoordinatesToGrid(item.world_x, item.world_y, 32)
 				item.world_x = item.world_x - 16
 				item.world_y = item.world_y - 16
@@ -485,6 +488,7 @@ function Game:onMousePressed( params )
 				item.visible = true
 				self.gamerules:addCollision(item)
 				self.inventory[self.selected_item] = 0
+				self:nextItem()
 			end
 		end
 	elseif params.button == "m" then

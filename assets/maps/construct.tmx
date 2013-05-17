@@ -1,14 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<map version="1.0" orientation="orthogonal" width="25" height="19" tilewidth="32" tileheight="32">
+<map version="1.0" orientation="orthogonal" width="50" height="25" tilewidth="32" tileheight="32">
  <tileset firstgid="1" name="gametiles" tilewidth="32" tileheight="32">
   <image source="gametiles.png" width="128" height="128"/>
  </tileset>
- <layer name="Ground" width="25" height="19">
+ <layer name="Ground" width="50" height="25">
   <data encoding="base64" compression="zlib">
-   eJxjZ2BgYKcDZqMhHrVj1I5RO0btGLVj1A5K7KA1BgCosgt3
+   eJzt2LENAEAIw8BUsP/Gv8RLGOTielyGTtJH1HJ2sNjBYgeLHSx2sNjBYgeLHSxXdtXWu+1gs4Nl+t/00wMiEB3j
   </data>
  </layer>
- <objectgroup name="Objects" width="25" height="19">
+ <objectgroup name="Objects" width="50" height="25">
   <object gid="3" x="352" y="320">
    <properties>
     <property name="classname" value="info_player_spawn"/>
@@ -63,14 +63,14 @@
    </properties>
   </object>
  </objectgroup>
- <layer name="house" width="25" height="19">
+ <layer name="house" width="50" height="25">
   <data encoding="base64" compression="zlib">
-   eJxjYBgFo2AUjIKhA9jR8FAFbEhsWvljuNiBDIZqnAMAk0QASw==
+   eJzt0TEKACAMA8BO+v8fu0pni1ruIJA1JAIAgNNmCneNrf/8hx3v6rIDgFoLiVYASw==
   </data>
  </layer>
- <layer name="Collision" width="25" height="19" visible="0">
+ <layer name="Collision" width="50" height="25">
   <data encoding="base64" compression="zlib">
-   eJxjYmBgYKIDpiUYtWPUjlE7Ro4dtCxbBiqs6OGPUTvw20FrDACYSgC5
+   eJzt2DEKADAIxVDx/ofuLh0LjZ8E3PsWkXZVdchsTwcrHax0sNLBSgerlDtl67tnN8dGlw5WaQ73FSMdrHSw+v3f9HIO8UUBPQ==
   </data>
  </layer>
 </map>

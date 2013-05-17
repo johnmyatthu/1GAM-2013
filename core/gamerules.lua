@@ -253,6 +253,8 @@ end
 function GameRules:findEntityAtMouse( find_invisible )
 	local mx, my = love.mouse.getPosition()
 
+	mx, my = self:screenToWorld(mx, my)
+
 	for _,e in pairs(self.entity_manager:allEntities()) do
 		local dx, dy = (mx-e.world_x), (my-e.world_y)
 		local dist = math.sqrt(dx*dx + dy*dy)
@@ -656,7 +658,28 @@ end
 
 function GameRules:snapCameraToPlayer( player )
 	local window_width, window_height = love.graphics.getWidth(), love.graphics.getHeight()
-	self:warpCameraTo( -(player.world_x-(window_width/2)), -(player.world_y-(window_height/2)) )
+	local camx, camy = self:getCameraPosition()
+
+	local map_w, map_h = self.map.width*self.map.tileWidth, self.map.height*self.map.tileHeight
+
+	local cx = -(player.world_x - (window_width/2))
+	if cx >= 0 then
+		cx = 0
+	elseif cx + window_width <= 0 then
+		cx = -window_width
+	end
+
+	local cy = -(player.world_y - (window_height/2))
+	if cy >= 0 then
+		cy = 0
+	elseif cy + map_h < window_height then
+		cy = -(map_h - window_height)
+	end
+
+	-- logging.verbose( "map_h: " .. tostring(map_h) )
+	-- logging.verbose( "cy: " .. tostring(cy) )
+	-- logging.verbose( "window_height: " .. tostring(window_height))
+	self:warpCameraTo(cx, cy)
 end
 
 
@@ -742,7 +765,7 @@ function GameRules:drawEntities( params )
 	love.graphics.pop()
 
 
-	self.entity_manager:eventForEachEntity( "resetMoves", params )
+	-- self.entity_manager:eventForEachEntity( "resetMoves", params )
 end
 
 -- -------------------------------------------------------------
