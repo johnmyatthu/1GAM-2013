@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<map version="1.0" orientation="orthogonal" width="30" height="30" tilewidth="32" tileheight="32">
+ <tileset firstgid="1" name="rpg" tilewidth="32" tileheight="32">
+  <image source="rpg.png" width="128" height="128"/>
+ </tileset>
+ <tileset firstgid="17" name="gametiles" tilewidth="32" tileheight="32">
+  <image source="gametiles.png" width="128" height="128"/>
+ </tileset>
+ <layer name="Ground" width="30" height="30">
+  <data encoding="base64" compression="zlib">
+   eJztwwENAAAMw6DOv+kLOSSsmqqqqu8ezqADhQ==
+  </data>
+ </layer>
+ <layer name="Collision" width="30" height="30">
+  <data encoding="base64" compression="zlib">
+   eJztzbENAAAIw7De0P+P5QtgcKTMbpIevR2Xy+VyuVwul8vlfnUvHnr3CCk=
+  </data>
+ </layer>
+ <objectgroup name="Objects" width="30" height="30">
+  <object gid="19" x="128" y="192">
+   <properties>
+    <property name="classname" value="info_player_spawn"/>
+   </properties>
+  </object>
+ </objectgroup>
+</map>

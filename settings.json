@@ -1,5 +1,5 @@
 {
-	"map" : "construct.tmx",
+	"map" : "rpg.tmx",
 	"move_speed" : 100,
 	"spawn" : [0, 0],
 	"game" : "may",

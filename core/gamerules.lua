@@ -665,8 +665,8 @@ function GameRules:snapCameraToPlayer( player )
 	local cx = -(player.world_x - (window_width/2))
 	if cx >= 0 then
 		cx = 0
-	elseif cx + window_width <= 0 then
-		cx = -window_width
+	elseif cx + map_w < window_width then
+		cx = -(map_w - window_width)
 	end
 
 	local cy = -(player.world_y - (window_height/2))
