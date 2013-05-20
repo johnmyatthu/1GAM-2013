@@ -17,6 +17,7 @@ end
 
 -- I hate the way this works; it's so hacky. But - until I come up with a better way...
 function AnimatedSprite:setDirectionFromMoveCommand( command )
+	logging.verbose( "setDirectionFromMoveCommand" )
 	self.current_direction = ""
 
 	if command.up then
@@ -27,6 +28,19 @@ function AnimatedSprite:setDirectionFromMoveCommand( command )
 		self.current_direction = "east"
 	elseif command.right then
 		self.current_direction = "west"
+	end
+end
+
+function AnimatedSprite:setDirectionFromVelocity( direction )
+	local vx, vy = direction.x, direction.y
+	if vx < 0 then
+		self.current_direction = "east"
+	elseif vx > 0 then
+		self.current_direction = "west"
+	elseif vy < 0 then
+		self.current_direction = "north"
+	elseif vy > 0 then
+		self.current_direction = "south"
 	end
 end
 

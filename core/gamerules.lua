@@ -911,10 +911,8 @@ function GameRules:moveEntityInDirection( entity, direction, dt )
 
 		tile = tileX or tileY
 	end
-	
-	if nwx ~= entity.world_x and nwy ~= entity.world_y then
-		--entity:setDirectionFromMoveCommand( command )
-	end
+
+	entity:setDirectionFromVelocity( direction )
 
 	if tile then
 		entity:collision( {gamerules=self, other=nil, dx=dx*0.5, dy=dy*0.5} )
@@ -923,38 +921,41 @@ function GameRules:moveEntityInDirection( entity, direction, dt )
 	return tile
 end
 
-function GameRules:handleMovePlayerCommand( command, player )
-	-- get the next world position of the entity
-	local nwx, nwy = player.world_x, player.world_y
+-- function GameRules:handleMovePlayerCommand( command, player )
+-- 	logging.verbose( "handle move player" )
 
-	if command.up then nwy = player.world_y - (command.move_speed * command.dt) end
-	if command.down then nwy = player.world_y + (command.move_speed * command.dt) end
-	if command.left then nwx = player.world_x - (command.move_speed * command.dt) end
-	if command.right then nwx = player.world_x + (command.move_speed * command.dt) end
+-- 	-- get the next world position of the entity
+-- 	local nwx, nwy = player.world_x, player.world_y
 
-	-- could offset by sprite's half bounds to ensure they don't intersect with tiles
+-- 	if command.up then nwy = player.world_y - (command.move_speed * command.dt) end
+-- 	if command.down then nwy = player.world_y + (command.move_speed * command.dt) end
+-- 	if command.left then nwx = player.world_x - (command.move_speed * command.dt) end
+-- 	if command.right then nwx = player.world_x + (command.move_speed * command.dt) end
+
+-- 	-- could offset by sprite's half bounds to ensure they don't intersect with tiles
 	
-	-- wrap around window edges
-	if nwx < 0 then
-		nwx = love.graphics.getWidth() - nwx
-	elseif nwx > love.graphics.getWidth() then
-		nwx = nwx - love.graphics.getWidth()
-	end
-	if nwy < 0 then
-		nwy = love.graphics.getHeight() - nwy
-	elseif nwy > love.graphics.getHeight() then
-		nwy = nwy - love.graphics.getHeight()
-	end
+-- 	-- wrap around window edges
+-- 	if nwx < 0 then
+-- 		nwx = love.graphics.getWidth() - nwx
+-- 	elseif nwx > love.graphics.getWidth() then
+-- 		nwx = nwx - love.graphics.getWidth()
+-- 	end
+-- 	if nwy < 0 then
+-- 		nwy = love.graphics.getHeight() - nwy
+-- 	elseif nwy > love.graphics.getHeight() then
+-- 		nwy = nwy - love.graphics.getHeight()
+-- 	end
 
-	player.world_x = nwx
-	player.world_y = nwy
+-- 	player.world_x = nwx
+-- 	player.world_y = nwy
 	
-	if command.up or command.down or command.left or command.right then
-		player:setDirectionFromMoveCommand( command )
-	end
+-- 	if command.up or command.down or command.left or command.right then
+-- 		--player:setDirectionFromMoveCommand( command )
+-- 		player:setDirectionFromVelocity()
+-- 	end
 
-	if self.map then
-		player.tile_x, player.tile_y = self:tileCoordinatesFromWorld( player.world_x, player.world_y )
-	end
-end
+-- 	if self.map then
+-- 		player.tile_x, player.tile_y = self:tileCoordinatesFromWorld( player.world_x, player.world_y )
+-- 	end
+-- end
 

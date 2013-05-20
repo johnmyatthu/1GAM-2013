@@ -12,8 +12,8 @@ function Player:initialize()
 end
 
 function Player:onSpawn( params )
-	self:loadSprite( "assets/sprites/blocks.conf" )
-	self:playAnimation( "1" )
+	self:loadSprite( "assets/sprites/player.conf" )
+	self:playAnimation( "left" )
 	AnimatedSprite.onSpawn( self, params )
 end
 
