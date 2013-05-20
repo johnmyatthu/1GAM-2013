@@ -919,9 +919,10 @@ function GameRules:moveEntityInDirection( entity, direction, dt )
 	end
 
 	if is_moving then
-		entity:playAnimation("walk")
+		entity:playAnimation("idle")
 	end
-	entity:setDirectionFromVelocity( direction )
+	
+	--entity:setDirectionFromVelocity( direction )
 
 	if tile then
 		entity:collision( {gamerules=self, other=nil, dx=dx*0.5, dy=dy*0.5} )
