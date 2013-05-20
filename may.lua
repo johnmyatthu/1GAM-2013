@@ -203,6 +203,13 @@ function Game:onUpdate( params )
 	if self.state == GAME_STATE_PLAY then
 		local player = self.gamerules:getPlayer()
 
+
+		if love.mouse.isDown("l") then
+			player:attack()
+		else
+			player:playAnimation("idle")
+		end
+
 		--local sx, sy = self.gamerules:worldToScreen(self.mouse.curr.x, self.mouse.curr.y)
 		self.highlighted_item = self.gamerules:findEntityAtMouse( false )
 
@@ -461,36 +468,36 @@ end
 
 function Game:onMousePressed( params )
 	if params.button == "l" then
-		local player = self.gamerules:getPlayer()
-		local item = self.gamerules:findEntityAtMouse()
-		if item then
-			local used_slots = self:inventoryUsedSlots(params)
-			if player:canPickupItem(self.gamerules, item) and (used_slots < INVENTORY_MAX_SLOTS) then
-				local target_slot = self:inventoryFindUnusedSlot()
-				if target_slot > 0 then
-					self.inventory[ target_slot ] = item
-					self.gamerules:removeCollision(item)
-					item.visible = false
-				end
-			end
-		else
-			-- place item from inventory
-			item = self.inventory[self.selected_item]
+		-- local player = self.gamerules:getPlayer()
+		-- local item = self.gamerules:findEntityAtMouse()
+		-- if item then
+		-- 	local used_slots = self:inventoryUsedSlots(params)
+		-- 	if player:canPickupItem(self.gamerules, item) and (used_slots < INVENTORY_MAX_SLOTS) then
+		-- 		local target_slot = self:inventoryFindUnusedSlot()
+		-- 		if target_slot > 0 then
+		-- 			self.inventory[ target_slot ] = item
+		-- 			self.gamerules:removeCollision(item)
+		-- 			item.visible = false
+		-- 		end
+		-- 	end
+		-- else
+		-- 	-- place item from inventory
+		-- 	item = self.inventory[self.selected_item]
 
-			if item ~= 0 then
-				local mx, my = love.mouse.getPosition()
-				item.world_x, item.world_y = self.gamerules:screenToWorld(mx, my)
+		-- 	if item ~= 0 then
+		-- 		local mx, my = love.mouse.getPosition()
+		-- 		item.world_x, item.world_y = self.gamerules:screenToWorld(mx, my)
 				
-				item.world_x, item.world_y = self:snapCoordinatesToGrid(item.world_x, item.world_y, 32)
-				item.world_x = item.world_x - 16
-				item.world_y = item.world_y - 16
+		-- 		item.world_x, item.world_y = self:snapCoordinatesToGrid(item.world_x, item.world_y, 32)
+		-- 		item.world_x = item.world_x - 16
+		-- 		item.world_y = item.world_y - 16
 
-				item.visible = true
-				self.gamerules:addCollision(item)
-				self.inventory[self.selected_item] = 0
-				self:nextItem()
-			end
-		end
+		-- 		item.visible = true
+		-- 		self.gamerules:addCollision(item)
+		-- 		self.inventory[self.selected_item] = 0
+		-- 		self:nextItem()
+		-- 	end
+		-- end
 	elseif params.button == "m" then
 
 	end

@@ -869,17 +869,23 @@ function GameRules:moveEntityInDirection( entity, direction, dt )
 	local sxo = 0
 	local syo = 0
 
+	local is_moving = false
+
 	-- offset based on entity size (bounds)
 	if direction.x > 0 then
 		sxo = (w/2)
+		is_moving = true
 	elseif direction.x < 0 then
 		sxo = -(w/2)
+		is_moving = true
 	end
 
 	if direction.y > 0 then
 		syo = (h/2)
+		is_moving = true
 	elseif direction.y < 0 then
 		syo = -(h/2)
+		is_moving = true
 	end
 
 	nwx = entity.world_x + (direction.x * dt)
@@ -912,6 +918,9 @@ function GameRules:moveEntityInDirection( entity, direction, dt )
 		tile = tileX or tileY
 	end
 
+	if is_moving then
+		entity:playAnimation("walk")
+	end
 	entity:setDirectionFromVelocity( direction )
 
 	if tile then

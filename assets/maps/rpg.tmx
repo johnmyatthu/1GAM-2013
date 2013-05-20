@@ -11,9 +11,14 @@
    eJztzaEBAAAIA6AZ/P9lv1ADgUwn6SO1zOv1er1er9fr9Xq/vhcGkYMFVQ==
   </data>
  </layer>
- <layer name="Collision" width="30" height="30" visible="0">
+ <layer name="Stuff" width="30" height="30">
   <data encoding="base64" compression="zlib">
-   eJztzbENAAAIw7De0P+P5QtgcKTMbpIevR2Xy+VyuVwul8vlfnUvHnr3CCk=
+   eJzt0jENAAAIA0F84N8nDlgJzV3yc5dWwb1eStwlmz8DAF8MIaMC9Q==
+  </data>
+ </layer>
+ <layer name="Collision" width="30" height="30">
+  <data encoding="base64" compression="zlib">
+   eJzt0sEJADAMAzHPkP2H7QyF0KSgA7/1cSWpob2Ou9ft+MlPbkfcva4/38flcrlcLndmB91UCiE=
   </data>
  </layer>
  <objectgroup name="Objects" width="30" height="30">

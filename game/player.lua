@@ -41,6 +41,11 @@ function Player:endCollision( entity )
 end
 
 
+function Player:attack()
+	self:playAnimation("attack")
+end
+
+
 function Player:canPickupItem( gamerules, entity )
 	if not entity then return end
 	if entity == self then return end

@@ -19,7 +19,7 @@ function Enemy:initialize()
 	self.hit_color_cooldown_seconds = 0.1
 	self.time_until_color_restore = 0
 
-	self.collision_mask = 3
+	self.collision_mask = 0
 	self.health = 1
 
 
@@ -42,7 +42,7 @@ function Enemy:onSpawn( params )
 	self:loadSprite( "assets/sprites/blocks.conf" )
 	self:playAnimation( "1" )
 
-	self.target = params.gamerules.entity_manager:findFirstEntityByName("Player")
+	
 
 	PathFollower.onSpawn( self, params )
 end
@@ -61,6 +61,8 @@ function Enemy:onDraw( params )
 
 			self.view_direction.x = mettx
 			self.view_direction.y = metty
+		else
+			self.target = params.gamerules.entity_manager:findFirstEntityByName("Player")
 		end
 	elseif self.state == E_STATE_BOMB then
 
