@@ -3,7 +3,7 @@ function love.conf(t)
 	t.author = "Adam Petrone"
 	t.url = nil
 	t.screen.width = 800
-	t.screen.height = 600
+	t.screen.height = 640
 	t.screen.fsaa = 0
 	t.screen.fullscreen = false
 	t.screen.vsync = true
