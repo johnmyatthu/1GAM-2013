@@ -919,7 +919,7 @@ function GameRules:moveEntityInDirection( entity, direction, dt )
 	end
 
 	if is_moving then
-		entity:playAnimation("idle")
+		--entity:playAnimation("idle")
 	end
 	
 	--entity:setDirectionFromVelocity( direction )

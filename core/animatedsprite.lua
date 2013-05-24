@@ -7,7 +7,7 @@ AnimatedSprite = class( "AnimatedSprite", Entity )
 function AnimatedSprite:initialize()
 	Entity.initialize(self)
 	self.is_attacking = false
-	self.current_animation = 1
+	self.current_animation = nil
 	self.current_direction = "east"
 	self.animations = nil
 	self.spritesheet = nil
@@ -124,7 +124,10 @@ end
 
 
 function AnimatedSprite:playAnimation( name )
-	self.current_animation = 1
+	if self.current_animation == nil then
+		self.current_animation = 1
+	end
+
 	if self.animation_index_from_name[ name ] then
 		self.current_animation = self.animation_index_from_name[ name ]
 	else

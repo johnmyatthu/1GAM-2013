@@ -136,14 +136,15 @@ function Game:onLoadGame( params )
 
 	-- player.velocity.x = -50
 	-- player.velocity.y = -70
-	--self:createEnemy( 100, 200 )
+	self:createEnemy( 700, 200 )
 end
 
 function Game:createEnemy( wx, wy )
 	local enemy = self.gamerules.entity_factory:createClass( "Enemy" )
 	enemy.world_x, enemy.world_y = wx, wy
 	self.gamerules:spawnEntity( enemy, nil, nil, nil )
-
+	enemy.velocity.x = -32
+	enemy:playAnimation("enemy2")
 	return enemy
 end
 
