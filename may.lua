@@ -213,13 +213,15 @@ function Game:onUpdate( params )
 		--local sx, sy = self.gamerules:worldToScreen(self.mouse.curr.x, self.mouse.curr.y)
 		self.highlighted_item = self.gamerules:findEntityAtMouse( false )
 
-		--local cam_x, cam_y = self.gamerules:getCameraPosition()
+		local cam_x, cam_y = self.gamerules:getCameraPosition()
 		-- if love.keyboard.isDown( self:keyForAction(core.actions.MOVE_MAP_UP) ) then cam_y = cam_y + self.config.move_speed*params.dt end
 		-- if love.keyboard.isDown( self:keyForAction(core.actions.MOVE_MAP_DOWN) ) then cam_y = cam_y - self.config.move_speed*params.dt end
 		-- if love.keyboard.isDown( self:keyForAction(core.actions.MOVE_MAP_LEFT) ) then cam_x = cam_x + self.config.move_speed*params.dt end
 		-- if love.keyboard.isDown( self:keyForAction(core.actions.MOVE_MAP_RIGHT) ) then cam_x = cam_x - self.config.move_speed*params.dt end
-		--cam_y = cam_y + (32 * params.dt);
-		--self.gamerules:setCameraPosition( cam_x, cam_y )
+		cam_x = cam_x - (32 * params.dt);
+		self.gamerules:setCameraPosition( cam_x, cam_y )
+
+		player.world_x = player.world_x + (32 * params.dt)
 
 		local command = { 
 		up=love.keyboard.isDown( self:keyForAction(core.actions.MOVE_PLAYER_UP) ), 
@@ -250,7 +252,7 @@ function Game:onUpdate( params )
 		self.velocity = direction
 		self.gamerules:moveEntityInDirection( player, direction, params.dt )
 
-		self.gamerules:snapCameraToPlayer( player )
+		--self.gamerules:snapCameraToPlayer( player )
 
 		-- self:updatePlayerDirection()
 
